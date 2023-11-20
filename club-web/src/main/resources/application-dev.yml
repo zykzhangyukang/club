@@ -1,0 +1,15 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: club
+  datasource:
+    username: root
+    password: DES@2120FA78BC6EB99B019C119BD8067DB0
+    url: jdbc:mysql://localhost:3306/club_dev?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true

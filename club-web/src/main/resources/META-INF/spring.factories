@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.coderman.club.config.SwaggerAutoConfiguration,\
+  com.coderman.club.config.SwaggerWebConfiguration
