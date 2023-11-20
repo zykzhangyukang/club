@@ -27,6 +27,8 @@ public class UserController {
     @PostMapping(value = "/login")
     public ResultVO<String> login(@RequestBody @Validated UserLoginDTO userLoginDTO){
 
+        int a = 10 / 0;
+
         return this.userService.login(userLoginDTO);
     }
 

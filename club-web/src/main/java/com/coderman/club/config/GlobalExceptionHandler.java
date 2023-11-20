@@ -3,6 +3,7 @@ package com.coderman.club.config;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,8 +35,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             @NonNull WebRequest request) {
 
         List<String> details = new ArrayList<String>();
-
-
         StringBuilder builder = new StringBuilder();
         builder.append(ex.getContentType());
         builder.append(" media type is not supported. Supported media types are ");
@@ -51,86 +49,44 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
-                                                                  @NonNull HttpHeaders headers,@NonNull HttpStatus status,
+                                                                  @NonNull HttpHeaders headers, @NonNull HttpStatus status,
                                                                   @NonNull WebRequest request) {
-
-        List<String> details = new ArrayList<String>();
-        details.add(ex.getMessage());
-        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_400,  "Malformed JSON request", details);
+        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_400, "Malformed JSON request", ex.getMessage());
         return ResponseEntity.status(status).body(err);
     }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                 @NonNull HttpHeaders headers,@NonNull HttpStatus status,
-                                                                  WebRequest request) {
+                                                                  @NonNull HttpHeaders headers, @NonNull HttpStatus status,
+                                                                  @NonNull WebRequest request) {
 
-        List<String> details = new ArrayList<String>();
+        List<String> details;
         details = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> error.getObjectName() + " : " + error.getDefaultMessage())
+                .sorted(String::compareTo)
                 .collect(Collectors.toList());
 
-
-        ApiError err = new ApiError(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, LocalDateTime.now() ,
-                "Validation Errors", details);
-
+        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_400, "Validation Errors", details);
         return ResponseEntity.status(status).body(err);
     }
 
-    // handleMissingServletRequestParameter : triggers when there are missing parameters
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(
-            MissingServletRequestParameterException ex, HttpHeaders headers,
-            HttpStatus status, WebRequest request) {
-
-        List<String> details = new ArrayList<String>();
-        details.add(ex.getParameterName() + " parameter is missing");
-
-        ApiError err = new ApiError(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, LocalDateTime.now() ,
-                "Missing Parameters", details);
-
+            @NonNull MissingServletRequestParameterException ex, @NonNull HttpHeaders headers,
+            @NonNull HttpStatus status, @NonNull WebRequest request) {
+        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_400, "Missing Parameters", ex.getParameterName() + " parameter is missing");
         return ResponseEntity.status(status).body(err);
     }
 
-
-    // handleUserNotFoundException : triggers when there is not resource with the specified ID in User
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex) {
-
-        List<String> details = new ArrayList<String>();
-        details.add(ex.getMessage());
-
-        ApiError err = new ApiError(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, LocalDateTime.now() ,
-                "User Not Found", details);
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    @ExceptionHandler({
+            Exception.class,
+    })
+    public final ResponseEntity<Object> handleSysException(Exception ex, WebRequest request) throws Exception {
+        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_500, "Internal Server Error", ExceptionUtils.getRootCauseMessage(ex));
+        return ResponseEntity.status(ResultConstant.RESULT_CODE_500).body(err);
     }
 
-    // handleRoleException : triggers when there is not resource with the specified ID in RefreshToken
-    @ExceptionHandler(RoleException.class)
-    public ResponseEntity<Object> handleRoleException(RoleException ex) {
 
-        List<String> details = new ArrayList<String>();
-        details.add(ex.getMessage());
-
-        ApiError err = new ApiError(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, LocalDateTime.now() ,
-                "Role Not Found", details);
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
-    }
-
-    // handleRefreshTokenException : triggers when there is not resource with the specified ID in RefreshToken
-    @ExceptionHandler(RefreshTokenException.class)
-    public ResponseEntity<Object> handleRefreshTokenException(RefreshTokenException ex) {
-
-        List<String> details = new ArrayList<String>();
-        details.add(ex.getMessage());
-
-        ApiError err = new ApiError(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, LocalDateTime.now() ,
-                "Refresh Token Not Found", details);
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
-    }
 }
