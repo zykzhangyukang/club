@@ -4,6 +4,7 @@ import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.service.user.UserService;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.user.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
@@ -25,14 +26,14 @@ public class UserController {
 
     @ApiOperation(value = "用户登录")
     @PostMapping(value = "/login")
-    public ResultVO<String> login(@RequestBody @Validated UserLoginDTO userLoginDTO){
+    public ResultVO<UserLoginVO> login(@RequestBody @Validated UserLoginDTO userLoginDTO) {
 
         return this.userService.login(userLoginDTO);
     }
 
     @ApiOperation(value = "用户注册")
     @PostMapping(value = "/register")
-    public ResultVO<Void> register(@RequestBody @Validated  UserRegisterDTO userRegisterDTO){
+    public ResultVO<Void> register(@RequestBody @Validated UserRegisterDTO userRegisterDTO) {
 
         return this.userService.register(userRegisterDTO);
     }

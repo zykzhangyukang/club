@@ -21,7 +21,10 @@ public class UserModel extends BaseModel {
     @ApiModelProperty(value = "用户id")
     private Long userId;
 
-    @ApiModelProperty(value = "昵称")
+    @ApiModelProperty(value = "用户编号")
+    private String userCode;
+
+    @ApiModelProperty(value = "用户昵称")
     private String nickname;
 
     @ApiModelProperty(value = "邮箱地址")
@@ -33,7 +36,7 @@ public class UserModel extends BaseModel {
     @ApiModelProperty(value = "密码")
     private String password;
 
-    @ApiModelProperty(value = "用户状态")
+    @ApiModelProperty(value = "账号状态")
     private String userStatus;
 
     @ApiModelProperty(value = "创建时间")

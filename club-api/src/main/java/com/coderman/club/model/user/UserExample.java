@@ -165,6 +165,76 @@ public class UserExample {
             return (Criteria) this;
         }
 
+        public Criteria andUserCodeIsNull() {
+            addCriterion("user_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeIsNotNull() {
+            addCriterion("user_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeEqualTo(String value) {
+            addCriterion("user_code =", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeNotEqualTo(String value) {
+            addCriterion("user_code <>", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeGreaterThan(String value) {
+            addCriterion("user_code >", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("user_code >=", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeLessThan(String value) {
+            addCriterion("user_code <", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeLessThanOrEqualTo(String value) {
+            addCriterion("user_code <=", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeLike(String value) {
+            addCriterion("user_code like", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeNotLike(String value) {
+            addCriterion("user_code not like", value, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeIn(List<String> values) {
+            addCriterion("user_code in", values, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeNotIn(List<String> values) {
+            addCriterion("user_code not in", values, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeBetween(String value1, String value2) {
+            addCriterion("user_code between", value1, value2, "userCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserCodeNotBetween(String value1, String value2) {
+            addCriterion("user_code not between", value1, value2, "userCode");
+            return (Criteria) this;
+        }
+
         public Criteria andNicknameIsNull() {
             addCriterion("nickname is null");
             return (Criteria) this;

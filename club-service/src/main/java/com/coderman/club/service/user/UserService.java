@@ -3,6 +3,7 @@ package com.coderman.club.service.user;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.user.UserLoginVO;
 
 /**
  * @author Administrator
@@ -15,7 +16,7 @@ public interface UserService {
      * @param userLoginDTO
      * @return
      */
-    ResultVO<String> login(UserLoginDTO userLoginDTO);
+    ResultVO<UserLoginVO> login(UserLoginDTO userLoginDTO);
 
 
     /**
