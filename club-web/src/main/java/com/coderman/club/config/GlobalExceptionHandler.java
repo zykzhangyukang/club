@@ -3,6 +3,7 @@ package com.coderman.club.config;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
  * @author Administrator
  */
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
@@ -85,6 +87,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     })
     public final ResponseEntity<Object> handleSysException(Exception ex, WebRequest request) throws Exception {
         ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_500, "Internal Server Error", ExceptionUtils.getRootCauseMessage(ex));
+        log.error("系统异常：{}",ExceptionUtils.getRootCauseMessage(ex), ex);
         return ResponseEntity.status(ResultConstant.RESULT_CODE_500).body(err);
     }
 

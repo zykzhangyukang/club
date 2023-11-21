@@ -259,12 +259,14 @@
   <select id="selectByUsername" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List"></include>
+    from club_user
     where username = #{username}
   </select>
 
   <select id="selectByEmail" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List"></include>
+    from club_user
     where email = #{email}
   </select>
 </mapper>

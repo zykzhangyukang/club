@@ -5,8 +5,8 @@ spring:
     name: club
   datasource:
     username: root
-    password: DES@2120FA78BC6EB99B019C119BD8067DB0
-    url: jdbc:mysql://localhost:3306/club_dev?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8
+    password: DES@402239CE2BC2750281C31F4CEA2619B91D0AE9C2129F6555
+    url: jdbc:mysql://gz-cynosdbmysql-grp-4e4x79rx.sql.tencentcdb.com:23688/club_dev?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8

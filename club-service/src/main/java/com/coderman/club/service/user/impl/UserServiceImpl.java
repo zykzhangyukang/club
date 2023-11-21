@@ -1,5 +1,6 @@
 package com.coderman.club.service.user.impl;
 
+import com.coderman.club.constant.user.UserConstant;
 import com.coderman.club.dao.user.UserDAO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
@@ -7,12 +8,11 @@ import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.user.UserService;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 /**
@@ -41,13 +41,13 @@ public class UserServiceImpl implements UserService {
         UserModel userModel = this.userDAO.selectByUsername(username);
         if (null != userModel) {
 
-            return ResultUtil.getWarn("用户名已被注册！");
+            return ResultUtil.getWarn("当前用户名已被注册！");
         }
 
         UserModel emailModel = this.userDAO.selectByEmail(email);
         if (null != emailModel) {
 
-            return ResultUtil.getWarn("邮箱已被注册！");
+            return ResultUtil.getWarn("当前邮箱已被注册！");
         }
 
         UserModel registerModel = new UserModel();
@@ -56,6 +56,8 @@ public class UserServiceImpl implements UserService {
         registerModel.setUsername(username);
         registerModel.setNickname(StringUtils.EMPTY);
         registerModel.setPassword(password);
+        registerModel.setNickname(RandomStringUtils.randomAlphabetic(5));
+        registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         this.userDAO.insertSelective(registerModel);
 
         return ResultUtil.getSuccess();
