@@ -27,14 +27,12 @@ public class UserController {
     @PostMapping(value = "/login")
     public ResultVO<String> login(@RequestBody @Validated UserLoginDTO userLoginDTO){
 
-        int a = 10 / 0;
-
         return this.userService.login(userLoginDTO);
     }
 
     @ApiOperation(value = "用户注册")
     @PostMapping(value = "/register")
-    public ResultVO<String> register(@RequestBody UserRegisterDTO userRegisterDTO){
+    public ResultVO<Void> register(@RequestBody @Validated  UserRegisterDTO userRegisterDTO){
 
         return this.userService.register(userRegisterDTO);
     }

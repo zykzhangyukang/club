@@ -24,5 +24,5 @@ public interface UserService {
      * @param userRegisterDTO
      * @return
      */
-    ResultVO<String> register(UserRegisterDTO userRegisterDTO);
+    ResultVO<Void> register(UserRegisterDTO userRegisterDTO);
 }
