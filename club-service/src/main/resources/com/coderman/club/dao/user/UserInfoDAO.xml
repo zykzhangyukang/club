@@ -325,4 +325,10 @@
     update club_user_info set last_login_time = #{loginTime}
     where user_id = #{userId}
   </update>
+
+  <select id="selectByUserId" resultMap="BaseResultMap">
+    select
+     <include refid="Base_Column_List"></include>
+    from club_user_info where user_id = #{userId}
+  </select>
 </mapper>

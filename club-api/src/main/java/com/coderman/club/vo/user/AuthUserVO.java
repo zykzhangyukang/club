@@ -18,6 +18,9 @@ public class AuthUserVO extends BaseModel {
     @ApiModelProperty(value = "昵称")
     private String nickname;
 
+    @ApiModelProperty(value = "头像")
+    private String avatar;
+
     @ApiModelProperty(value = "用户编号")
     private String userCode;
 

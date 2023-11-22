@@ -120,6 +120,13 @@ public class UserServiceImpl implements UserService {
         BeanUtils.copyProperties(userModel, authUserVO);
         authUserVO.setToken(token);
         authUserVO.setRefreshToken(refreshToken);
+
+        // 查询用户信息
+        UserInfoModel userInfoModel = this.userInfoService.selectByUserId(userModel.getUserId());
+        if (userInfoModel != null) {
+
+            authUserVO.setAvatar(userInfoModel.getAvatar());
+        }
         return authUserVO;
     }
 
@@ -152,19 +159,20 @@ public class UserServiceImpl implements UserService {
         registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
         registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
+        registerModel.setUpdateTime(new Date());
         this.userDAO.insertSelectiveReturnKey(registerModel);
 
         // 生成头像
-        String avatar = StringUtils.EMPTY;
-        try {
-            avatar = AvatarUtil.createBase64Avatar(registerModel.getUsername().hashCode());
-        }catch (Exception e){
-            log.error("生成用户头像失败:{}", e.getMessage(), e);
-        }
+        String avatar = generatorAvatar(registerModel);
 
         // 用户详情信息
         UserInfoModel userInfoModel = new UserInfoModel();
         userInfoModel.setUserId(registerModel.getUserId());
+        userInfoModel.setBio(StringUtils.EMPTY);
+        userInfoModel.setLocation(StringUtils.EMPTY);
+        userInfoModel.setUserTags(StringUtils.EMPTY);
+        userInfoModel.setWebsite(StringUtils.EMPTY);
+        userInfoModel.setGender(StringUtils.EMPTY);
         userInfoModel.setRegisterTime(new Date());
         userInfoModel.setFollowersCount(0L);
         userInfoModel.setFollowingCount(0L);
@@ -172,6 +180,16 @@ public class UserServiceImpl implements UserService {
         this.userInfoService.insertSelective(userInfoModel);
 
         return ResultUtil.getSuccess();
+    }
+
+    private String generatorAvatar(UserModel registerModel) {
+        String avatar = StringUtils.EMPTY;
+        try {
+            avatar = AvatarUtil.createBase64Avatar(registerModel.getUserId().hashCode());
+        } catch (Exception e) {
+            log.error("生成用户头像失败:{}", e.getMessage(), e);
+        }
+        return avatar;
     }
 
     @Override

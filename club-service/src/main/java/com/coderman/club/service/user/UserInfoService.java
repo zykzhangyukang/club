@@ -22,4 +22,12 @@ public interface UserInfoService {
      * @param date
      */
     void updateLastLoginTime(Long userId, Date date);
+
+    /**
+     * 获取用户基本信息
+     *
+     * @param userId
+     * @return
+     */
+    UserInfoModel selectByUserId(Long userId);
 }

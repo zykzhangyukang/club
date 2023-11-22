@@ -36,4 +36,13 @@ public class UserInfoServiceImpl implements UserInfoService {
         }
         this.userInfoDAO.updateLastLoginTime(userId, date);
     }
+
+    @Override
+    public UserInfoModel selectByUserId(Long userId) {
+
+        if(userId == null){
+            return null;
+        }
+        return this.userInfoDAO.selectByUserId(userId);
+    }
 }

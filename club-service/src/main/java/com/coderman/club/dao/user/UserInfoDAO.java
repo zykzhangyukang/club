@@ -13,4 +13,7 @@ import java.util.Date;
 public interface UserInfoDAO extends BaseDAO<UserInfoModel, UserInfoExample> {
 
     int updateLastLoginTime(@Param(value = "userId") Long userId,@Param(value = "loginTime") Date date);
+
+    UserInfoModel selectByUserId(@Param(value = "userId") Long userId);
+
 }
