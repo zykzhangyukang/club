@@ -1,5 +1,6 @@
 package com.coderman.club.controller.user;
 
+import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.service.user.UserService;
@@ -32,6 +33,14 @@ public class UserController {
     public ResultVO<UserLoginVO> login(@RequestBody @Validated UserLoginDTO userLoginDTO) {
 
         return this.userService.login(userLoginDTO);
+    }
+
+
+    @ApiOperation(value = "修改用户信息")
+    @PutMapping(value = "/update/info")
+    public ResultVO<Void> updateInfo(@RequestBody UserInfoDTO userInfoDTO){
+
+        return this.userService.updateInfo(userInfoDTO);
     }
 
     @ApiOperation(value = "获取用户信息")

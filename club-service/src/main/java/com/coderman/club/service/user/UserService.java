@@ -1,5 +1,6 @@
 package com.coderman.club.service.user;
 
+import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.vo.common.ResultVO;
@@ -55,4 +56,12 @@ public interface UserService {
      * @return
      */
     ResultVO<UserInfoVO> getUserInfo(String token);
+
+    /**
+     * 修改用户信息
+     *
+     * @param userInfoDTO
+     * @return
+     */
+    ResultVO<Void> updateInfo(UserInfoDTO userInfoDTO);
 }

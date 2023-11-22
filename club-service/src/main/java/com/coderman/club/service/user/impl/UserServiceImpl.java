@@ -5,6 +5,7 @@ import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.constant.user.UserConstant;
 import com.coderman.club.dao.user.UserDAO;
+import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.SerialTypeEnum;
@@ -288,5 +289,17 @@ public class UserServiceImpl implements UserService {
         }
 
         return ResultUtil.getResult(UserInfoVO.class, ResultConstant.RESULT_CODE_401, "用户未登录", null);
+    }
+
+    @Override
+    public ResultVO<Void> updateInfo(UserInfoDTO userInfoDTO) {
+
+        UserInfoModel updateModel = new UserInfoModel();
+        updateModel.setGender(userInfoDTO.getGender());
+        updateModel.setWebsite(userInfoDTO.getWebsite());
+        updateModel.setUserTags(userInfoDTO.getUserTags());
+
+
+        return null;
     }
 }
