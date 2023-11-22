@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.dao.carousel.CarouselDAO">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.carousel.CarouselModel">
+    <id column="carousel_id" jdbcType="BIGINT" property="carouselId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="image_url" jdbcType="VARCHAR" property="imageUrl" />
+    <result column="target_url" jdbcType="VARCHAR" property="targetUrl" />
+    <result column="order_priority" jdbcType="INTEGER" property="orderPriority" />
+    <result column="is_active" jdbcType="BIT" property="isActive" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    carousel_id, title, description, image_url, target_url, order_priority, is_active
+  </sql>
+  <select id="selectByExample" parameterType="com.coderman.club.model.carousel.CarouselExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from club_carousel
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from club_carousel
+    where carousel_id = #{carouselId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from club_carousel
+    where carousel_id = #{carouselId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.coderman.club.model.carousel.CarouselExample">
+    delete from club_carousel
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.coderman.club.model.carousel.CarouselModel">
+    insert into club_carousel (carousel_id, title, description, 
+      image_url, target_url, order_priority, 
+      is_active)
+    values (#{carouselId,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, 
+      #{imageUrl,jdbcType=VARCHAR}, #{targetUrl,jdbcType=VARCHAR}, #{orderPriority,jdbcType=INTEGER}, 
+      #{isActive,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.coderman.club.model.carousel.CarouselModel">
+    insert into club_carousel
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="carouselId != null">
+        carousel_id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="imageUrl != null">
+        image_url,
+      </if>
+      <if test="targetUrl != null">
+        target_url,
+      </if>
+      <if test="orderPriority != null">
+        order_priority,
+      </if>
+      <if test="isActive != null">
+        is_active,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="carouselId != null">
+        #{carouselId,jdbcType=BIGINT},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="imageUrl != null">
+        #{imageUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="targetUrl != null">
+        #{targetUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="orderPriority != null">
+        #{orderPriority,jdbcType=INTEGER},
+      </if>
+      <if test="isActive != null">
+        #{isActive,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.coderman.club.model.carousel.CarouselExample" resultType="java.lang.Long">
+    select count(*) from club_carousel
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update club_carousel
+    <set>
+      <if test="record.carouselId != null">
+        carousel_id = #{record.carouselId,jdbcType=BIGINT},
+      </if>
+      <if test="record.title != null">
+        title = #{record.title,jdbcType=VARCHAR},
+      </if>
+      <if test="record.description != null">
+        description = #{record.description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.imageUrl != null">
+        image_url = #{record.imageUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetUrl != null">
+        target_url = #{record.targetUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderPriority != null">
+        order_priority = #{record.orderPriority,jdbcType=INTEGER},
+      </if>
+      <if test="record.isActive != null">
+        is_active = #{record.isActive,jdbcType=BIT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update club_carousel
+    set carousel_id = #{record.carouselId,jdbcType=BIGINT},
+      title = #{record.title,jdbcType=VARCHAR},
+      description = #{record.description,jdbcType=VARCHAR},
+      image_url = #{record.imageUrl,jdbcType=VARCHAR},
+      target_url = #{record.targetUrl,jdbcType=VARCHAR},
+      order_priority = #{record.orderPriority,jdbcType=INTEGER},
+      is_active = #{record.isActive,jdbcType=BIT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.coderman.club.model.carousel.CarouselModel">
+    update club_carousel
+    <set>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="imageUrl != null">
+        image_url = #{imageUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="targetUrl != null">
+        target_url = #{targetUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="orderPriority != null">
+        order_priority = #{orderPriority,jdbcType=INTEGER},
+      </if>
+      <if test="isActive != null">
+        is_active = #{isActive,jdbcType=BIT},
+      </if>
+    </set>
+    where carousel_id = #{carouselId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.carousel.CarouselModel">
+    update club_carousel
+    set title = #{title,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
+      image_url = #{imageUrl,jdbcType=VARCHAR},
+      target_url = #{targetUrl,jdbcType=VARCHAR},
+      order_priority = #{orderPriority,jdbcType=INTEGER},
+      is_active = #{isActive,jdbcType=BIT}
+    where carousel_id = #{carouselId,jdbcType=BIGINT}
+  </update>
+</mapper>

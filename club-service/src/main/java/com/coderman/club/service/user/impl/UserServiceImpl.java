@@ -13,6 +13,7 @@ import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.user.UserInfoService;
+import com.coderman.club.service.user.UserLoginLogService;
 import com.coderman.club.service.user.UserService;
 import com.coderman.club.utils.AvatarUtil;
 import com.coderman.club.utils.MD5Utils;
@@ -56,6 +57,9 @@ public class UserServiceImpl implements UserService {
     @Resource
     private UserInfoService userInfoService;
 
+    @Resource
+    private UserLoginLogService userLoginLogService;
+
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<UserLoginVO> login(UserLoginDTO userLoginDTO) {
@@ -90,6 +94,8 @@ public class UserServiceImpl implements UserService {
             String token = RandomStringUtils.randomAlphabetic(50);
             String refreshToken = RandomStringUtils.randomAlphabetic(50);
 
+            Date loginTime = new Date();
+
             // 会话对象创建
             AuthUserVO authUserVO = this.convertToAuthVO(userModel, token, refreshToken);
             // 保存登录令牌 (1小时)
@@ -97,7 +103,9 @@ public class UserServiceImpl implements UserService {
             // 保存刷新令牌 (7天)
             this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
             // 更新最新登录时间
-            this.userInfoService.updateLastLoginTime(authUserVO.getUserId(), new Date());
+            this.userInfoService.updateLastLoginTime(authUserVO.getUserId(),loginTime);
+            // 保存登录日志
+            this.userLoginLogService.insertLoginLog(authUserVO, loginTime);
 
             UserLoginVO userLoginVO = new UserLoginVO();
             BeanUtils.copyProperties(userModel, userLoginVO);

@@ -32,11 +32,21 @@
         <mysql.connector.version>8.0.19</mysql.connector.version>
         <knife4j.version>3.0.3</knife4j.version>
         <jasypt.boot.starter>2.1.1</jasypt.boot.starter>
+        <ip2region.version>1.7</ip2region.version>
     </properties>
+
 
     <dependencyManagement>
 
         <dependencies>
+
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
+            </dependency>
+
+
             <dependency>
                 <groupId>com.coderman</groupId>
                 <artifactId>club-api</artifactId>
@@ -60,6 +70,13 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>

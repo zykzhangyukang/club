@@ -1,4 +1,4 @@
-package com.coderman.club.controller;
+package com.coderman.club.controller.user;
 
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
