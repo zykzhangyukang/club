@@ -78,6 +78,15 @@ public interface BaseDAO<T, E> {
      */
     T selectByPrimaryKey(Integer primaryKey);
 
+
+    /**
+     * 根据主键查询
+     *
+     * @param primaryKey
+     * @return
+     */
+    T selectByPrimaryKey(Long primaryKey);
+
     /**
      * 根据主键查询
      *

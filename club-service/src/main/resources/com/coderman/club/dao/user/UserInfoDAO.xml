@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.dao.user.UserInfoDAO">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.user.UserInfoModel">
+    <id column="user_info_id" jdbcType="BIGINT" property="userInfoId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="user_tags" jdbcType="VARCHAR" property="userTags" />
+    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="gender" jdbcType="VARCHAR" property="gender" />
+    <result column="bio" jdbcType="VARCHAR" property="bio" />
+    <result column="website" jdbcType="VARCHAR" property="website" />
+    <result column="location" jdbcType="VARCHAR" property="location" />
+    <result column="followers_count" jdbcType="BIGINT" property="followersCount" />
+    <result column="following_count" jdbcType="BIGINT" property="followingCount" />
+    <result column="register_time" jdbcType="TIMESTAMP" property="registerTime" />
+    <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    user_info_id, user_id, user_tags, avatar, gender, bio, website, location, followers_count, 
+    following_count, register_time, last_login_time
+  </sql>
+  <select id="selectByExample" parameterType="com.coderman.club.model.user.UserInfoExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from club_user_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from club_user_info
+    where user_info_id = #{userInfoId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from club_user_info
+    where user_info_id = #{userInfoId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.coderman.club.model.user.UserInfoExample">
+    delete from club_user_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.coderman.club.model.user.UserInfoModel">
+    insert into club_user_info (user_info_id, user_id, user_tags, 
+      avatar, gender, bio, 
+      website, location, followers_count, 
+      following_count, register_time, last_login_time
+      )
+    values (#{userInfoId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{userTags,jdbcType=VARCHAR}, 
+      #{avatar,jdbcType=VARCHAR}, #{gender,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, 
+      #{website,jdbcType=VARCHAR}, #{location,jdbcType=VARCHAR}, #{followersCount,jdbcType=BIGINT}, 
+      #{followingCount,jdbcType=BIGINT}, #{registerTime,jdbcType=TIMESTAMP}, #{lastLoginTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.coderman.club.model.user.UserInfoModel">
+    insert into club_user_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="userInfoId != null">
+        user_info_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="userTags != null">
+        user_tags,
+      </if>
+      <if test="avatar != null">
+        avatar,
+      </if>
+      <if test="gender != null">
+        gender,
+      </if>
+      <if test="bio != null">
+        bio,
+      </if>
+      <if test="website != null">
+        website,
+      </if>
+      <if test="location != null">
+        location,
+      </if>
+      <if test="followersCount != null">
+        followers_count,
+      </if>
+      <if test="followingCount != null">
+        following_count,
+      </if>
+      <if test="registerTime != null">
+        register_time,
+      </if>
+      <if test="lastLoginTime != null">
+        last_login_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="userInfoId != null">
+        #{userInfoId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="userTags != null">
+        #{userTags,jdbcType=VARCHAR},
+      </if>
+      <if test="avatar != null">
+        #{avatar,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null">
+        #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="bio != null">
+        #{bio,jdbcType=VARCHAR},
+      </if>
+      <if test="website != null">
+        #{website,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null">
+        #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="followersCount != null">
+        #{followersCount,jdbcType=BIGINT},
+      </if>
+      <if test="followingCount != null">
+        #{followingCount,jdbcType=BIGINT},
+      </if>
+      <if test="registerTime != null">
+        #{registerTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastLoginTime != null">
+        #{lastLoginTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.coderman.club.model.user.UserInfoExample" resultType="java.lang.Long">
+    select count(*) from club_user_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update club_user_info
+    <set>
+      <if test="record.userInfoId != null">
+        user_info_id = #{record.userInfoId,jdbcType=BIGINT},
+      </if>
+      <if test="record.userId != null">
+        user_id = #{record.userId,jdbcType=BIGINT},
+      </if>
+      <if test="record.userTags != null">
+        user_tags = #{record.userTags,jdbcType=VARCHAR},
+      </if>
+      <if test="record.avatar != null">
+        avatar = #{record.avatar,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gender != null">
+        gender = #{record.gender,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bio != null">
+        bio = #{record.bio,jdbcType=VARCHAR},
+      </if>
+      <if test="record.website != null">
+        website = #{record.website,jdbcType=VARCHAR},
+      </if>
+      <if test="record.location != null">
+        location = #{record.location,jdbcType=VARCHAR},
+      </if>
+      <if test="record.followersCount != null">
+        followers_count = #{record.followersCount,jdbcType=BIGINT},
+      </if>
+      <if test="record.followingCount != null">
+        following_count = #{record.followingCount,jdbcType=BIGINT},
+      </if>
+      <if test="record.registerTime != null">
+        register_time = #{record.registerTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.lastLoginTime != null">
+        last_login_time = #{record.lastLoginTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update club_user_info
+    set user_info_id = #{record.userInfoId,jdbcType=BIGINT},
+      user_id = #{record.userId,jdbcType=BIGINT},
+      user_tags = #{record.userTags,jdbcType=VARCHAR},
+      avatar = #{record.avatar,jdbcType=VARCHAR},
+      gender = #{record.gender,jdbcType=VARCHAR},
+      bio = #{record.bio,jdbcType=VARCHAR},
+      website = #{record.website,jdbcType=VARCHAR},
+      location = #{record.location,jdbcType=VARCHAR},
+      followers_count = #{record.followersCount,jdbcType=BIGINT},
+      following_count = #{record.followingCount,jdbcType=BIGINT},
+      register_time = #{record.registerTime,jdbcType=TIMESTAMP},
+      last_login_time = #{record.lastLoginTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.coderman.club.model.user.UserInfoModel">
+    update club_user_info
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="userTags != null">
+        user_tags = #{userTags,jdbcType=VARCHAR},
+      </if>
+      <if test="avatar != null">
+        avatar = #{avatar,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null">
+        gender = #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="bio != null">
+        bio = #{bio,jdbcType=VARCHAR},
+      </if>
+      <if test="website != null">
+        website = #{website,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null">
+        location = #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="followersCount != null">
+        followers_count = #{followersCount,jdbcType=BIGINT},
+      </if>
+      <if test="followingCount != null">
+        following_count = #{followingCount,jdbcType=BIGINT},
+      </if>
+      <if test="registerTime != null">
+        register_time = #{registerTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastLoginTime != null">
+        last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where user_info_id = #{userInfoId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.user.UserInfoModel">
+    update club_user_info
+    set user_id = #{userId,jdbcType=BIGINT},
+      user_tags = #{userTags,jdbcType=VARCHAR},
+      avatar = #{avatar,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=VARCHAR},
+      bio = #{bio,jdbcType=VARCHAR},
+      website = #{website,jdbcType=VARCHAR},
+      location = #{location,jdbcType=VARCHAR},
+      followers_count = #{followersCount,jdbcType=BIGINT},
+      following_count = #{followingCount,jdbcType=BIGINT},
+      register_time = #{registerTime,jdbcType=TIMESTAMP},
+      last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP}
+    where user_info_id = #{userInfoId,jdbcType=BIGINT}
+  </update>
+
+  <update id="updateLastLoginTime">
+    update club_user_info set last_login_time = #{loginTime}
+    where user_id = #{userId}
+  </update>
+</mapper>

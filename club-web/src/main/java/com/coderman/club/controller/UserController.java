@@ -35,7 +35,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "获取用户信息")
-    @GetMapping(value = "/getUserInfo")
+    @GetMapping(value = "/info")
     public ResultVO<UserInfoVO> getUserInfo(String token){
 
         return this.userService.getUserInfo(token);
@@ -47,7 +47,7 @@ public class UserController {
         return this.userService.refreshToken(refreshToken);
     }
 
-    @ApiOperation(value = "用户注销登录")
+    @ApiOperation(value = "注销登录")
     @GetMapping(value = "/logout")
     public ResultVO<Void> logout(String token) {
 

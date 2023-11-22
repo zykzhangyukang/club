@@ -8,10 +8,13 @@ import com.coderman.club.dao.user.UserDAO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.SerialTypeEnum;
+import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
+import com.coderman.club.service.user.UserInfoService;
 import com.coderman.club.service.user.UserService;
+import com.coderman.club.utils.AvatarUtil;
 import com.coderman.club.utils.MD5Utils;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.utils.SerialNumberUtil;
@@ -20,12 +23,14 @@ import com.coderman.club.vo.user.AuthUserVO;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -36,6 +41,7 @@ import java.util.concurrent.TimeUnit;
  * @date ：2023/11/20 14:48
  */
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     @Resource
@@ -47,7 +53,11 @@ public class UserServiceImpl implements UserService {
     @Resource
     private RedisLockService redisLockService;
 
+    @Resource
+    private UserInfoService userInfoService;
+
     @Override
+    @Transactional(rollbackFor = Throwable.class)
     public ResultVO<UserLoginVO> login(UserLoginDTO userLoginDTO) {
 
         final String lockName = RedisKeyConstant.REDIS_LOGIN_LOCK_PREFIX + userLoginDTO.getUsername();
@@ -82,11 +92,12 @@ public class UserServiceImpl implements UserService {
 
             // 会话对象创建
             AuthUserVO authUserVO = this.convertToAuthVO(userModel, token, refreshToken);
-
             // 保存登录令牌 (1小时)
             this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, 60 * 60, RedisDbConstant.REDIS_DB_DEFAULT);
             // 保存刷新令牌 (7天)
             this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
+            // 更新最新登录时间
+            this.userInfoService.updateLastLoginTime(authUserVO.getUserId(), new Date());
 
             UserLoginVO userLoginVO = new UserLoginVO();
             BeanUtils.copyProperties(userModel, userLoginVO);
@@ -113,6 +124,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> register(UserRegisterDTO userRegisterDTO) {
 
         String username = userRegisterDTO.getUsername();
@@ -131,15 +143,33 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("当前邮箱已被注册！");
         }
 
+        // 用户账号信息
         UserModel registerModel = new UserModel();
         registerModel.setCreateTime(new Date());
         registerModel.setPassword(MD5Utils.md5Hex(password.getBytes()));
         registerModel.setEmail(email);
         registerModel.setUsername(username);
-        registerModel.setNickname("U_" + RandomStringUtils.randomAlphabetic(5));
+        registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
         registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
-        this.userDAO.insertSelective(registerModel);
+        this.userDAO.insertSelectiveReturnKey(registerModel);
+
+        // 生成头像
+        String avatar = StringUtils.EMPTY;
+        try {
+            avatar = AvatarUtil.createBase64Avatar(registerModel.getUsername().hashCode());
+        }catch (Exception e){
+            log.error("生成用户头像失败:{}", e.getMessage(), e);
+        }
+
+        // 用户详情信息
+        UserInfoModel userInfoModel = new UserInfoModel();
+        userInfoModel.setUserId(registerModel.getUserId());
+        userInfoModel.setRegisterTime(new Date());
+        userInfoModel.setFollowersCount(0L);
+        userInfoModel.setFollowingCount(0L);
+        userInfoModel.setAvatar(AvatarUtil.BASE64_PREFIX + avatar);
+        this.userInfoService.insertSelective(userInfoModel);
 
         return ResultUtil.getSuccess();
     }
@@ -179,7 +209,7 @@ public class UserServiceImpl implements UserService {
             // 生成新的访问令牌和刷新token
             String newToken = RandomStringUtils.randomAlphabetic(50);
             String newRefreshToken = RandomStringUtils.randomAlphabetic(50);
-            UserModel userModel = this.userDAO.selectByUsername(oldAuthUserVo.getUsername());
+            UserModel userModel = this.userDAO.selectByPrimaryKey(oldAuthUserVo.getUserId());
             if (userModel == null) {
 
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResultUtil.getFail("会话错误，请重新登录！"));
