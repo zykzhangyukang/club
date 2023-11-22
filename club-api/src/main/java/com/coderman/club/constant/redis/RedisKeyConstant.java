@@ -1,6 +1,9 @@
 package com.coderman.club.constant.redis;
 
-public interface RedisPrefixConstant {
+/**
+ * @author Administrator
+ */
+public interface RedisKeyConstant {
 
     /**
      * 全局分布式锁
@@ -10,6 +13,7 @@ public interface RedisPrefixConstant {
      * 登录分布式锁
      */
     public static final String REDIS_LOGIN_LOCK_PREFIX = "REDIS_LOGIN_LOCK";
+    public static final String REDIS_REFRESH_LOCK_PREFIX = "REDIS_LOGIN_REFRESH";
 
     /**
      * 用户令牌访问

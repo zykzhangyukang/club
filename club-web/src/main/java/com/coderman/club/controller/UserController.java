@@ -4,9 +4,12 @@ import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.service.user.UserService;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.user.UserInfoVO;
+import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +32,26 @@ public class UserController {
     public ResultVO<UserLoginVO> login(@RequestBody @Validated UserLoginDTO userLoginDTO) {
 
         return this.userService.login(userLoginDTO);
+    }
+
+    @ApiOperation(value = "获取用户信息")
+    @GetMapping(value = "/getUserInfo")
+    public ResultVO<UserInfoVO> getUserInfo(String token){
+
+        return this.userService.getUserInfo(token);
+    }
+
+    @ApiOperation(value = "刷新令牌")
+    @GetMapping(value = "/refresh/token")
+    public ResponseEntity<ResultVO<UserLoginRefreshVO>> refreshToken(String refreshToken) {
+        return this.userService.refreshToken(refreshToken);
+    }
+
+    @ApiOperation(value = "用户注销登录")
+    @GetMapping(value = "/logout")
+    public ResultVO<Void> logout(String token) {
+
+        return this.userService.logout(token);
     }
 
     @ApiOperation(value = "用户注册")

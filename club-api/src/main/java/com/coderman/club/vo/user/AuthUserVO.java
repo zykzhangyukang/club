@@ -5,6 +5,9 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/**
+ * @author zhangyukang
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class AuthUserVO extends BaseModel {
@@ -20,4 +23,10 @@ public class AuthUserVO extends BaseModel {
 
     @ApiModelProperty(value = "用户名")
     private String username;
+
+    @ApiModelProperty(value = "访问令牌")
+    private String token;
+
+    @ApiModelProperty(value = "刷新令牌")
+    private String refreshToken;
 }

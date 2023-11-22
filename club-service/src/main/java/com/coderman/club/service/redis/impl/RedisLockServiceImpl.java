@@ -1,9 +1,8 @@
 package com.coderman.club.service.redis.impl;
 
-import com.coderman.club.constant.redis.RedisPrefixConstant;
+import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.service.redis.RedisLockService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
@@ -32,7 +31,7 @@ public class RedisLockServiceImpl implements RedisLockService {
 
         try {
 
-            String redisLockName = RedisPrefixConstant.REDIS_LOCK_PREFIX + lockName;
+            String redisLockName = RedisKeyConstant.REDIS_LOCK_PREFIX + lockName;
             ValueOperations valueOperations = redisTemplate.opsForValue();
             long beginTime = System.currentTimeMillis();
 
@@ -116,7 +115,7 @@ public class RedisLockServiceImpl implements RedisLockService {
 
 
         try {
-            String redisLockName = RedisPrefixConstant.REDIS_LOCK_PREFIX + lockName;
+            String redisLockName = RedisKeyConstant.REDIS_LOCK_PREFIX + lockName;
 
             // 获取锁lock的值,如果lock中的值大于系统时间,则说明当前这个锁还是自己的锁 (只要lock的值还在有效期内,别人是无法拿到你的锁),则删除该锁资源
             Object lockValue = redisTemplate.opsForValue().get(redisLockName);

@@ -6,11 +6,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * @author Administrator
+ * @author ：zhangyukang
+ * @date ：2023/11/22 15:20
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class UserLoginVO extends BaseModel {
+public class UserInfoVO extends BaseModel {
 
     @ApiModelProperty(value = "用户id")
     private Long userId;
@@ -23,10 +24,4 @@ public class UserLoginVO extends BaseModel {
 
     @ApiModelProperty(value = "用户名")
     private String username;
-
-    @ApiModelProperty(value = "访问令牌")
-    private String token;
-
-    @ApiModelProperty(value = "刷新令牌")
-    private String refreshToken;
 }
