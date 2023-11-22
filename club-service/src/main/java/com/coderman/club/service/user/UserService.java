@@ -64,4 +64,13 @@ public interface UserService {
      * @return
      */
     ResultVO<Void> updateInfo(UserInfoDTO userInfoDTO);
+
+
+    /**
+     * 获取图形验证码
+     *
+     * @param captchaKey
+     * @return
+     */
+    ResultVO<String> loginCaptcha(String captchaKey);
 }

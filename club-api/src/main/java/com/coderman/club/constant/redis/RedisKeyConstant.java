@@ -23,4 +23,8 @@ public interface RedisKeyConstant {
      * 用户刷新访问
      */
     public static final String USER_REFRESH_TOKEN_PREFIX = "club.user:refresh_token:";
+    /**
+     * 登录验证码
+     */
+    public static final String USER_LOGIN_CAPTCHA_PREFIX  = "club.login:captcha_code:";
 }

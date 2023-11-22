@@ -16,15 +16,13 @@ import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.user.UserInfoService;
 import com.coderman.club.service.user.UserLoginLogService;
 import com.coderman.club.service.user.UserService;
-import com.coderman.club.utils.AvatarUtil;
-import com.coderman.club.utils.MD5Utils;
-import com.coderman.club.utils.ResultUtil;
-import com.coderman.club.utils.SerialNumberUtil;
+import com.coderman.club.utils.*;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
+import com.wf.captcha.SpecCaptcha;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +73,12 @@ public class UserServiceImpl implements UserService {
 
         try {
 
+            // 验证码验证码校验
+            boolean success = this.checkLoginCaptcha(userLoginDTO.getCode(), userLoginDTO.getCaptchaKey());
+            if (!success) {
+                return ResultUtil.getWarn("验证码错误！");
+            }
+
             String username = userLoginDTO.getUsername();
             String password = userLoginDTO.getPassword();
             UserModel userModel = this.userDAO.selectByUsername(username);
@@ -104,7 +108,7 @@ public class UserServiceImpl implements UserService {
             // 保存刷新令牌 (7天)
             this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
             // 更新最新登录时间
-            this.userInfoService.updateLastLoginTime(authUserVO.getUserId(),loginTime);
+            this.userInfoService.updateLastLoginTime(authUserVO.getUserId(), loginTime);
             // 保存登录日志
             this.userLoginLogService.insertLoginLog(authUserVO, loginTime);
 
@@ -119,6 +123,22 @@ public class UserServiceImpl implements UserService {
             this.redisLockService.unlock(lockName);
         }
 
+    }
+
+    private boolean checkLoginCaptcha(String code, String captchaKey) {
+        if (StringUtils.isBlank(captchaKey) || StringUtils.isBlank(code)) {
+            return false;
+        }
+        String redisCode = this.redisService.getString(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + captchaKey, RedisDbConstant.REDIS_DB_DEFAULT);
+        if (StringUtils.isBlank(redisCode)) {
+            return false;
+        }
+        // 删除验证码
+        long del = this.redisService.del(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + captchaKey, RedisDbConstant.REDIS_DB_DEFAULT);
+        if (del > 0) {
+            log.warn("校验验证码错误,清空验证码. ip:{},", IpUtil.getIp(HttpContextUtil.getHttpServletRequest()));
+        }
+        return StringUtils.equalsIgnoreCase(redisCode, code);
     }
 
     private AuthUserVO convertToAuthVO(UserModel userModel, String token, String refreshToken) {
@@ -301,5 +321,21 @@ public class UserServiceImpl implements UserService {
 
 
         return null;
+    }
+
+    @Override
+    public ResultVO<String> loginCaptcha(String k) {
+
+        if (StringUtils.isBlank(k)) {
+            return ResultUtil.getWarn("验证码唯一标识不能为空！");
+        }
+
+        // 验证码生成
+        SpecCaptcha specCaptcha = new SpecCaptcha(100, 32, 5);
+        String base64 = specCaptcha.toBase64();
+        String code = specCaptcha.text();
+
+        this.redisService.setString(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + k, code, RedisDbConstant.REDIS_DB_DEFAULT);
+        return ResultUtil.getSuccess(String.class, base64);
     }
 }

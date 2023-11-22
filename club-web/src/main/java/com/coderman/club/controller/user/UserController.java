@@ -36,6 +36,14 @@ public class UserController {
     }
 
 
+    @ApiOperation(value = "登录验证码获取")
+    @GetMapping(value = "/login/captcha")
+    public ResultVO<String> loginCaptcha(String k){
+
+        return this.userService.loginCaptcha(k);
+    }
+
+
     @ApiOperation(value = "修改用户信息")
     @PutMapping(value = "/update/info")
     public ResultVO<Void> updateInfo(@RequestBody UserInfoDTO userInfoDTO){

@@ -64,6 +64,11 @@
             <artifactId>ip2region</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.whvcse</groupId>
+            <artifactId>easy-captcha</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

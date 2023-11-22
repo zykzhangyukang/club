@@ -33,6 +33,7 @@
         <knife4j.version>3.0.3</knife4j.version>
         <jasypt.boot.starter>2.1.1</jasypt.boot.starter>
         <ip2region.version>1.7</ip2region.version>
+        <captcha.version>1.6.2</captcha.version>
     </properties>
 
 
@@ -44,6 +45,12 @@
                 <groupId>org.lionsoul</groupId>
                 <artifactId>ip2region</artifactId>
                 <version>${ip2region.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.whvcse</groupId>
+                <artifactId>easy-captcha</artifactId>
+                <version>${captcha.version}</version>
             </dependency>
 
 

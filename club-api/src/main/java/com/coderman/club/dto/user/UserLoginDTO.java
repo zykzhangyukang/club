@@ -27,4 +27,13 @@ public class UserLoginDTO extends BaseModel {
     @NotBlank(message = "登录密码不能为空！")
     @Size(max = 20, message = "登录密码不能大于20位")
     private String password;
+
+    @ApiModelProperty(value = "验证码")
+    @NotBlank(message = "验证码不能为空！")
+    @Size(max = 5, message = "验证码错误！")
+    private String code;
+
+    @ApiModelProperty(value = "验证码key")
+    @NotBlank(message = "验证码key不能为空！")
+    private String captchaKey;
 }
