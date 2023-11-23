@@ -1,20 +1,16 @@
 package com.coderman.club.service.user;
 
+import com.coderman.club.model.user.UserInfoExample;
 import com.coderman.club.model.user.UserInfoModel;
+import com.coderman.club.service.common.BaseService;
 
 import java.util.Date;
 
 /**
  * @author Administrator
  */
-public interface UserInfoService {
+public interface UserInfoService extends BaseService<UserInfoModel, UserInfoExample> {
 
-    /**
-     * 新增用户信息
-     *
-     * @param userInfoModel
-     */
-    void insertSelective(UserInfoModel userInfoModel);
 
     /**
      * 更新最新登录时间
@@ -30,4 +26,13 @@ public interface UserInfoService {
      * @return
      */
     UserInfoModel selectByUserId(Long userId);
+
+    /**
+     *
+     * 更新用户基本信息
+     *
+     * @param userInfoModel
+     * @return
+     */
+    int updateUserInfoByUserId(UserInfoModel userInfoModel);
 }

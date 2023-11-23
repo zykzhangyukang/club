@@ -1,6 +1,7 @@
 package com.coderman.club.config;
 
 import com.coderman.club.constant.common.ResultConstant;
+import com.coderman.club.exception.RateLimitException;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -28,6 +30,16 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(@NonNull HttpRequestMethodNotSupportedException ex,
+                                                                         @NonNull HttpHeaders headers,
+                                                                         @NonNull HttpStatus status,
+                                                                         @NonNull WebRequest request) {
+
+        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_405, "Method Not Allowed", ExceptionUtils.getRootCauseMessage(ex));
+        return ResponseEntity.status(status).body(err);
+    }
 
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(
@@ -88,7 +100,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public final ResponseEntity<Object> handleSysException(Exception ex, WebRequest request) throws Exception {
         ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_500, "Internal Server Error", ExceptionUtils.getRootCauseMessage(ex));
         log.error("系统异常：{}",ExceptionUtils.getRootCauseMessage(ex), ex);
-        return ResponseEntity.status(ResultConstant.RESULT_CODE_500).body(err);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+    }
+
+
+    @ExceptionHandler({
+            RateLimitException.class,
+    })
+    public final ResponseEntity<Object> handleRateLimitException(Exception ex, WebRequest request) throws Exception {
+        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_429, "Too Many Requests", ExceptionUtils.getRootCauseMessage(ex));
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
     }
 
 

@@ -12,8 +12,8 @@ public interface RedisKeyConstant {
     /**
      * 登录分布式锁
      */
-    public static final String REDIS_LOGIN_LOCK_PREFIX = "REDIS_LOGIN_LOCK";
-    public static final String REDIS_REFRESH_LOCK_PREFIX = "REDIS_LOGIN_REFRESH";
+    public static final String REDIS_LOGIN_LOCK_PREFIX = "REDIS_LOGIN_LOCK:";
+    public static final String REDIS_REFRESH_LOCK_PREFIX = "REDIS_LOGIN_REFRESH:";
 
     /**
      * 用户令牌访问

@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -122,7 +123,6 @@ public class UserServiceImpl implements UserService {
 
             this.redisLockService.unlock(lockName);
         }
-
     }
 
     private boolean checkLoginCaptcha(String code, String captchaKey) {
@@ -297,30 +297,46 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResultVO<UserInfoVO> getUserInfo(String token) {
 
-        if (StringUtils.isNotBlank(token)) {
+        if (StringUtils.isBlank(token)) {
 
+            return ResultUtil.getSuccess(UserInfoVO.class, null);
+
+        } else {
+
+            UserInfoVO userInfoVO = null;
             AuthUserVO authUserVO = this.redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
             if (authUserVO != null) {
-
-                UserInfoVO userInfoVO = new UserInfoVO();
+                userInfoVO = new UserInfoVO();
                 BeanUtils.copyProperties(authUserVO, userInfoVO);
-                return ResultUtil.getSuccess(UserInfoVO.class, userInfoVO);
             }
-        }
 
-        return ResultUtil.getResult(UserInfoVO.class, ResultConstant.RESULT_CODE_401, "用户未登录", null);
+            return ResultUtil.getSuccess(UserInfoVO.class, userInfoVO);
+        }
     }
 
     @Override
     public ResultVO<Void> updateInfo(UserInfoDTO userInfoDTO) {
 
+        AuthUserVO current = AuthUtil.getCurrent();
+        if(current == null){
+
+            return ResultUtil.getWarn("当前用户未登录！");
+        }
+
         UserInfoModel updateModel = new UserInfoModel();
+
+        updateModel.setUserId(current.getUserId());
+        updateModel.setUserTags(userInfoDTO.getUserTags());
+        updateModel.setAvatar(userInfoDTO.getAvatar());
         updateModel.setGender(userInfoDTO.getGender());
         updateModel.setWebsite(userInfoDTO.getWebsite());
-        updateModel.setUserTags(userInfoDTO.getUserTags());
+        updateModel.setBio(userInfoDTO.getBio());
+        updateModel.setLocation(userInfoDTO.getLocation());
 
+        // 编辑用户信息
+        this.userInfoService.updateUserInfoByUserId(updateModel);
 
-        return null;
+        return ResultUtil.getSuccess();
     }
 
     @Override
@@ -330,12 +346,17 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("验证码唯一标识不能为空！");
         }
 
+        if (StringUtils.length(k) > 32) {
+            return ResultUtil.getWarn("参数错误！");
+        }
+
         // 验证码生成
         SpecCaptcha specCaptcha = new SpecCaptcha(100, 32, 5);
         String base64 = specCaptcha.toBase64();
         String code = specCaptcha.text();
 
-        this.redisService.setString(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + k, code, RedisDbConstant.REDIS_DB_DEFAULT);
+        // 保存到redis,30秒后过期
+        this.redisService.setString(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + k, code, 30, RedisDbConstant.REDIS_DB_DEFAULT);
         return ResultUtil.getSuccess(String.class, base64);
     }
 }

@@ -1,7 +1,9 @@
 package com.coderman.club.service.user.impl;
 
 import com.coderman.club.dao.user.UserInfoDAO;
+import com.coderman.club.model.user.UserInfoExample;
 import com.coderman.club.model.user.UserInfoModel;
+import com.coderman.club.service.common.impl.BaseServiceImpl;
 import com.coderman.club.service.user.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,18 +17,10 @@ import java.util.Date;
  */
 @Slf4j
 @Service
-public class UserInfoServiceImpl implements UserInfoService {
+public class UserInfoServiceImpl extends BaseServiceImpl<UserInfoModel, UserInfoExample> implements UserInfoService {
 
     @Resource
     private UserInfoDAO userInfoDAO;
-
-    @Override
-    public void insertSelective(UserInfoModel userInfoModel) {
-        if(userInfoModel == null){
-            return;
-        }
-        this.userInfoDAO.insertSelective(userInfoModel);
-    }
 
     @Override
     public void updateLastLoginTime(Long userId, Date date) {
@@ -44,5 +38,13 @@ public class UserInfoServiceImpl implements UserInfoService {
             return null;
         }
         return this.userInfoDAO.selectByUserId(userId);
+    }
+
+    @Override
+    public int updateUserInfoByUserId(UserInfoModel userInfoModel) {
+        if(userInfoModel == null || userInfoModel.getUserId() == null){
+            return 0;
+        }
+        return this.userInfoDAO.updateUserInfoByUserId(userInfoModel);
     }
 }

@@ -1,5 +1,8 @@
 package com.coderman.club.constant.user;
 
+/**
+ * @author Administrator
+ */
 public interface UserConstant {
 
     /**

@@ -16,4 +16,5 @@ public interface UserInfoDAO extends BaseDAO<UserInfoModel, UserInfoExample> {
 
     UserInfoModel selectByUserId(@Param(value = "userId") Long userId);
 
+    int updateUserInfoByUserId(UserInfoModel userInfoModel);
 }

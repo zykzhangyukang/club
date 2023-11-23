@@ -331,4 +331,16 @@
      <include refid="Base_Column_List"></include>
     from club_user_info where user_id = #{userId}
   </select>
+
+  <update id="updateUserInfoByUserId">
+    update club_user_info
+    set
+        user_tags = #{userTags,jdbcType=VARCHAR},
+        avatar = #{avatar,jdbcType=VARCHAR},
+        gender = #{gender,jdbcType=VARCHAR},
+        bio = #{bio,jdbcType=VARCHAR},
+        website = #{website,jdbcType=VARCHAR},
+        location = #{location,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=BIGINT}
+  </update>
 </mapper>

@@ -3,6 +3,7 @@ package com.coderman.club.controller.user;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
+import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.service.user.UserService;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.user.UserInfoVO;
@@ -30,15 +31,17 @@ public class UserController {
 
     @ApiOperation(value = "用户登录")
     @PostMapping(value = "/login")
+    @RateLimit
     public ResultVO<UserLoginVO> login(@RequestBody @Validated UserLoginDTO userLoginDTO) {
 
         return this.userService.login(userLoginDTO);
     }
 
 
-    @ApiOperation(value = "登录验证码获取")
+    @ApiOperation(value = "获取登录验证码")
     @GetMapping(value = "/login/captcha")
-    public ResultVO<String> loginCaptcha(String k){
+    @RateLimit(replenishRate = 2, burstCapacity = 6)
+    public ResultVO<String> loginCaptcha(String k) {
 
         return this.userService.loginCaptcha(k);
     }
@@ -46,14 +49,14 @@ public class UserController {
 
     @ApiOperation(value = "修改用户信息")
     @PutMapping(value = "/update/info")
-    public ResultVO<Void> updateInfo(@RequestBody UserInfoDTO userInfoDTO){
+    public ResultVO<Void> updateInfo(@RequestBody @Validated UserInfoDTO userInfoDTO) {
 
         return this.userService.updateInfo(userInfoDTO);
     }
 
     @ApiOperation(value = "获取用户信息")
     @GetMapping(value = "/info")
-    public ResultVO<UserInfoVO> getUserInfo(String token){
+    public ResultVO<UserInfoVO> getUserInfo(String token) {
 
         return this.userService.getUserInfo(token);
     }
