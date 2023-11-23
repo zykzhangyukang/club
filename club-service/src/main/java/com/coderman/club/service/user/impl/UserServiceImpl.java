@@ -346,7 +346,7 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("验证码唯一标识不能为空！");
         }
 
-        if (StringUtils.length(k) > 32) {
+        if (StringUtils.length(k) > 64) {
             return ResultUtil.getWarn("参数错误！");
         }
 
