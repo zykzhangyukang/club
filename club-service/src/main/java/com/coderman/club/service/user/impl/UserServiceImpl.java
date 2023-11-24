@@ -5,13 +5,16 @@ import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.constant.user.UserConst;
 import com.coderman.club.constant.user.UserFollowingConst;
 import com.coderman.club.dao.user.UserDAO;
+import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
+import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
+import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.user.UserFollowingService;
@@ -33,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +54,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private UserFollowingService userFollowingService;
+
+    @Resource
+    private NotificationService notificationService;
 
     @Resource
     private RedisService redisService;
@@ -210,6 +217,15 @@ public class UserServiceImpl implements UserService {
         userInfoModel.setFollowingCount(0L);
         userInfoModel.setAvatar(AvatarUtil.BASE64_PREFIX + avatar);
         this.userInfoService.insertSelective(userInfoModel);
+
+        // 发送消息欢迎语
+        NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                .senderId(0L)
+                .userIdList(Collections.singletonList(registerModel.getUserId()))
+                .typeEnum(NotificationTypeEnum.REGISTER_WELCOME)
+                .content(String.format(NotificationTypeEnum.REGISTER_WELCOME.getTemplate(), registerModel.getNickname()))
+                .build();
+        this.notificationService.saveAndNotify(notifyMsgDTO);
 
         return ResultUtil.getSuccess();
     }
