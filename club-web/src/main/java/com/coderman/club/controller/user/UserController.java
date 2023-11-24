@@ -1,9 +1,9 @@
 package com.coderman.club.controller.user;
 
+import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
-import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.service.user.UserService;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.user.UserInfoVO;
@@ -11,7 +11,6 @@ import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

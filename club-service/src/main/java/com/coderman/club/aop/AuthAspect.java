@@ -83,6 +83,8 @@ public class AuthAspect {
         WHITE_LIST.add("/api/user/login/captcha");
         // 用户信息获取
         WHITE_LIST.add("/api/user/info");
+        // 首页板块列表
+        WHITE_LIST.add("/api/section/list");
     }
 
     @Around("pointcut()")

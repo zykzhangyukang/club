@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.dao.section.SectionDAO">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.section.SectionModel">
+    <id column="section_id" jdbcType="BIGINT" property="sectionId" />
+    <result column="section_name" jdbcType="VARCHAR" property="sectionName" />
+    <result column="parent_section" jdbcType="BIGINT" property="parentSection" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="is_active" jdbcType="BIT" property="isActive" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    section_id, section_name, parent_section, description, is_active
+  </sql>
+  <select id="selectByExample" parameterType="com.coderman.club.model.section.SectionExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from club_section
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from club_section
+    where section_id = #{sectionId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from club_section
+    where section_id = #{sectionId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.coderman.club.model.section.SectionExample">
+    delete from club_section
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.coderman.club.model.section.SectionModel">
+    insert into club_section (section_id, section_name, parent_section, 
+      description, is_active)
+    values (#{sectionId,jdbcType=BIGINT}, #{sectionName,jdbcType=VARCHAR}, #{parentSection,jdbcType=BIGINT}, 
+      #{description,jdbcType=VARCHAR}, #{isActive,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.coderman.club.model.section.SectionModel">
+    insert into club_section
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sectionId != null">
+        section_id,
+      </if>
+      <if test="sectionName != null">
+        section_name,
+      </if>
+      <if test="parentSection != null">
+        parent_section,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="isActive != null">
+        is_active,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sectionId != null">
+        #{sectionId,jdbcType=BIGINT},
+      </if>
+      <if test="sectionName != null">
+        #{sectionName,jdbcType=VARCHAR},
+      </if>
+      <if test="parentSection != null">
+        #{parentSection,jdbcType=BIGINT},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="isActive != null">
+        #{isActive,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.coderman.club.model.section.SectionExample" resultType="java.lang.Long">
+    select count(*) from club_section
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update club_section
+    <set>
+      <if test="record.sectionId != null">
+        section_id = #{record.sectionId,jdbcType=BIGINT},
+      </if>
+      <if test="record.sectionName != null">
+        section_name = #{record.sectionName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.parentSection != null">
+        parent_section = #{record.parentSection,jdbcType=BIGINT},
+      </if>
+      <if test="record.description != null">
+        description = #{record.description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isActive != null">
+        is_active = #{record.isActive,jdbcType=BIT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update club_section
+    set section_id = #{record.sectionId,jdbcType=BIGINT},
+      section_name = #{record.sectionName,jdbcType=VARCHAR},
+      parent_section = #{record.parentSection,jdbcType=BIGINT},
+      description = #{record.description,jdbcType=VARCHAR},
+      is_active = #{record.isActive,jdbcType=BIT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.coderman.club.model.section.SectionModel">
+    update club_section
+    <set>
+      <if test="sectionName != null">
+        section_name = #{sectionName,jdbcType=VARCHAR},
+      </if>
+      <if test="parentSection != null">
+        parent_section = #{parentSection,jdbcType=BIGINT},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="isActive != null">
+        is_active = #{isActive,jdbcType=BIT},
+      </if>
+    </set>
+    where section_id = #{sectionId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.section.SectionModel">
+    update club_section
+    set section_name = #{sectionName,jdbcType=VARCHAR},
+      parent_section = #{parentSection,jdbcType=BIGINT},
+      description = #{description,jdbcType=VARCHAR},
+      is_active = #{isActive,jdbcType=BIT}
+    where section_id = #{sectionId,jdbcType=BIGINT}
+  </update>
+</mapper>
