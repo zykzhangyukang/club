@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -76,6 +75,8 @@ public class AuthAspect {
     public void init() {
         // 登录接口
         WHITE_LIST.add("/api/user/login");
+        // 刷新token
+        WHITE_LIST.add("/api/user/refresh/token");
         // 注销登录
         WHITE_LIST.add("/api/user/logout");
         // 登录验证码

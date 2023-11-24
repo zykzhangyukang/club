@@ -1,18 +1,20 @@
 package com.coderman.club.service.user.impl;
 
-import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
-import com.coderman.club.constant.user.UserConstant;
+import com.coderman.club.constant.user.UserConst;
+import com.coderman.club.constant.user.UserFollowingConst;
 import com.coderman.club.dao.user.UserDAO;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.SerialTypeEnum;
+import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
+import com.coderman.club.service.user.UserFollowingService;
 import com.coderman.club.service.user.UserInfoService;
 import com.coderman.club.service.user.UserLoginLogService;
 import com.coderman.club.service.user.UserService;
@@ -27,14 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,6 +47,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private UserDAO userDAO;
+
+    @Resource
+    private UserFollowingService userFollowingService;
 
     @Resource
     private RedisService redisService;
@@ -87,7 +90,7 @@ public class UserServiceImpl implements UserService {
 
                 return ResultUtil.getWarn("用户名或密码错误！");
             }
-            if (StringUtils.equals(userModel.getUserStatus(), UserConstant.USER_STATUS_DISABLE)) {
+            if (StringUtils.equals(userModel.getUserStatus(), UserConst.USER_STATUS_DISABLE)) {
                 return ResultUtil.getWarn("用户状态异常，请联系管理员处理！");
             }
 
@@ -104,8 +107,8 @@ public class UserServiceImpl implements UserService {
 
             // 会话对象创建
             AuthUserVO authUserVO = this.convertToAuthVO(userModel, token, refreshToken);
-            // 保存登录令牌 (1小时)
-            this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, 60 * 60, RedisDbConstant.REDIS_DB_DEFAULT);
+            // 保存登录令牌 (1天)
+            this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, 60 * 60 * 24, RedisDbConstant.REDIS_DB_DEFAULT);
             // 保存刷新令牌 (7天)
             this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
             // 更新最新登录时间
@@ -186,7 +189,7 @@ public class UserServiceImpl implements UserService {
         registerModel.setEmail(email);
         registerModel.setUsername(username);
         registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
-        registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
+        registerModel.setUserStatus(UserConst.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
         this.userDAO.insertSelectiveReturnKey(registerModel);
@@ -237,20 +240,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<ResultVO<UserLoginRefreshVO>> refreshToken(String refreshToken) {
+    public ResultVO<UserLoginRefreshVO> refreshToken(String refreshToken) {
 
         final String lockName = RedisKeyConstant.REDIS_REFRESH_LOCK_PREFIX + refreshToken;
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
         if (!tryLock) {
 
-            return ResponseEntity.status(HttpStatus.OK).body(ResultUtil.getWarn("刷新令牌失败请重试！"));
+            return ResultUtil.getWarn("刷新令牌失败请重试！");
         }
 
         try {
 
             AuthUserVO oldAuthUserVo = this.redisService.getObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
             if (oldAuthUserVo == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResultUtil.getFail("回话已过期，请重新登录！"));
+                return ResultUtil.getFail("回话已过期，请重新登录！");
             }
 
             // 生成新的访问令牌和刷新token
@@ -259,7 +262,7 @@ public class UserServiceImpl implements UserService {
             UserModel userModel = this.userDAO.selectByPrimaryKey(oldAuthUserVo.getUserId());
             if (userModel == null) {
 
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResultUtil.getFail("会话错误，请重新登录！"));
+                return ResultUtil.getFail("会话错误，请重新登录！");
             }
 
             UserLoginRefreshVO refreshVO = new UserLoginRefreshVO();
@@ -270,12 +273,13 @@ public class UserServiceImpl implements UserService {
             boolean existsOldToken = this.redisService.exists(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + oldAuthUserVo.getToken(), RedisDbConstant.REDIS_DB_DEFAULT);
             if (!existsOldToken) {
 
+                AuthUserVO authUserVO = this.convertToAuthVO(userModel, newToken, newRefreshToken);
+
                 // 删除原来刷新令牌
                 this.redisService.del(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + oldRefreshToken, RedisDbConstant.REDIS_DB_DEFAULT);
 
-                AuthUserVO authUserVO = this.convertToAuthVO(userModel, newToken, newRefreshToken);
-                // 保存登录令牌 (1小时)
-                this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, 60 * 60, RedisDbConstant.REDIS_DB_DEFAULT);
+                // 保存登录令牌 (1天)
+                this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, 60 * 60 * 24, RedisDbConstant.REDIS_DB_DEFAULT);
                 // 保存刷新令牌 (7天)
                 this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + newRefreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
 
@@ -287,7 +291,7 @@ public class UserServiceImpl implements UserService {
                 refreshVO.setRefreshToken(oldRefreshToken);
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(ResultUtil.getSuccess(UserLoginRefreshVO.class, refreshVO));
+            return ResultUtil.getSuccess(UserLoginRefreshVO.class, refreshVO);
 
         } finally {
             this.redisLockService.unlock(lockName);
@@ -318,7 +322,7 @@ public class UserServiceImpl implements UserService {
     public ResultVO<Void> updateInfo(UserInfoDTO userInfoDTO) {
 
         AuthUserVO current = AuthUtil.getCurrent();
-        if(current == null){
+        if (current == null) {
 
             return ResultUtil.getWarn("当前用户未登录！");
         }
@@ -358,5 +362,112 @@ public class UserServiceImpl implements UserService {
         // 保存到redis,30秒后过期
         this.redisService.setString(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + k, code, 30, RedisDbConstant.REDIS_DB_DEFAULT);
         return ResultUtil.getSuccess(String.class, base64);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
+    public ResultVO<Void> follow(Long followedId) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getFail("当前用户未登录！");
+        }
+
+        if (followedId == null) {
+            return ResultUtil.getWarn("参数错误！");
+        }
+        UserModel userModel = this.userDAO.selectByPrimaryKey(followedId);
+        if (userModel == null) {
+            return ResultUtil.getWarn("被关注的人不存在！");
+        }
+        if (Objects.equals(followedId, current.getUserId())) {
+            return ResultUtil.getWarn("不能关注自己！");
+        }
+
+        final String lockName = RedisKeyConstant.REDIS_FOLLOW_LOCK_PREFIX + current + ":" + followedId;
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
+        if (!tryLock) {
+            return ResultUtil.getWarn("请勿重复操作！");
+        }
+
+        // 判断一下当前用户是否关注过该用户
+        // 1.  第一次关注，新增关注记录并发送消息通知.
+        // 2. 取消关注后再次关注，更新关注状态。
+        try {
+            UserFollowingModel userFollowingModel = this.userFollowingService.selectByUserIdAndFollowed(current.getUserId(), followedId);
+            if (userFollowingModel == null) {
+
+                // 第一次关注 - 新增
+                UserFollowingModel record = new UserFollowingModel();
+                record.setFollowDate(new Date());
+                record.setFollowerId(current.getUserId());
+                record.setFollowedId(followedId);
+                record.setStatus(UserFollowingConst.FOLLOWING_STATUS_NORMAL);
+                this.userFollowingService.insertSelective(record);
+
+            } else if (StringUtils.equals(userFollowingModel.getStatus(), UserFollowingConst.FOLLOWING_STATUS_CANCEL)) {
+
+                // 取消关注后再次关注 - 更新
+                UserFollowingModel update = new UserFollowingModel();
+                update.setFollowId(userFollowingModel.getFollowId());
+                update.setStatus(UserFollowingConst.FOLLOWING_STATUS_NORMAL);
+                update.setFollowDate(new Date());
+                this.userFollowingService.updateByPrimaryKeySelective(update);
+
+            } else if (StringUtils.equals(userFollowingModel.getStatus(), UserFollowingConst.FOLLOWING_STATUS_NORMAL)) {
+
+                return ResultUtil.getWarn("已关注用户，请勿重复操作！");
+            }
+
+        } finally {
+            this.redisLockService.unlock(lockName);
+        }
+        return ResultUtil.getSuccess();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
+    public ResultVO<Void> unfollow(Long followedId) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getFail("当前用户未登录！");
+        }
+
+        if (followedId == null || Objects.equals(followedId, current.getUserId())) {
+            return ResultUtil.getWarn("参数错误！");
+        }
+        UserModel userModel = this.userDAO.selectByPrimaryKey(followedId);
+        if (userModel == null) {
+            return ResultUtil.getWarn("被关注的人不存在！");
+        }
+
+        final String lockName = RedisKeyConstant.REDIS_UNFOLLOW_LOCK_PREFIX + current + ":" + followedId;
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
+        if (!tryLock) {
+            return ResultUtil.getWarn("请勿重复操作！");
+        }
+
+        try {
+
+            UserFollowingModel userFollowingModel = this.userFollowingService.selectByUserIdAndFollowed(current.getUserId(), followedId);
+            if (userFollowingModel == null) {
+                return ResultUtil.getWarn("参数错误！");
+            }
+
+            if (StringUtils.equals(userFollowingModel.getStatus(), UserFollowingConst.FOLLOWING_STATUS_CANCEL)) {
+                return ResultUtil.getWarn("已取消关注用户，请勿重复操作！");
+            }
+
+            // 取消关注后再次关注 - 更新
+            UserFollowingModel update = new UserFollowingModel();
+            update.setFollowId(userFollowingModel.getFollowId());
+            update.setStatus(UserFollowingConst.FOLLOWING_STATUS_CANCEL);
+            this.userFollowingService.updateByPrimaryKeySelective(update);
+        } finally {
+            this.redisLockService.unlock(lockName);
+        }
+
+        return ResultUtil.getSuccess();
     }
 }

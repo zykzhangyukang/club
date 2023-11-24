@@ -37,6 +37,19 @@ public class UserController {
         return this.userService.login(userLoginDTO);
     }
 
+    @ApiOperation(value = "关注用户")
+    @PostMapping(value = "/follow/{userId}")
+    public ResultVO<Void> follow(@PathVariable(value = "userId")  Long userId){
+
+        return this.userService.follow(userId);
+    }
+
+    @ApiOperation(value = "取消关注用户")
+    @PostMapping(value = "/unfollow/{userId}")
+    public ResultVO<Void> unfollow(@PathVariable(value = "userId")  Long userId){
+
+        return this.userService.unfollow(userId);
+    }
 
     @ApiOperation(value = "获取登录验证码")
     @GetMapping(value = "/login/captcha")
@@ -63,7 +76,7 @@ public class UserController {
 
     @ApiOperation(value = "刷新令牌")
     @GetMapping(value = "/refresh/token")
-    public ResponseEntity<ResultVO<UserLoginRefreshVO>> refreshToken(String refreshToken) {
+    public ResultVO<UserLoginRefreshVO> refreshToken(String refreshToken) {
         return this.userService.refreshToken(refreshToken);
     }
 

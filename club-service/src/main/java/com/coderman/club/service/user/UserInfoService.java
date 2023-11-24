@@ -1,15 +1,13 @@
 package com.coderman.club.service.user;
 
-import com.coderman.club.model.user.UserInfoExample;
 import com.coderman.club.model.user.UserInfoModel;
-import com.coderman.club.service.common.BaseService;
 
 import java.util.Date;
 
 /**
  * @author Administrator
  */
-public interface UserInfoService extends BaseService<UserInfoModel, UserInfoExample> {
+public interface UserInfoService {
 
 
     /**
@@ -35,4 +33,12 @@ public interface UserInfoService extends BaseService<UserInfoModel, UserInfoExam
      * @return
      */
     int updateUserInfoByUserId(UserInfoModel userInfoModel);
+
+
+    /**
+     * 新增
+     *
+     * @param userInfoModel
+     */
+    void insertSelective(UserInfoModel userInfoModel);
 }

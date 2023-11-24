@@ -46,7 +46,7 @@ public interface UserService {
      * @param refreshToken
      * @return
      */
-    ResponseEntity<ResultVO<UserLoginRefreshVO>> refreshToken(String refreshToken);
+    ResultVO<UserLoginRefreshVO> refreshToken(String refreshToken);
 
 
     /**
@@ -73,4 +73,21 @@ public interface UserService {
      * @return
      */
     ResultVO<String> loginCaptcha(String captchaKey);
+
+
+    /**
+     * 关注用户
+     *
+     * @param userId
+     * @return
+     */
+    ResultVO<Void> follow(Long userId);
+
+    /**
+     * 取消关注用户
+     *
+     * @param userId
+     * @return
+     */
+    ResultVO<Void> unfollow(Long userId);
 }

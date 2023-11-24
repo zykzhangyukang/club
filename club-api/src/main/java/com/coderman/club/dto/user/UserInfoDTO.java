@@ -4,9 +4,7 @@ import com.coderman.club.model.common.BaseModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import org.hibernate.validator.constraints.Length;
 
 /**
  * @author ：zhangyukang
@@ -20,22 +18,25 @@ public class UserInfoDTO extends BaseModel {
     private Long userId;
 
     @ApiModelProperty(value = "用户标签")
+    @Length(max = 512,message = "用户标签不超过512个字符")
     private String userTags;
 
     @ApiModelProperty(value = "头像地址")
-    @NotBlank(message = "用户头像不能不能为空")
+    @Length(max = 512,message = "头像地址不超过512个字符")
     private String avatar;
 
     @ApiModelProperty(value = "用户性别")
-    @Pattern(regexp = "^(male|female|other)$", message = "用户性别参数错误  male|female|other")
     private String gender;
 
     @ApiModelProperty(value = "个人简介")
+    @Length(max = 128,message = "个人简介不超过128个字符")
     private String bio;
 
     @ApiModelProperty(value = "个人网站")
+    @Length(max = 128,message = "个人网站不超过128个字符")
     private String website;
 
     @ApiModelProperty(value = "地址位置")
+    @Length(max = 16,message = "地址位置不超过16个字符")
     private String location;
 }
