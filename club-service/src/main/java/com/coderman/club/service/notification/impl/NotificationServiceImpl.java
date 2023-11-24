@@ -2,6 +2,7 @@ package com.coderman.club.service.notification.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.coderman.club.annotation.RedisChannelListener;
+import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.dao.notification.NotificationDAO;
@@ -57,10 +58,10 @@ public class NotificationServiceImpl implements NotificationService {
 
             throw new IllegalArgumentException("参数错误！");
         }
-        if (StringUtils.isBlank(content) || StringUtils.length(content) > 256) {
+        if (StringUtils.isBlank(content) || StringUtils.length(content) > CommonConstant.LENGTH_256) {
             throw new IllegalArgumentException("发送的内容不能为空，且不超过256个字符！");
         }
-        if (StringUtils.length(link) > 256) {
+        if (StringUtils.length(link) > CommonConstant.LENGTH_256) {
             throw new IllegalArgumentException("跳转链接不超过256个字符！");
         }
 

@@ -1,5 +1,6 @@
 package com.coderman.club.service.user.impl;
 
+import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.constant.user.UserConst;
@@ -220,7 +221,7 @@ public class UserServiceImpl implements UserService {
         userInfoModel.setAvatar(AvatarUtil.BASE64_PREFIX + avatar);
         this.userInfoService.insertSelective(userInfoModel);
 
-        // 新用户注册消息欢迎消息 - 延迟1分钟后发送
+        // 新用户注册消息欢迎消息 - 延迟1分钟后发送。
         NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
                 .senderId(0L)
                 .userIdList(Collections.singletonList(registerModel.getUserId()))
@@ -368,7 +369,7 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("验证码唯一标识不能为空！");
         }
 
-        if (StringUtils.length(k) > 64) {
+        if (StringUtils.length(k) > CommonConstant.LENGTH_64) {
             return ResultUtil.getWarn("参数错误！");
         }
 
