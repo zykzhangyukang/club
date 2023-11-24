@@ -22,6 +22,14 @@ public interface RedisKeyConstant {
      */
     public static final String REDIS_SECTION_CACHE = "REDIS_SECTION_CACHE";
 
+    /**
+     * websocket回话
+     */
+    public static final String WEBSOCKET_USER_SET = "websocket:user_set";
+    /**
+     * websocket消息广播
+     */
+    public static final String CHANNEL_WEBSOCKET_NOTIFY = "TOPIC://WEBSOCKET_NOTIFY";
 
 
 
