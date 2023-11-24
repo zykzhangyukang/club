@@ -39,7 +39,9 @@ import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author ：zhangyukang
@@ -218,14 +220,14 @@ public class UserServiceImpl implements UserService {
         userInfoModel.setAvatar(AvatarUtil.BASE64_PREFIX + avatar);
         this.userInfoService.insertSelective(userInfoModel);
 
-        // 发送消息欢迎语
+        // 新用户注册消息欢迎消息 - 延迟1分钟后发送
         NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
                 .senderId(0L)
                 .userIdList(Collections.singletonList(registerModel.getUserId()))
                 .typeEnum(NotificationTypeEnum.REGISTER_WELCOME)
                 .content(String.format(NotificationTypeEnum.REGISTER_WELCOME.getTemplate(), registerModel.getNickname()))
                 .build();
-        this.notificationService.saveAndNotify(notifyMsgDTO);
+        DelayQueueUtil.submit(UUID.randomUUID().toString(), notifyMsgDTO, e -> notificationService.saveAndNotify(e), 1000 * 60);
 
         return ResultUtil.getSuccess();
     }
