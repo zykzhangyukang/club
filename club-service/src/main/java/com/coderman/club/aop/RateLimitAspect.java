@@ -85,7 +85,7 @@ public class RateLimitAspect implements ApplicationContextAware {
         Long isAllowed = rateLimitResponse.get(0);
         Long newTokens = rateLimitResponse.get(1);
 
-        log.info("rate limit key [{}] result: isAllowed [{}] new tokens [{}].", resolve, isAllowed, newTokens);
+        log.debug("rate limit key [{}] result: isAllowed [{}] new tokens [{}].", resolve, isAllowed, newTokens);
 
         if (isAllowed <= 0) {
 

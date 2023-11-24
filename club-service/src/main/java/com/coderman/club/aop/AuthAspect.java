@@ -75,12 +75,14 @@ public class AuthAspect {
     public void init() {
         // 登录接口
         WHITE_LIST.add("/api/user/login");
+        // 注册接口
+        WHITE_LIST.add("/api/user/register");
         // 刷新token
         WHITE_LIST.add("/api/user/refresh/token");
         // 注销登录
         WHITE_LIST.add("/api/user/logout");
-        // 登录验证码
-        WHITE_LIST.add("/api/user/login/captcha");
+        // 图形验证码
+        WHITE_LIST.add("/api/user/captcha");
         // 用户信息获取
         WHITE_LIST.add("/api/user/info");
         // 首页板块列表

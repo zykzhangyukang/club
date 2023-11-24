@@ -42,7 +42,6 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * @author ：zhangyukang
@@ -88,7 +87,7 @@ public class UserServiceImpl implements UserService {
         try {
 
             // 验证码验证码校验
-            boolean success = this.checkLoginCaptcha(userLoginDTO.getCode(), userLoginDTO.getCaptchaKey());
+            boolean success = this.checkCaptcha(userLoginDTO.getCode(), userLoginDTO.getCaptchaKey(), "login");
             if (!success) {
                 return ResultUtil.getWarn("验证码错误！");
             }
@@ -138,18 +137,28 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private boolean checkLoginCaptcha(String code, String captchaKey) {
+    private boolean checkCaptcha(String code, String captchaKey, String captchaType) {
+
+        String redisKey;
+        if (StringUtils.equals("login", captchaType)) {
+            redisKey = RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + captchaKey;
+        } else if (StringUtils.equals("register", captchaType)) {
+            redisKey = RedisKeyConstant.USER_REGISTER_CAPTCHA_PREFIX + captchaKey;
+        } else {
+            return false;
+        }
+
         if (StringUtils.isBlank(captchaKey) || StringUtils.isBlank(code)) {
             return false;
         }
-        String redisCode = this.redisService.getString(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + captchaKey, RedisDbConstant.REDIS_DB_DEFAULT);
+        String redisCode = this.redisService.getString(redisKey, RedisDbConstant.REDIS_DB_DEFAULT);
         if (StringUtils.isBlank(redisCode)) {
             return false;
         }
         // 删除验证码
-        long del = this.redisService.del(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + captchaKey, RedisDbConstant.REDIS_DB_DEFAULT);
+        long del = this.redisService.del(redisKey, RedisDbConstant.REDIS_DB_DEFAULT);
         if (del > 0) {
-            log.warn("校验验证码错误,清空验证码. ip:{},", IpUtil.getIp(HttpContextUtil.getHttpServletRequest()));
+            log.warn("校验验证码错误,清空验证码. ip:{},captchaType:{},captchaKey:{}", IpUtil.getIp(HttpContextUtil.getHttpServletRequest()),captchaType,captchaKey);
         }
         return StringUtils.equalsIgnoreCase(redisCode, code);
     }
@@ -176,59 +185,74 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> register(UserRegisterDTO userRegisterDTO) {
 
-        String username = userRegisterDTO.getUsername();
-        String password = userRegisterDTO.getPassword();
-        String email = userRegisterDTO.getEmail();
-
-        UserModel userModel = this.userDAO.selectByUsername(username);
-        if (null != userModel) {
-
-            return ResultUtil.getWarn("当前用户名已被注册！");
+        final String lockName = RedisKeyConstant.REDIS_REGISTER_LOCK_PREFIX + userRegisterDTO.getUsername();
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
+        if (!tryLock) {
+            return ResultUtil.getWarn("请勿重复操作！");
         }
 
-        UserModel emailModel = this.userDAO.selectByEmail(email);
-        if (null != emailModel) {
+        try {
 
-            return ResultUtil.getWarn("当前邮箱已被注册！");
+            // 验证码校验
+            boolean success = this.checkCaptcha(userRegisterDTO.getCode(), userRegisterDTO.getCaptchaKey(), "register");
+            if (!success) {
+                return ResultUtil.getWarn("验证码错误！");
+            }
+
+            String username = userRegisterDTO.getUsername();
+            String password = userRegisterDTO.getPassword();
+            String email = userRegisterDTO.getEmail();
+
+            UserModel userModel = this.userDAO.selectByUsername(username);
+            if (null != userModel) {
+                return ResultUtil.getWarn("当前用户名已被注册！");
+            }
+
+            UserModel emailModel = this.userDAO.selectByEmail(email);
+            if (null != emailModel) {
+                return ResultUtil.getWarn("当前邮箱已被注册！");
+            }
+
+            // 用户账号信息
+            UserModel registerModel = new UserModel();
+            registerModel.setCreateTime(new Date());
+            registerModel.setPassword(MD5Utils.md5Hex(password.getBytes()));
+            registerModel.setEmail(email);
+            registerModel.setUsername(username);
+            registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
+            registerModel.setUserStatus(UserConst.USER_STATUS_ENABLE);
+            registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
+            registerModel.setUpdateTime(new Date());
+            this.userDAO.insertSelectiveReturnKey(registerModel);
+
+            // 生成头像
+            String avatar = generatorAvatar(registerModel);
+            // 用户详情信息
+            UserInfoModel userInfoModel = new UserInfoModel();
+            userInfoModel.setUserId(registerModel.getUserId());
+            userInfoModel.setBio(StringUtils.EMPTY);
+            userInfoModel.setLocation(StringUtils.EMPTY);
+            userInfoModel.setUserTags(StringUtils.EMPTY);
+            userInfoModel.setWebsite(StringUtils.EMPTY);
+            userInfoModel.setGender(StringUtils.EMPTY);
+            userInfoModel.setRegisterTime(new Date());
+            userInfoModel.setFollowersCount(0L);
+            userInfoModel.setFollowingCount(0L);
+            userInfoModel.setAvatar(AvatarUtil.BASE64_PREFIX + avatar);
+            this.userInfoService.insertSelective(userInfoModel);
+
+            // 新用户注册消息欢迎消息 - 延迟30s后发送。
+            NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                    .senderId(0L)
+                    .userIdList(Collections.singletonList(registerModel.getUserId()))
+                    .typeEnum(NotificationTypeEnum.REGISTER_WELCOME)
+                    .content(String.format(NotificationTypeEnum.REGISTER_WELCOME.getTemplate(), registerModel.getNickname()))
+                    .build();
+            DelayQueueUtil.submit(UUID.randomUUID().toString(), notifyMsgDTO, e -> notificationService.saveAndNotify(e), 1000 * 30);
+
+        } finally {
+            this.redisLockService.unlock(lockName);
         }
-
-        // 用户账号信息
-        UserModel registerModel = new UserModel();
-        registerModel.setCreateTime(new Date());
-        registerModel.setPassword(MD5Utils.md5Hex(password.getBytes()));
-        registerModel.setEmail(email);
-        registerModel.setUsername(username);
-        registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
-        registerModel.setUserStatus(UserConst.USER_STATUS_ENABLE);
-        registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
-        registerModel.setUpdateTime(new Date());
-        this.userDAO.insertSelectiveReturnKey(registerModel);
-
-        // 生成头像
-        String avatar = generatorAvatar(registerModel);
-
-        // 用户详情信息
-        UserInfoModel userInfoModel = new UserInfoModel();
-        userInfoModel.setUserId(registerModel.getUserId());
-        userInfoModel.setBio(StringUtils.EMPTY);
-        userInfoModel.setLocation(StringUtils.EMPTY);
-        userInfoModel.setUserTags(StringUtils.EMPTY);
-        userInfoModel.setWebsite(StringUtils.EMPTY);
-        userInfoModel.setGender(StringUtils.EMPTY);
-        userInfoModel.setRegisterTime(new Date());
-        userInfoModel.setFollowersCount(0L);
-        userInfoModel.setFollowingCount(0L);
-        userInfoModel.setAvatar(AvatarUtil.BASE64_PREFIX + avatar);
-        this.userInfoService.insertSelective(userInfoModel);
-
-        // 新用户注册消息欢迎消息 - 延迟1分钟后发送。
-        NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                .senderId(0L)
-                .userIdList(Collections.singletonList(registerModel.getUserId()))
-                .typeEnum(NotificationTypeEnum.REGISTER_WELCOME)
-                .content(String.format(NotificationTypeEnum.REGISTER_WELCOME.getTemplate(), registerModel.getNickname()))
-                .build();
-        DelayQueueUtil.submit(UUID.randomUUID().toString(), notifyMsgDTO, e -> notificationService.saveAndNotify(e), 1000 * 60);
 
         return ResultUtil.getSuccess();
     }
@@ -363,13 +387,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO<String> loginCaptcha(String k) {
+    public ResultVO<String> captcha(String captchaKey, String captchaType) {
 
-        if (StringUtils.isBlank(k)) {
+        if (StringUtils.isBlank(captchaKey)) {
             return ResultUtil.getWarn("验证码唯一标识不能为空！");
         }
 
-        if (StringUtils.length(k) > CommonConstant.LENGTH_64) {
+        if (StringUtils.length(captchaKey) > CommonConstant.LENGTH_64) {
             return ResultUtil.getWarn("参数错误！");
         }
 
@@ -378,8 +402,17 @@ public class UserServiceImpl implements UserService {
         String base64 = specCaptcha.toBase64();
         String code = specCaptcha.text();
 
+        String redisKey;
+        if (StringUtils.equals("login", captchaType)) {
+            redisKey = RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + captchaKey;
+        } else if (StringUtils.equals("register", captchaType)) {
+            redisKey = RedisKeyConstant.USER_REGISTER_CAPTCHA_PREFIX + captchaKey;
+        } else {
+            return ResultUtil.getWarn("参数错误");
+        }
+
         // 保存到redis,30秒后过期
-        this.redisService.setString(RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + k, code, 30, RedisDbConstant.REDIS_DB_DEFAULT);
+        this.redisService.setString(redisKey, code, 30, RedisDbConstant.REDIS_DB_DEFAULT);
         return ResultUtil.getSuccess(String.class, base64);
     }
 

@@ -51,11 +51,11 @@ public class UserController {
     }
 
     @ApiOperation(value = "获取登录验证码")
-    @GetMapping(value = "/login/captcha")
+    @GetMapping(value = "/captcha")
     @RateLimit(replenishRate = 2, burstCapacity = 6)
-    public ResultVO<String> loginCaptcha(String k) {
+    public ResultVO<String> captcha(String k,String t) {
 
-        return this.userService.loginCaptcha(k);
+        return this.userService.captcha(k, t);
     }
 
 
@@ -88,6 +88,7 @@ public class UserController {
 
     @ApiOperation(value = "用户注册")
     @PostMapping(value = "/register")
+    @RateLimit
     public ResultVO<Void> register(@RequestBody @Validated UserRegisterDTO userRegisterDTO) {
 
         return this.userService.register(userRegisterDTO);

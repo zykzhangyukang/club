@@ -70,9 +70,10 @@ public interface UserService {
      * 获取图形验证码
      *
      * @param captchaKey
+     * @param captchaType
      * @return
      */
-    ResultVO<String> loginCaptcha(String captchaKey);
+    ResultVO<String> captcha(String captchaKey,String captchaType);
 
 
     /**

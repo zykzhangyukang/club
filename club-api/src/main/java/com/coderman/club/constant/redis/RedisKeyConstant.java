@@ -13,6 +13,7 @@ public interface RedisKeyConstant {
      * 业务分布式锁
      */
     public static final String REDIS_LOGIN_LOCK_PREFIX = "REDIS_LOGIN_LOCK:";
+    public static final String REDIS_REGISTER_LOCK_PREFIX = "REDIS_REGISTER_LOCK:";
     public static final String REDIS_REFRESH_LOCK_PREFIX = "REDIS_LOGIN_REFRESH_LOCK:";
     public static final String REDIS_FOLLOW_LOCK_PREFIX = "REDIS_FOLLOW_LOCK:";
     public static final String REDIS_UNFOLLOW_LOCK_PREFIX = "REDIS_UNFOLLOW_LOCK:";
@@ -45,4 +46,5 @@ public interface RedisKeyConstant {
      * 登录验证码
      */
     public static final String USER_LOGIN_CAPTCHA_PREFIX  = "club.login:captcha_code:";
+    public static final String USER_REGISTER_CAPTCHA_PREFIX  = "club.register:captcha_code:";
 }

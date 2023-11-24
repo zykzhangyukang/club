@@ -41,7 +41,7 @@ public class RedisLockServiceImpl implements RedisLockService {
                 // 判断获取锁是否超时,超时则退出
                 if (System.currentTimeMillis() - beginTime > timeout) {
 
-                    log.info("[tryLock-1],超时未获取到锁");
+                    log.debug("[tryLock-1],超时未获取到锁");
                     break;
                 }
 
@@ -67,7 +67,7 @@ public class RedisLockServiceImpl implements RedisLockService {
 
 
                                 success = true;
-                                log.info("[tryLock-2]锁未被他人获取过,获取锁成功");
+                                log.debug("[tryLock-2]锁未被他人获取过,获取锁成功");
                             } else {
                                 success = false;
                                 log.info("[tryLock-2]锁已被他人获取,获取锁失败");
@@ -90,7 +90,7 @@ public class RedisLockServiceImpl implements RedisLockService {
                     } else {
 
                         redisTemplate.expire(redisLockName, lockValue, TimeUnit.MILLISECONDS);
-                        log.info("[tryLock-3]获取到锁成功");
+                        log.debug("[tryLock-3]获取到锁成功");
                         break;
                     }
 
@@ -105,7 +105,7 @@ public class RedisLockServiceImpl implements RedisLockService {
             log.error("[tryLock-5]异常:" + e.getMessage(), e);
         }
 
-        log.info("[tryLock-6]获取到锁结果:" + success);
+        log.debug("[tryLock-6]获取到锁结果:" + success);
         return success;
     }
 
