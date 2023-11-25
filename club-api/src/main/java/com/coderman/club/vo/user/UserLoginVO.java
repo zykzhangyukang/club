@@ -24,6 +24,9 @@ public class UserLoginVO extends BaseModel {
     @ApiModelProperty(value = "用户名")
     private String username;
 
+    @ApiModelProperty(value = "头像")
+    private String avatar;
+
     @ApiModelProperty(value = "访问令牌")
     private String token;
 

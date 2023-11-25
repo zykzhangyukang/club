@@ -141,6 +141,7 @@ public class UserServiceImpl implements UserService {
             BeanUtils.copyProperties(userModel, userLoginVO);
             userLoginVO.setToken(token);
             userLoginVO.setRefreshToken(refreshToken);
+            userLoginVO.setAvatar(authUserVO.getAvatar());
             return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
 
         } finally {
