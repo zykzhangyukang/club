@@ -600,7 +600,7 @@ public class RedisServiceImpl implements RedisService {
                 redisConnection.select(db);
 
                 for (T objVal : list) {
-                    redisConnection.lPush(serializeKey(key), serializeValue(objVal));
+                    redisConnection.rPush(serializeKey(key), serializeValue(objVal));
                 }
 
                 return null;

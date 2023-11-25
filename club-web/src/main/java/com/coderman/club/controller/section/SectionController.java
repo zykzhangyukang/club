@@ -27,7 +27,6 @@ public class SectionController {
     @ApiOperation(value = "板块列表获取")
     @GetMapping(value = "/list")
     public ResultVO<List<SectionVO>> list() {
-
-        return this.sectionService.list();
+        return this.sectionService.getSectionVoCacheList();
     }
 }

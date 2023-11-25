@@ -10,14 +10,23 @@ import com.coderman.club.service.section.SectionService;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.section.SectionVO;
+import com.coderman.club.vo.user.AuthUserVO;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +34,7 @@ import java.util.stream.Collectors;
  * @date ：2023/11/24 14:31
  */
 @Service
+@Slf4j
 public class SectionServiceImpl implements SectionService {
 
     @Resource
@@ -33,16 +43,37 @@ public class SectionServiceImpl implements SectionService {
     @Resource
     private RedisService redisService;
 
+    /**
+     * 保存栏目缓存 (缓存1分钟防止频繁请求redis)
+     */
+    public static final Cache<String, List<SectionVO>> SECTION_CACHE_MAP = CacheBuilder.newBuilder()
+            .initialCapacity(10)
+            .maximumSize(500)
+            .concurrencyLevel(5)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .recordStats()
+            .build();
+
     @Override
-    public ResultVO<List<SectionVO>> list() {
+    public ResultVO<List<SectionVO>> getSectionVoCacheList() {
 
-        // 先查缓存
-        List<SectionVO> cacheList = this.getSectionCache();
-        if (CollectionUtils.isNotEmpty(cacheList)) {
-
-            return ResultUtil.getSuccessList(SectionVO.class, cacheList);
+        List<SectionVO> sectionVos = new ArrayList<>();
+        try {
+            sectionVos = SECTION_CACHE_MAP.get(RedisKeyConstant.REDIS_SECTION_CACHE, new Callable<List<SectionVO>>() {
+                @Override
+                public List<SectionVO> call() {
+                    return redisService.getListData(RedisKeyConstant.REDIS_SECTION_CACHE, SectionVO.class
+                            , RedisDbConstant.REDIS_BIZ_CACHE);
+                }
+            });
+        } catch (ExecutionException e) {
+            log.error("获取栏目数据失败:{}", e.getMessage(), e);
         }
+        return ResultUtil.getSuccessList(SectionVO.class, sectionVos);
+    }
 
+    @Override
+    public List<SectionVO> getSectionVoList() {
         SectionExample example = new SectionExample();
         example.createCriteria().andIsActiveEqualTo(Boolean.TRUE);
         List<SectionModel> sectionModels = this.sectionDAO.selectByExample(example);
@@ -54,6 +85,12 @@ public class SectionServiceImpl implements SectionService {
                     SectionVO sectionVO = new SectionVO();
                     BeanUtils.copyProperties(e, sectionVO);
                     return sectionVO;
+                })
+                .sorted(new Comparator<SectionVO>() {
+                    @Override
+                    public int compare(SectionVO o1, SectionVO o2) {
+                        return o1.getSort() - o2.getSort();
+                    }
                 })
                 .distinct().collect(Collectors.toList());
 
@@ -69,22 +106,7 @@ public class SectionServiceImpl implements SectionService {
             }
             firstLevel.setChildren(secondLevel);
         }
-        // 写缓存
-        setSectionCache(firstLevelSection);
-        return ResultUtil.getSuccessList(SectionVO.class, firstLevelSection);
-    }
 
-    private void setSectionCache(List<SectionVO> sectionVos) {
-
-        if(CollectionUtils.isEmpty(sectionVos)){
-            return;
-        }
-        this.redisService.setList(RedisKeyConstant.REDIS_SECTION_CACHE, sectionVos, RedisDbConstant.REDIS_BIZ_CACHE);
-        // 设置有效期1分钟
-        this.redisService.expire(RedisKeyConstant.REDIS_SECTION_CACHE, 60,RedisDbConstant.REDIS_BIZ_CACHE);
-    }
-
-    private List<SectionVO> getSectionCache() {
-        return this.redisService.getList(RedisKeyConstant.REDIS_SECTION_CACHE, SectionVO.class, RedisDbConstant.REDIS_BIZ_CACHE);
+        return firstLevelSection;
     }
 }

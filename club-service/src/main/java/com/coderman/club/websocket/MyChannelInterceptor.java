@@ -31,6 +31,7 @@ public class MyChannelInterceptor implements ChannelInterceptor {
 
 
     @Override
+    @SuppressWarnings("all")
     public void afterSendCompletion(Message<?> message,MessageChannel channel, boolean sent, Exception ex) {
 
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);

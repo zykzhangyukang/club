@@ -28,7 +28,7 @@ public class DelayQueueUtil {
     private static final int MAXIMUM_POOL_SIZE = 4;
     private static final long KEEP_ALIVE_TIME = 20;
     private static final TimeUnit UNIT = TimeUnit.SECONDS;
-    private static final int MAXIMUM_ARRAY_SIZE = 5;
+    private static final int MAXIMUM_ARRAY_SIZE = 1024;
     private static final ThreadFactory NAMED_FACTORY = new ThreadFactoryBuilder().setNameFormat("java_delay_thread_%d").build();
 
     /**

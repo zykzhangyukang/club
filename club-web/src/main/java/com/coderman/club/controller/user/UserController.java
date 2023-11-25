@@ -31,7 +31,7 @@ public class UserController {
     @ApiOperation(value = "用户登录")
     @PostMapping(value = "/login")
     @RateLimit
-    public ResultVO<UserLoginVO> login(@RequestBody @Validated UserLoginDTO userLoginDTO) {
+    public ResultVO<UserLoginVO> login(@RequestBody UserLoginDTO userLoginDTO) {
 
         return this.userService.login(userLoginDTO);
     }
@@ -52,7 +52,7 @@ public class UserController {
 
     @ApiOperation(value = "获取登录验证码")
     @GetMapping(value = "/captcha")
-    @RateLimit(replenishRate = 2, burstCapacity = 6)
+    @RateLimit(replenishRate = 2, burstCapacity = 16)
     public ResultVO<String> captcha(String k,String t) {
 
         return this.userService.captcha(k, t);
@@ -75,6 +75,7 @@ public class UserController {
 
     @ApiOperation(value = "刷新令牌")
     @GetMapping(value = "/refresh/token")
+    @RateLimit(replenishRate = 2, burstCapacity = 8)
     public ResultVO<UserLoginRefreshVO> refreshToken(String refreshToken) {
         return this.userService.refreshToken(refreshToken);
     }
@@ -89,7 +90,7 @@ public class UserController {
     @ApiOperation(value = "用户注册")
     @PostMapping(value = "/register")
     @RateLimit
-    public ResultVO<Void> register(@RequestBody @Validated UserRegisterDTO userRegisterDTO) {
+    public ResultVO<Void> register(@RequestBody UserRegisterDTO userRegisterDTO) {
 
         return this.userService.register(userRegisterDTO);
     }

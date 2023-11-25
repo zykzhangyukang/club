@@ -31,4 +31,7 @@ public class SectionModel extends BaseModel {
 
     @ApiModelProperty(value = "是否处于启用状态")
     private Boolean isActive;
+
+    @ApiModelProperty(value = "排序字段")
+    private Integer sort;
 }

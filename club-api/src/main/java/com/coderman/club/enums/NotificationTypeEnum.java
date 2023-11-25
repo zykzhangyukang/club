@@ -10,7 +10,10 @@ public enum NotificationTypeEnum {
      * 注册欢迎
      */
     REGISTER_WELCOME("register_welcome", "喂 ！【%s】哇哦，您加入了我们这个超级酷的社区！欢迎来到这个疯狂有趣的地方，我们这里有各种神奇的东西等着您发现！"),
-    ;
+    /**
+     * 关注用户
+     */
+    FOLLOWING_USER("following_user", "用户 【%s】 关注了你");
 
     NotificationTypeEnum(String msgType, String template) {
         this.template = template;

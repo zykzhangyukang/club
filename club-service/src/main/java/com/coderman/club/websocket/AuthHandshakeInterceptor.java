@@ -35,6 +35,7 @@ public class AuthHandshakeInterceptor implements ChannelInterceptor {
     private RedisService redisService;
 
     @Override
+    @SuppressWarnings("all")
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
 
         // 不是第一次连接

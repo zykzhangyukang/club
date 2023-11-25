@@ -1,15 +1,17 @@
 package com.coderman.club.service.user.impl;
 
 import com.coderman.club.constant.common.CommonConstant;
+import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
-import com.coderman.club.constant.user.UserConst;
+import com.coderman.club.constant.user.UserConstant;
 import com.coderman.club.constant.user.UserFollowingConst;
 import com.coderman.club.dao.user.UserDAO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
+import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
 import com.coderman.club.model.user.UserFollowingModel;
@@ -37,11 +39,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * @author ：zhangyukang
@@ -72,19 +76,27 @@ public class UserServiceImpl implements UserService {
     @Resource
     private UserLoginLogService userLoginLogService;
 
+    @Resource
+    private AliYunOssUtil aliYunOssUtil;
+
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<UserLoginVO> login(UserLoginDTO userLoginDTO) {
 
-        final String lockName = RedisKeyConstant.REDIS_LOGIN_LOCK_PREFIX + userLoginDTO.getUsername();
-
         // 获取锁
+        final String lockName = RedisKeyConstant.REDIS_LOGIN_LOCK_PREFIX + userLoginDTO.getUsername();
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
         if (!tryLock) {
             return ResultUtil.getWarn("登录失败请重试！");
         }
 
         try {
+
+            // 登录参数校验
+            ResultVO<Void> resultVO = this.checkLoginParam(userLoginDTO);
+            if (!ResultConstant.RESULT_CODE_200.equals(resultVO.getCode())) {
+                return ResultUtil.getWarn(resultVO.getMsg());
+            }
 
             // 验证码验证码校验
             boolean success = this.checkCaptcha(userLoginDTO.getCode(), userLoginDTO.getCaptchaKey(), "login");
@@ -99,7 +111,7 @@ public class UserServiceImpl implements UserService {
 
                 return ResultUtil.getWarn("用户名或密码错误！");
             }
-            if (StringUtils.equals(userModel.getUserStatus(), UserConst.USER_STATUS_DISABLE)) {
+            if (StringUtils.equals(userModel.getUserStatus(), UserConstant.USER_STATUS_DISABLE)) {
                 return ResultUtil.getWarn("用户状态异常，请联系管理员处理！");
             }
 
@@ -138,6 +150,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean checkCaptcha(String code, String captchaKey, String captchaType) {
+        if (StringUtils.isBlank(captchaKey) || StringUtils.isBlank(code) || StringUtils.isBlank(captchaType)) {
+            return false;
+        }
 
         String redisKey;
         if (StringUtils.equals("login", captchaType)) {
@@ -148,9 +163,6 @@ public class UserServiceImpl implements UserService {
             return false;
         }
 
-        if (StringUtils.isBlank(captchaKey) || StringUtils.isBlank(code)) {
-            return false;
-        }
         String redisCode = this.redisService.getString(redisKey, RedisDbConstant.REDIS_DB_DEFAULT);
         if (StringUtils.isBlank(redisCode)) {
             return false;
@@ -158,7 +170,7 @@ public class UserServiceImpl implements UserService {
         // 删除验证码
         long del = this.redisService.del(redisKey, RedisDbConstant.REDIS_DB_DEFAULT);
         if (del > 0) {
-            log.warn("校验验证码错误,清空验证码. ip:{},captchaType:{},captchaKey:{}", IpUtil.getIp(HttpContextUtil.getHttpServletRequest()),captchaType,captchaKey);
+            log.debug("清空图形验证码. ip:{},captchaType:{},captchaKey:{}", IpUtil.getIp(HttpContextUtil.getHttpServletRequest()), captchaType, captchaKey);
         }
         return StringUtils.equalsIgnoreCase(redisCode, code);
     }
@@ -185,6 +197,10 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> register(UserRegisterDTO userRegisterDTO) {
 
+        String username = userRegisterDTO.getUsername();
+        String password = userRegisterDTO.getPassword();
+        String email = userRegisterDTO.getEmail();
+
         final String lockName = RedisKeyConstant.REDIS_REGISTER_LOCK_PREFIX + userRegisterDTO.getUsername();
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
         if (!tryLock) {
@@ -193,15 +209,17 @@ public class UserServiceImpl implements UserService {
 
         try {
 
+            // 校验注册参数
+            ResultVO<Void> resultVO = this.checkRegisterParam(userRegisterDTO);
+            if (!ResultConstant.RESULT_CODE_200.equals(resultVO.getCode())) {
+                return resultVO;
+            }
+
             // 验证码校验
             boolean success = this.checkCaptcha(userRegisterDTO.getCode(), userRegisterDTO.getCaptchaKey(), "register");
             if (!success) {
                 return ResultUtil.getWarn("验证码错误！");
             }
-
-            String username = userRegisterDTO.getUsername();
-            String password = userRegisterDTO.getPassword();
-            String email = userRegisterDTO.getEmail();
 
             UserModel userModel = this.userDAO.selectByUsername(username);
             if (null != userModel) {
@@ -213,35 +231,10 @@ public class UserServiceImpl implements UserService {
                 return ResultUtil.getWarn("当前邮箱已被注册！");
             }
 
-            // 用户账号信息
-            UserModel registerModel = new UserModel();
-            registerModel.setCreateTime(new Date());
-            registerModel.setPassword(MD5Utils.md5Hex(password.getBytes()));
-            registerModel.setEmail(email);
-            registerModel.setUsername(username);
-            registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
-            registerModel.setUserStatus(UserConst.USER_STATUS_ENABLE);
-            registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
-            registerModel.setUpdateTime(new Date());
-            this.userDAO.insertSelectiveReturnKey(registerModel);
+            // 初始化用户相关信息
+            UserModel registerModel = createClubUser(username, password, email);
 
-            // 生成头像
-            String avatar = generatorAvatar(registerModel);
-            // 用户详情信息
-            UserInfoModel userInfoModel = new UserInfoModel();
-            userInfoModel.setUserId(registerModel.getUserId());
-            userInfoModel.setBio(StringUtils.EMPTY);
-            userInfoModel.setLocation(StringUtils.EMPTY);
-            userInfoModel.setUserTags(StringUtils.EMPTY);
-            userInfoModel.setWebsite(StringUtils.EMPTY);
-            userInfoModel.setGender(StringUtils.EMPTY);
-            userInfoModel.setRegisterTime(new Date());
-            userInfoModel.setFollowersCount(0L);
-            userInfoModel.setFollowingCount(0L);
-            userInfoModel.setAvatar(AvatarUtil.BASE64_PREFIX + avatar);
-            this.userInfoService.insertSelective(userInfoModel);
-
-            // 新用户注册消息欢迎消息 - 延迟30s后发送。
+            // 用户注册消息欢迎消息
             NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
                     .senderId(0L)
                     .userIdList(Collections.singletonList(registerModel.getUserId()))
@@ -257,46 +250,136 @@ public class UserServiceImpl implements UserService {
         return ResultUtil.getSuccess();
     }
 
-    private String generatorAvatar(UserModel registerModel) {
-        String avatar = StringUtils.EMPTY;
-        try {
-            avatar = AvatarUtil.createBase64Avatar(registerModel.getUserId().hashCode());
-        } catch (Exception e) {
-            log.error("生成用户头像失败:{}", e.getMessage(), e);
+    /**
+     * 用户初始化接口
+     * <p>
+     * 1. 创建用户账户记录
+     * 2. 创建用户信息记录
+     * 3. 创建用户积分账户
+     * ....
+     *
+     * @param username
+     * @param password
+     * @param email
+     * @return
+     */
+    private UserModel createClubUser(String username, String password, String email) {
+
+        // 用户账号信息
+        UserModel registerModel = new UserModel();
+        registerModel.setCreateTime(new Date());
+        registerModel.setPassword(MD5Utils.md5Hex(password.getBytes()));
+        registerModel.setEmail(email);
+        registerModel.setUsername(username);
+        registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
+        registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
+        registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
+        registerModel.setUpdateTime(new Date());
+        this.userDAO.insertSelectiveReturnKey(registerModel);
+
+        // 用户详情信息
+        UserInfoModel userInfoModel = new UserInfoModel();
+        userInfoModel.setUserId(registerModel.getUserId());
+        userInfoModel.setBio(StringUtils.EMPTY);
+        userInfoModel.setLocation(StringUtils.EMPTY);
+        userInfoModel.setUserTags(StringUtils.EMPTY);
+        userInfoModel.setWebsite(StringUtils.EMPTY);
+        userInfoModel.setGender(StringUtils.EMPTY);
+        userInfoModel.setRegisterTime(new Date());
+        userInfoModel.setFollowersCount(0L);
+        userInfoModel.setFollowingCount(0L);
+        userInfoModel.setAvatar(this.generatorAvatar(registerModel));
+        this.userInfoService.insertSelective(userInfoModel);
+
+        // 用户积分账户信息
+
+        return registerModel;
+    }
+
+    private ResultVO<Void> checkLoginParam(UserLoginDTO userLoginDTO) {
+        if (userLoginDTO == null) {
+            return ResultUtil.getWarn("参数错误");
         }
-        return avatar;
+        if (StringUtils.isBlank(userLoginDTO.getUsername()) || StringUtils.length(userLoginDTO.getUsername()) > 16) {
+            return ResultUtil.getWarn("登录用户名不能为空，且不超过16个字符！");
+        }
+        if (StringUtils.isBlank(userLoginDTO.getPassword()) || StringUtils.length(userLoginDTO.getPassword()) > 20) {
+            return ResultUtil.getWarn("登录密码不能为空，且不超过20个字符！");
+        }
+        return ResultUtil.getSuccess();
+    }
+
+    private ResultVO<Void> checkRegisterParam(UserRegisterDTO userRegisterDTO) {
+
+        if (userRegisterDTO == null) {
+            return ResultUtil.getWarn("参数错误");
+        }
+        if (StringUtils.isBlank(userRegisterDTO.getUsername()) || StringUtils.length(userRegisterDTO.getUsername()) > 16) {
+            return ResultUtil.getWarn("注册用户名不能为空，且不超过16个字符！");
+        }
+        if (StringUtils.isBlank(userRegisterDTO.getPassword()) || StringUtils.length(userRegisterDTO.getPassword()) > 20) {
+            return ResultUtil.getWarn("账号登录密码不能为空，且不超过20个字符！");
+        }
+        if (StringUtils.isBlank(userRegisterDTO.getEmail())) {
+            return ResultUtil.getWarn("注册邮箱不能为空！");
+        }
+        String regex = "^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$";
+        if (!Pattern.matches(regex, userRegisterDTO.getEmail())) {
+            return ResultUtil.getWarn("注册邮箱格式不正确！");
+        }
+        return ResultUtil.getSuccess();
+    }
+
+    private String generatorAvatar(UserModel registerModel) {
+        String filePath = this.aliYunOssUtil.genFilePath(registerModel.getUserId() + "_avatar.png", FileModuleEnum.USER_MODULE);
+        try {
+
+            byte[] bytes = AvatarUtil.create(registerModel.getUserId().hashCode());
+            this.aliYunOssUtil.uploadStream(new ByteArrayInputStream(bytes), filePath);
+        } catch (Exception e) {
+            log.error("生成用户头像失败:{}, 上传失败设置默认头像: {}", e.getMessage(), UserConstant.USER_DEFAULT_AVATAR);
+            return UserConstant.USER_DEFAULT_AVATAR;
+        }
+        return CommonConstant.OSS_DOMAIN + filePath;
     }
 
     @Override
     public ResultVO<Void> logout(String token) {
+        if (!StringUtils.isBlank(token)) {
+            AuthUserVO authUserVO = this.redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token
+                    , AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
+            if (null == authUserVO) {
 
-        AuthUserVO authUserVO = this.redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
-        if (null != authUserVO) {
-
+                return ResultUtil.getSuccess();
+            }
             // 删除登录令牌
             this.redisService.del(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, RedisDbConstant.REDIS_DB_DEFAULT);
             // 删除刷新令牌
             String refreshToken = authUserVO.getRefreshToken();
             this.redisService.del(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, RedisDbConstant.REDIS_DB_DEFAULT);
         }
+
         return ResultUtil.getSuccess();
     }
 
     @Override
     public ResultVO<UserLoginRefreshVO> refreshToken(String refreshToken) {
 
+        if (StringUtils.isBlank(refreshToken)) {
+            return ResultUtil.getFail(UserLoginRefreshVO.class, null, "参数错误");
+        }
+
         final String lockName = RedisKeyConstant.REDIS_REFRESH_LOCK_PREFIX + refreshToken;
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
         if (!tryLock) {
-
             return ResultUtil.getWarn("刷新令牌失败请重试！");
         }
-
         try {
 
-            AuthUserVO oldAuthUserVo = this.redisService.getObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
+            AuthUserVO oldAuthUserVo = this.redisService.getObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken,
+                    AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
             if (oldAuthUserVo == null) {
-                return ResultUtil.getFail("回话已过期，请重新登录！");
+                return ResultUtil.getFail("会话已过期，请重新登录！");
             }
 
             // 生成新的访问令牌和刷新token
@@ -320,7 +403,6 @@ public class UserServiceImpl implements UserService {
 
                 // 删除原来刷新令牌
                 this.redisService.del(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + oldRefreshToken, RedisDbConstant.REDIS_DB_DEFAULT);
-
                 // 保存登录令牌 (1天)
                 this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, 60 * 60 * 24, RedisDbConstant.REDIS_DB_DEFAULT);
                 // 保存刷新令牌 (7天)
@@ -411,8 +493,8 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("参数错误");
         }
 
-        // 保存到redis,30秒后过期
-        this.redisService.setString(redisKey, code, 30, RedisDbConstant.REDIS_DB_DEFAULT);
+        // 保存到redis,60秒后过期
+        this.redisService.setString(redisKey, code, 60, RedisDbConstant.REDIS_DB_DEFAULT);
         return ResultUtil.getSuccess(String.class, base64);
     }
 
@@ -420,13 +502,12 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> follow(Long followedId) {
 
+        if (followedId == null) {
+            return ResultUtil.getWarn("参数错误！");
+        }
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
             return ResultUtil.getFail("当前用户未登录！");
-        }
-
-        if (followedId == null) {
-            return ResultUtil.getWarn("参数错误！");
         }
         UserModel userModel = this.userDAO.selectByPrimaryKey(followedId);
         if (userModel == null) {
@@ -442,10 +523,8 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("请勿重复操作！");
         }
 
-        // 判断一下当前用户是否关注过该用户
-        // 1.  第一次关注，新增关注记录并发送消息通知.
-        // 2. 取消关注后再次关注，更新关注状态。
         try {
+
             UserFollowingModel userFollowingModel = this.userFollowingService.selectByUserIdAndFollowed(current.getUserId(), followedId);
             if (userFollowingModel == null) {
 
@@ -456,6 +535,15 @@ public class UserServiceImpl implements UserService {
                 record.setFollowedId(followedId);
                 record.setStatus(UserFollowingConst.FOLLOWING_STATUS_NORMAL);
                 this.userFollowingService.insertSelective(record);
+
+                // 关注好友提醒
+                NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                        .senderId(current.getUserId())
+                        .userIdList(Collections.singletonList(followedId))
+                        .typeEnum(NotificationTypeEnum.FOLLOWING_USER)
+                        .content(String.format(NotificationTypeEnum.FOLLOWING_USER.getTemplate(), current.getNickname()))
+                        .build();
+                this.notificationService.saveAndNotify(notifyMsgDTO);
 
             } else if (StringUtils.equals(userFollowingModel.getStatus(), UserFollowingConst.FOLLOWING_STATUS_CANCEL)) {
 
@@ -470,7 +558,6 @@ public class UserServiceImpl implements UserService {
 
                 return ResultUtil.getWarn("已关注用户，请勿重复操作！");
             }
-
         } finally {
             this.redisLockService.unlock(lockName);
         }

@@ -18,4 +18,9 @@ public interface CommonConstant {
     public static final Integer LENGTH_64 = 64;
     public static final Integer LENGTH_32 = 32;
     public static final Integer LENGTH_16 = 16;
+
+    /**
+     *
+     */
+    public static final String OSS_DOMAIN = "https://ioss-bucket.oss-cn-shenzhen.aliyuncs.com/";
 }

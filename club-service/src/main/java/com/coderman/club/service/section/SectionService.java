@@ -15,5 +15,12 @@ public interface SectionService {
      *
      * @return
      */
-    ResultVO<List<SectionVO>> list();
+    ResultVO<List<SectionVO>> getSectionVoCacheList();
+
+
+    /**
+     * 板块列表获取
+     * @return
+     */
+    List<SectionVO> getSectionVoList();
 }

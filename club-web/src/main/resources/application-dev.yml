@@ -16,3 +16,9 @@ spring:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+aliyun:
+  oss:
+    access-key-id: DES@15BF54A5AE211A5CF9D33FBC5F1DC0BBCBB930C2BCC7C3875F2EC4A83FE5B5FD
+    access-key-secret: DES@C198710CB2463E594B6599BE0ABE138AAC0735B5ABBD632655095EBE8F436582
+    end-point: oss-cn-shenzhen.aliyuncs.com
+    bucket-name: ioss-bucket

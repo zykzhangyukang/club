@@ -24,6 +24,9 @@ public class SectionVO extends BaseModel {
     @ApiModelProperty(value = "版块描述")
     private String description;
 
+    @ApiModelProperty(value = "排序")
+    private Integer sort;
+
     @ApiModelProperty(value = "二级板块")
     private List<SectionVO> children;
 }
