@@ -81,7 +81,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "注销登录")
-    @GetMapping(value = "/logout")
+    @PostMapping(value = "/logout")
     public ResultVO<Void> logout(String token) {
 
         return this.userService.logout(token);

@@ -51,9 +51,9 @@ public class IndexCacheInitializer {
 
 
     /**
-     * 栏目数据缓存1分钟刷新一次
+     * 栏目数据缓存5分钟刷新一次
      */
-    @Scheduled(cron = "0 */1 * * * ?")
+    @Scheduled(cron = "0 */5 * * * ?")
     public void refreshSectionCache() {
         initSectionCache();
         log.info("refreshSectionCache#首页栏目缓存数据刷新完成....");
