@@ -22,3 +22,7 @@ aliyun:
     access-key-secret: DES@C198710CB2463E594B6599BE0ABE138AAC0735B5ABBD632655095EBE8F436582
     end-point: oss-cn-shenzhen.aliyuncs.com
     bucket-name: ioss-bucket
+logging:
+    level:
+      root: info
+      com.coderman.club.dao: debug

@@ -272,4 +272,10 @@
       read_time = #{readTime,jdbcType=TIMESTAMP}
     where notification_id = #{notificationId,jdbcType=BIGINT}
   </update>
+  <select id="getUnReadCount" resultType="com.coderman.club.vo.notification.NotificationCountVO">
+    select `type`, count(1) as un_read_count
+    from club_notification
+    where user_id = #{userId} and is_read = 0
+    group by type
+  </select>
 </mapper>

@@ -32,6 +32,7 @@ import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
 import com.wf.captcha.SpecCaptcha;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -40,10 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -456,15 +454,30 @@ public class UserServiceImpl implements UserService {
         UserInfoModel updateModel = new UserInfoModel();
 
         updateModel.setUserId(current.getUserId());
-        updateModel.setUserTags(userInfoDTO.getUserTags());
+        updateModel.setUserTags(StringUtils.join(userInfoDTO.getUserTags(), ","));
         updateModel.setAvatar(userInfoDTO.getAvatar());
         updateModel.setGender(userInfoDTO.getGender());
         updateModel.setWebsite(userInfoDTO.getWebsite());
         updateModel.setBio(userInfoDTO.getBio());
         updateModel.setLocation(userInfoDTO.getLocation());
 
+        // 修改用户账号信息
+        UserModel record = new UserModel();
+        record.setUserId(current.getUserId());
+        record.setNickname(userInfoDTO.getNickname());
+        this.userDAO.updateByPrimaryKeySelective(record);
+
         // 编辑用户信息
         this.userInfoService.updateUserInfoByUserId(updateModel);
+
+        // 测试
+        NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                .senderId(current.getUserId())
+                .userIdList(Collections.singletonList(current.getUserId()))
+                .typeEnum(NotificationTypeEnum.FOLLOWING_USER)
+                .content(String.format(NotificationTypeEnum.FOLLOWING_USER.getTemplate(), current.getNickname()))
+                .build();
+        this.notificationService.saveAndNotify(notifyMsgDTO);
 
         return ResultUtil.getSuccess();
     }
@@ -609,5 +622,39 @@ public class UserServiceImpl implements UserService {
         }
 
         return ResultUtil.getSuccess();
+    }
+
+    @Override
+    public ResultVO<UserInfoVO> updateInit() {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        UserInfoModel userInfoModel = this.userInfoService.selectByUserId(current.getUserId());
+        if(userInfoModel == null){
+            return ResultUtil.getWarn("用户信息不存在！");
+        }
+
+        UserModel userModel = this.userDAO.selectByUsername(current.getUsername());
+        if(userModel == null){
+            return ResultUtil.getWarn("用户信息不存在！");
+        }
+
+        UserInfoVO userInfoVO = new UserInfoVO();
+        userInfoVO.setUsername(current.getUsername());
+        userInfoVO.setNickname(userModel.getNickname());
+        userInfoVO.setUserCode(userModel.getUserCode());
+        userInfoVO.setUserId(userModel.getUserId());
+        userInfoVO.setLocation(userInfoModel.getLocation());
+        userInfoVO.setAvatar(userInfoModel.getAvatar());
+        userInfoVO.setGender(userInfoModel.getGender());
+        userInfoVO.setBio(userInfoModel.getBio());
+        userInfoVO.setWebsite(userInfoModel.getWebsite());
+        userInfoVO.setUserTags(Arrays.asList(StringUtils.split(userInfoModel.getUserTags(), ",")));
+        userInfoVO.setEmail(userModel.getEmail());
+
+        return ResultUtil.getSuccess(UserInfoVO.class, userInfoVO);
     }
 }

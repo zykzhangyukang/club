@@ -90,4 +90,13 @@ public interface UserService {
      * @return
      */
     ResultVO<Void> unfollow(Long userId);
+
+
+    /**
+     * 更新用户信息初始化
+     *
+     * @return
+     */
+    ResultVO<UserInfoVO> updateInit();
+
 }

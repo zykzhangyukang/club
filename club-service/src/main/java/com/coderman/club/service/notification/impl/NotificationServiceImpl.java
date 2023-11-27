@@ -3,6 +3,7 @@ package com.coderman.club.service.notification.impl;
 import com.alibaba.fastjson.JSON;
 import com.coderman.club.annotation.RedisChannelListener;
 import com.coderman.club.constant.common.CommonConstant;
+import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.dao.notification.NotificationDAO;
@@ -11,6 +12,11 @@ import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.model.notification.NotificationModel;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.redis.RedisService;
+import com.coderman.club.utils.AuthUtil;
+import com.coderman.club.utils.ResultUtil;
+import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.notification.NotificationCountVO;
+import com.coderman.club.vo.user.AuthUserVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,8 +27,7 @@ import org.springframework.stereotype.Service;
 import com.coderman.club.websocket.*;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author ：zhangyukang
@@ -78,9 +83,35 @@ public class NotificationServiceImpl implements NotificationService {
             this.notificationDAO.insertSelective(notificationModel);
 
             // websocket推送
-            this.sendToUser(senderId, userId, content);
+            this.sendToUser(senderId, userId, notificationModel);
         }
 
+    }
+
+    @Override
+    public ResultVO<Map<String,Object>> getUnReadCount() {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if(current == null){
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        List<NotificationCountVO> notificationCountVos =  this.notificationDAO.getUnReadCount(current.getUserId());
+        long totalCount = 0L;
+        for (NotificationCountVO notificationCountVo : notificationCountVos) {
+
+            Long count = Optional.ofNullable(notificationCountVo.getUnReadCount()).orElse(0L);
+            totalCount +=count;
+        }
+
+        Map<String,Object> map = new HashMap<>();
+        map.put("totalUnReadCount", totalCount);
+        map.put("notificationList", notificationCountVos);
+
+        ResultVO<Map<String, Object>> resultVO = new ResultVO<>();
+        resultVO.setCode(ResultConstant.RESULT_CODE_200);
+        resultVO.setResult(map);
+        return resultVO;
     }
 
     /**
@@ -119,7 +150,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (simpUser != null && StringUtils.isNoneBlank(simpUser.getName())) {
 
             simpMessagingTemplate.convertAndSend(destination, payload);
-            log.debug("sendToUser-websocket推送消息 destination => {} ,payload => {}", destination, JSON.toJSONString(payload));
+            log.info("sendToUser-websocket推送消息 destination => {} ,payload => {}", destination, JSON.toJSONString(payload));
         }
         //如果接收者在线，则说明接收者连接了集群的其他节点，需要通知接收者连接的那个节点发送消息
         else if (redisService.isSetMember(RedisKeyConstant.WEBSOCKET_USER_SET, receiver, RedisDbConstant.REDIS_DB_DEFAULT)) {
