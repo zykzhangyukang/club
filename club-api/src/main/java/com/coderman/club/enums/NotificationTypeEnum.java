@@ -20,6 +20,15 @@ public enum NotificationTypeEnum {
         this.msgType = msgType;
     }
 
+    public static NotificationTypeEnum getByMsgType(String msgType){
+        for (NotificationTypeEnum value : NotificationTypeEnum.values()) {
+            if(value.getMsgType().equals(msgType)){
+                return value;
+            }
+        }
+        return null;
+    }
+
     private final String template;
     private final String msgType;
 

@@ -5,6 +5,9 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/**
+ * @author Administrator
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class NotificationCountVO extends BaseModel {

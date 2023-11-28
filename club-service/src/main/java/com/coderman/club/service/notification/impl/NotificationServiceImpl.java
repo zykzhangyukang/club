@@ -6,6 +6,7 @@ import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
+import com.coderman.club.constant.user.UserConstant;
 import com.coderman.club.dao.notification.NotificationDAO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.enums.NotificationTypeEnum;
@@ -16,15 +17,19 @@ import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.notification.NotificationCountVO;
+import com.coderman.club.vo.notification.NotificationVO;
 import com.coderman.club.vo.user.AuthUserVO;
+import com.coderman.club.websocket.WebSocketChannelEnum;
+import com.coderman.club.websocket.WebsocketRedisMsg;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
-import com.coderman.club.websocket.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -89,22 +94,22 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public ResultVO<Map<String,Object>> getUnReadCount() {
+    public ResultVO<Map<String, Object>> getUnReadCount() {
 
         AuthUserVO current = AuthUtil.getCurrent();
-        if(current == null){
+        if (current == null) {
             return ResultUtil.getWarn("用户未登录！");
         }
 
-        List<NotificationCountVO> notificationCountVos =  this.notificationDAO.getUnReadCount(current.getUserId());
+        List<NotificationCountVO> notificationCountVos = this.notificationDAO.getUnReadCount(current.getUserId());
         long totalCount = 0L;
         for (NotificationCountVO notificationCountVo : notificationCountVos) {
 
             Long count = Optional.ofNullable(notificationCountVo.getUnReadCount()).orElse(0L);
-            totalCount +=count;
+            totalCount += count;
         }
 
-        Map<String,Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         map.put("totalUnReadCount", totalCount);
         map.put("notificationList", notificationCountVos);
 
@@ -112,6 +117,56 @@ public class NotificationServiceImpl implements NotificationService {
         resultVO.setCode(ResultConstant.RESULT_CODE_200);
         resultVO.setResult(map);
         return resultVO;
+    }
+
+    @Override
+    public ResultVO<List<NotificationVO>> getList(Boolean isRead,String type) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
+        }
+        if(StringUtils.isBlank(type)){
+            return ResultUtil.getWarn("消息类型不能为空！");
+        }
+        NotificationTypeEnum byMsgType = NotificationTypeEnum.getByMsgType(type);
+        if(byMsgType == null){
+            return ResultUtil.getWarn("参数错误！");
+        }
+
+        List<NotificationVO> notificationVos = this.notificationDAO.getList(current.getUserId(), isRead, type);
+        for (NotificationVO notificationVo : notificationVos) {
+            if (Objects.equals(notificationVo.getSenderId(), 0L)) {
+                notificationVo.setSenderName("系统");
+                notificationVo.setSenderAvatar(UserConstant.USER_DEFAULT_AVATAR);
+            }
+        }
+
+        return ResultUtil.getSuccessList(NotificationVO.class, notificationVos);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
+    public ResultVO<Void> read(Long notificationId) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
+        }
+        if(notificationId == null || notificationId < 0){
+            return ResultUtil.getWarn("参数错误！");
+        }
+
+        NotificationModel notificationModel = this.notificationDAO.selectByPrimaryKey(notificationId);
+        if(notificationModel == null){
+            return ResultUtil.getWarn("消息不存在！");
+        }
+
+        if(BooleanUtils.isFalse(notificationModel.getIsRead())){
+            this.notificationDAO.updateReadStatus(BooleanUtils.toIntegerObject(true), current.getUserId(), notificationId);
+        }
+
+        return ResultUtil.getSuccess();
     }
 
     /**

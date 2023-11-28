@@ -50,7 +50,7 @@ public class UserController {
         return this.userService.unfollow(userId);
     }
 
-    @ApiOperation(value = "获取登录验证码")
+    @ApiOperation(value = "获取验证码")
     @GetMapping(value = "/captcha")
     @RateLimit(replenishRate = 2, burstCapacity = 16)
     public ResultVO<String> captcha(String k,String t) {
