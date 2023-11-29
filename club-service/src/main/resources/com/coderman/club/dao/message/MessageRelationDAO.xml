@@ -7,6 +7,7 @@
     <result column="message_id" jdbcType="BIGINT" property="messageId" />
     <result column="session_id" jdbcType="BIGINT" property="sessionId" />
     <result column="is_delete" jdbcType="BIT" property="isDelete" />
+    <result column="is_read" jdbcType="BIT" property="isRead" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -67,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    relation_id, user_id, message_id, session_id, is_delete
+    relation_id, user_id, message_id, session_id, is_delete, is_read
   </sql>
   <select id="selectByExample" parameterType="com.coderman.club.model.message.MessageRelationExample" resultMap="BaseResultMap">
     select
@@ -101,9 +102,9 @@
   </delete>
   <insert id="insert" parameterType="com.coderman.club.model.message.MessageRelationModel">
     insert into club_message_relation (relation_id, user_id, message_id, 
-      session_id, is_delete)
+      session_id, is_delete, is_read)
     values (#{relationId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{messageId,jdbcType=BIGINT}, 
-      #{sessionId,jdbcType=BIGINT}, #{isDelete,jdbcType=BIT})
+      #{sessionId,jdbcType=BIGINT}, #{isDelete,jdbcType=BIT}, #{isRead,jdbcType=BIT})
   </insert>
   <insert id="insertSelective" parameterType="com.coderman.club.model.message.MessageRelationModel">
     insert into club_message_relation
@@ -123,6 +124,9 @@
       <if test="isDelete != null">
         is_delete,
       </if>
+      <if test="isRead != null">
+        is_read,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="relationId != null">
@@ -139,6 +143,9 @@
       </if>
       <if test="isDelete != null">
         #{isDelete,jdbcType=BIT},
+      </if>
+      <if test="isRead != null">
+        #{isRead,jdbcType=BIT},
       </if>
     </trim>
   </insert>
@@ -166,6 +173,9 @@
       <if test="record.isDelete != null">
         is_delete = #{record.isDelete,jdbcType=BIT},
       </if>
+      <if test="record.isRead != null">
+        is_read = #{record.isRead,jdbcType=BIT},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -177,7 +187,8 @@
       user_id = #{record.userId,jdbcType=BIGINT},
       message_id = #{record.messageId,jdbcType=BIGINT},
       session_id = #{record.sessionId,jdbcType=BIGINT},
-      is_delete = #{record.isDelete,jdbcType=BIT}
+      is_delete = #{record.isDelete,jdbcType=BIT},
+      is_read = #{record.isRead,jdbcType=BIT}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -197,6 +208,9 @@
       <if test="isDelete != null">
         is_delete = #{isDelete,jdbcType=BIT},
       </if>
+      <if test="isRead != null">
+        is_read = #{isRead,jdbcType=BIT},
+      </if>
     </set>
     where relation_id = #{relationId,jdbcType=BIGINT}
   </update>
@@ -205,7 +219,12 @@
     set user_id = #{userId,jdbcType=BIGINT},
       message_id = #{messageId,jdbcType=BIGINT},
       session_id = #{sessionId,jdbcType=BIGINT},
-      is_delete = #{isDelete,jdbcType=BIT}
+      is_delete = #{isDelete,jdbcType=BIT},
+      is_read = #{isRead,jdbcType=BIT}
     where relation_id = #{relationId,jdbcType=BIGINT}
+  </update>
+  <update id="updateReadStatus">
+    update club_message_relation set is_read = 1
+    where user_id = #{userId} and session_id = #{sessionId} and is_read = 0
   </update>
 </mapper>

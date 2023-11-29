@@ -30,15 +30,9 @@ public class MessageModel extends BaseModel {
     @ApiModelProperty(value = "用户id")
     private Long userId;
 
-    @ApiModelProperty(value = "创建时间")
-    private Date createTime;
-
-    @ApiModelProperty(value = "是否已读")
-    private Boolean isRead;
-
-    @ApiModelProperty(value = "已读时间")
-    private Date readTime;
-
     @ApiModelProperty(value = "私信内容")
     private String content;
+
+    @ApiModelProperty(value = "创建时间")
+    private Date createTime;
 }

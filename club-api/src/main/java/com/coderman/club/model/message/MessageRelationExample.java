@@ -403,6 +403,66 @@ public class MessageRelationExample {
             addCriterion("is_delete not between", value1, value2, "isDelete");
             return (Criteria) this;
         }
+
+        public Criteria andIsReadIsNull() {
+            addCriterion("is_read is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadIsNotNull() {
+            addCriterion("is_read is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadEqualTo(Boolean value) {
+            addCriterion("is_read =", value, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadNotEqualTo(Boolean value) {
+            addCriterion("is_read <>", value, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadGreaterThan(Boolean value) {
+            addCriterion("is_read >", value, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("is_read >=", value, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadLessThan(Boolean value) {
+            addCriterion("is_read <", value, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadLessThanOrEqualTo(Boolean value) {
+            addCriterion("is_read <=", value, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadIn(List<Boolean> values) {
+            addCriterion("is_read in", values, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadNotIn(List<Boolean> values) {
+            addCriterion("is_read not in", values, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadBetween(Boolean value1, Boolean value2) {
+            addCriterion("is_read between", value1, value2, "isRead");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsReadNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("is_read not between", value1, value2, "isRead");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

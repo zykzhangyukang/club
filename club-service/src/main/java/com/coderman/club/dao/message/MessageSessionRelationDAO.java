@@ -17,4 +17,11 @@ public interface MessageSessionRelationDAO extends BaseDAO<MessageSessionRelatio
      * @return
      */
     MessageSessionRelationModel selectUserRelation(@Param(value = "userId") Long userId,@Param(value = "sessionId") Long sessionId);
+
+    /**
+     * 清空会话未读数
+     * @param targetUserId
+     * @param sessionId
+     */
+    void updateReadCountZero(@Param(value = "userId") Long targetUserId,@Param(value = "sessionId") Long sessionId);
 }

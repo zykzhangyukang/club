@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author ：zhangyukang
@@ -37,6 +38,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Resource
     private MessageDAO messageDAO;
+
+    @Resource
+    private MessageService messageService;
 
     @Resource
     private MessageRelationDAO messageRelationDAO;
@@ -85,6 +89,7 @@ public class MessageServiceImpl implements MessageService {
         messageRelationModel.setMessageId(messageId);
         messageRelationModel.setUserId(userId);
         messageRelationModel.setSessionId(sessionId);
+        messageRelationModel.setIsRead(Boolean.FALSE);
         this.messageRelationDAO.insertSelective(messageRelationModel);
     }
 
@@ -129,8 +134,22 @@ public class MessageServiceImpl implements MessageService {
 
         List<MessageVO> messageVos = this.messageDAO.selectUserMessages(current.getUserId(), sessionId);
 
+        // 将该会话的所有消息都置为已读
+        this.messageService.updateReadStatus(Objects.equals(current.getUserId(), sessionModel.getUserOne()) ? sessionModel.getUserTwo(): sessionModel.getUserOne() , sessionId);
         return ResultUtil.getSuccessList(MessageVO.class, messageVos);
     }
+
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
+    public void updateReadStatus(Long targetUserId, Long sessionId) {
+
+        // 将当前用户的当前会话未读数变成0
+        this.messageSessionRelationDAO.updateReadCountZero(Objects.requireNonNull(AuthUtil.getCurrent()).getUserId(), sessionId);
+
+        // 将对方发给我的消息标记未已读 TODO
+        this.messageRelationDAO.updateReadStatus(targetUserId, sessionId);
+    }
+
 
     private MessageModel createMessage(Long sessionId, Long userId, Long receiverId, String content) {
 
@@ -139,7 +158,6 @@ public class MessageServiceImpl implements MessageService {
         messageModel.setCreateTime(new Date());
         messageModel.setSenderId(userId);
         messageModel.setUserId(receiverId);
-        messageModel.setIsRead(Boolean.FALSE);
         messageModel.setSessionId(sessionId);
         this.messageDAO.insertSelectiveReturnKey(messageModel);
         return messageModel;

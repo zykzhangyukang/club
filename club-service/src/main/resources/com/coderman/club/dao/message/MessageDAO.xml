@@ -6,12 +6,8 @@
     <result column="session_id" jdbcType="BIGINT" property="sessionId" />
     <result column="sender_id" jdbcType="BIGINT" property="senderId" />
     <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="is_read" jdbcType="BIT" property="isRead" />
-    <result column="read_time" jdbcType="TIMESTAMP" property="readTime" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.coderman.club.model.message.MessageModel">
-    <result column="content" jdbcType="LONGVARCHAR" property="content" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -72,27 +68,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    message_id, session_id, sender_id, user_id, create_time, is_read, read_time
+    message_id, session_id, sender_id, user_id, content, create_time
   </sql>
-  <sql id="Blob_Column_List">
-    content
-  </sql>
-  <select id="selectByExampleWithBLOBs" parameterType="com.coderman.club.model.message.MessageExample" resultMap="ResultMapWithBLOBs">
-    select
-    <if test="distinct">
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from club_message
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null">
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" parameterType="com.coderman.club.model.message.MessageExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
@@ -107,11 +84,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from club_message
     where message_id = #{messageId,jdbcType=BIGINT}
   </select>
@@ -127,11 +102,11 @@
   </delete>
   <insert id="insert" parameterType="com.coderman.club.model.message.MessageModel">
     insert into club_message (message_id, session_id, sender_id, 
-      user_id, create_time, is_read, 
-      read_time, content)
+      user_id, content, create_time
+      )
     values (#{messageId,jdbcType=BIGINT}, #{sessionId,jdbcType=BIGINT}, #{senderId,jdbcType=BIGINT}, 
-      #{userId,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{isRead,jdbcType=BIT}, 
-      #{readTime,jdbcType=TIMESTAMP}, #{content,jdbcType=LONGVARCHAR})
+      #{userId,jdbcType=BIGINT}, #{content,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.coderman.club.model.message.MessageModel">
     insert into club_message
@@ -148,17 +123,11 @@
       <if test="userId != null">
         user_id,
       </if>
-      <if test="createTime != null">
-        create_time,
-      </if>
-      <if test="isRead != null">
-        is_read,
-      </if>
-      <if test="readTime != null">
-        read_time,
-      </if>
       <if test="content != null">
         content,
+      </if>
+      <if test="createTime != null">
+        create_time,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -174,17 +143,11 @@
       <if test="userId != null">
         #{userId,jdbcType=BIGINT},
       </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="isRead != null">
-        #{isRead,jdbcType=BIT},
-      </if>
-      <if test="readTime != null">
-        #{readTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="content != null">
-        #{content,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -209,33 +172,13 @@
       <if test="record.userId != null">
         user_id = #{record.userId,jdbcType=BIGINT},
       </if>
+      <if test="record.content != null">
+        content = #{record.content,jdbcType=VARCHAR},
+      </if>
       <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.isRead != null">
-        is_read = #{record.isRead,jdbcType=BIT},
-      </if>
-      <if test="record.readTime != null">
-        read_time = #{record.readTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.content != null">
-        content = #{record.content,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null">
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map">
-    update club_message
-    set message_id = #{record.messageId,jdbcType=BIGINT},
-      session_id = #{record.sessionId,jdbcType=BIGINT},
-      sender_id = #{record.senderId,jdbcType=BIGINT},
-      user_id = #{record.userId,jdbcType=BIGINT},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      is_read = #{record.isRead,jdbcType=BIT},
-      read_time = #{record.readTime,jdbcType=TIMESTAMP},
-      content = #{record.content,jdbcType=LONGVARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -246,9 +189,8 @@
       session_id = #{record.sessionId,jdbcType=BIGINT},
       sender_id = #{record.senderId,jdbcType=BIGINT},
       user_id = #{record.userId,jdbcType=BIGINT},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      is_read = #{record.isRead,jdbcType=BIT},
-      read_time = #{record.readTime,jdbcType=TIMESTAMP}
+      content = #{record.content,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -265,30 +207,13 @@
       <if test="userId != null">
         user_id = #{userId,jdbcType=BIGINT},
       </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="isRead != null">
-        is_read = #{isRead,jdbcType=BIT},
-      </if>
-      <if test="readTime != null">
-        read_time = #{readTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="content != null">
-        content = #{content,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where message_id = #{messageId,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.coderman.club.model.message.MessageModel">
-    update club_message
-    set session_id = #{sessionId,jdbcType=BIGINT},
-      sender_id = #{senderId,jdbcType=BIGINT},
-      user_id = #{userId,jdbcType=BIGINT},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      is_read = #{isRead,jdbcType=BIT},
-      read_time = #{readTime,jdbcType=TIMESTAMP},
-      content = #{content,jdbcType=LONGVARCHAR}
     where message_id = #{messageId,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.message.MessageModel">
@@ -296,9 +221,8 @@
     set session_id = #{sessionId,jdbcType=BIGINT},
       sender_id = #{senderId,jdbcType=BIGINT},
       user_id = #{userId,jdbcType=BIGINT},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      is_read = #{isRead,jdbcType=BIT},
-      read_time = #{readTime,jdbcType=TIMESTAMP}
+      content = #{content,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
     where message_id = #{messageId,jdbcType=BIGINT}
   </update>
   <select id="selectUserMessages" resultType="com.coderman.club.vo.message.MessageVO">
@@ -332,12 +256,6 @@
       <if test="createTime != null">
         create_time,
       </if>
-      <if test="isRead != null">
-        is_read,
-      </if>
-      <if test="readTime != null">
-        read_time,
-      </if>
       <if test="content != null">
         content,
       </if>
@@ -357,12 +275,6 @@
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="isRead != null">
-        #{isRead,jdbcType=BIT},
-      </if>
-      <if test="readTime != null">
-        #{readTime,jdbcType=TIMESTAMP},
       </if>
       <if test="content != null">
         #{content,jdbcType=LONGVARCHAR},

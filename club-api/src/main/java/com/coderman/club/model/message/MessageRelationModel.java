@@ -31,4 +31,7 @@ public class MessageRelationModel extends BaseModel {
 
     @ApiModelProperty(value = "是否删除")
     private Boolean isDelete;
+
+    @ApiModelProperty(value = "是否已读")
+    private Boolean isRead;
 }

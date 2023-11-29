@@ -26,4 +26,12 @@ public interface MessageService {
      * @return
      */
     ResultVO<List<MessageVO>> getSessionMessages(Long sessionId);
+
+    /**
+     * 聊天消息已读
+     *
+     * @param targetUserId
+     * @param sessionId
+     */
+    void updateReadStatus(Long targetUserId, Long sessionId);
 }
