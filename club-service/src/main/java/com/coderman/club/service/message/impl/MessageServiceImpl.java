@@ -7,6 +7,7 @@ import com.coderman.club.dao.message.MessageSessionDAO;
 import com.coderman.club.dao.message.MessageSessionRelationDAO;
 import com.coderman.club.dto.message.MessageSendDTO;
 import com.coderman.club.model.message.MessageModel;
+import com.coderman.club.model.message.MessageRelationModel;
 import com.coderman.club.model.message.MessageSessionModel;
 import com.coderman.club.model.message.MessageSessionRelationModel;
 import com.coderman.club.service.message.MessageService;
@@ -71,8 +72,20 @@ public class MessageServiceImpl implements MessageService {
         this.createSessionRelation(receiverId, sessionId, false);
         // 创建消息
         MessageModel messageModel = this.createMessage(sessionId, current.getUserId(), receiverId, content);
+        // 设置消息关联
+        this.createMessageRelation(current.getUserId(), sessionId, messageModel.getMessageId());
+        this.createMessageRelation(receiverId,  sessionId, messageModel.getMessageId());
 
         return ResultUtil.getSuccess();
+    }
+
+    private void createMessageRelation(Long userId, Long sessionId, Long messageId) {
+        MessageRelationModel messageRelationModel = new MessageRelationModel();
+        messageRelationModel.setIsDelete(Boolean.FALSE);
+        messageRelationModel.setMessageId(messageId);
+        messageRelationModel.setUserId(userId);
+        messageRelationModel.setSessionId(sessionId);
+        this.messageRelationDAO.insertSelective(messageRelationModel);
     }
 
     private void createSessionRelation(Long userId, Long sessionId, Boolean isRead) {
@@ -114,7 +127,9 @@ public class MessageServiceImpl implements MessageService {
             return ResultUtil.getWarn("会话不存在，请刷新页面重试！");
         }
 
-        return ResultUtil.getSuccessList(MessageVO.class, null);
+        List<MessageVO> messageVos = this.messageDAO.selectUserMessages(current.getUserId(), sessionId);
+
+        return ResultUtil.getSuccessList(MessageVO.class, messageVos);
     }
 
     private MessageModel createMessage(Long sessionId, Long userId, Long receiverId, String content) {
@@ -126,7 +141,7 @@ public class MessageServiceImpl implements MessageService {
         messageModel.setUserId(receiverId);
         messageModel.setIsRead(Boolean.FALSE);
         messageModel.setSessionId(sessionId);
-        this.messageDAO.insertSelective(messageModel);
+        this.messageDAO.insertSelectiveReturnKey(messageModel);
         return messageModel;
     }
 

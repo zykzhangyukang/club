@@ -20,4 +20,12 @@ public interface MessageDAO extends BaseDAO<MessageModel, MessageExample> {
      * @return
      */
     List<MessageVO> selectUserMessages(@Param(value = "userId") Long userId,@Param(value = "sessionId") Long sessionId);
+
+
+    /**
+     * 新增消息
+     * @param messageModel
+     * @return
+     */
+    int insertSelectiveReturnKey(MessageModel messageModel);
 }

@@ -302,9 +302,71 @@
     where message_id = #{messageId,jdbcType=BIGINT}
   </update>
   <select id="selectUserMessages" resultType="com.coderman.club.vo.message.MessageVO">
-    select
-        *
-    from club_message
-    where session_id = #{sessionId} and user_id = #{userId}
+    SELECT
+      t2.*
+    FROM
+      club_message_relation t1
+        INNER JOIN club_message t2 ON t1.message_id = t2.message_id
+    WHERE
+      t1.user_id = #{userId}
+      AND t2.session_id = #{sessionId}
+      AND t1.is_delete = 0
+    ORDER BY
+      t2.create_time
   </select>
+  <insert id="insertSelectiveReturnKey" useGeneratedKeys="true" keyProperty="messageId" parameterType="com.coderman.club.model.message.MessageModel">
+    insert into club_message
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="messageId != null">
+        message_id,
+      </if>
+      <if test="sessionId != null">
+        session_id,
+      </if>
+      <if test="senderId != null">
+        sender_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="isRead != null">
+        is_read,
+      </if>
+      <if test="readTime != null">
+        read_time,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="messageId != null">
+        #{messageId,jdbcType=BIGINT},
+      </if>
+      <if test="sessionId != null">
+        #{sessionId,jdbcType=BIGINT},
+      </if>
+      <if test="senderId != null">
+        #{senderId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isRead != null">
+        #{isRead,jdbcType=BIT},
+      </if>
+      <if test="readTime != null">
+        #{readTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
 </mapper>
