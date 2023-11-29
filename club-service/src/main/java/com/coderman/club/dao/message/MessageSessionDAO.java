@@ -17,4 +17,10 @@ public interface MessageSessionDAO extends BaseDAO<MessageSessionModel, MessageS
      * @return
      */
     MessageSessionModel selectSessionByUser(@Param(value = "userOne") Long userOne,@Param(value = "userTwo") Long userTwo);
+
+    /**
+     * 新增会话
+     * @param messageSessionModel
+     */
+    void insertSelectiveReturnKey(MessageSessionModel messageSessionModel);
 }

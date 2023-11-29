@@ -301,4 +301,10 @@
       read_time = #{readTime,jdbcType=TIMESTAMP}
     where message_id = #{messageId,jdbcType=BIGINT}
   </update>
+  <select id="selectUserMessages" resultType="com.coderman.club.vo.message.MessageVO">
+    select
+        *
+    from club_message
+    where session_id = #{sessionId} and user_id = #{userId}
+  </select>
 </mapper>

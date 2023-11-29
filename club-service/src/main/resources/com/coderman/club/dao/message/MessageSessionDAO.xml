@@ -5,7 +5,8 @@
     <id column="session_id" jdbcType="BIGINT" property="sessionId" />
     <result column="user_one" jdbcType="BIGINT" property="userOne" />
     <result column="user_two" jdbcType="BIGINT" property="userTwo" />
-    <result column="last_message_id" jdbcType="BIGINT" property="lastMessageId" />
+    <result column="last_message" jdbcType="VARCHAR" property="lastMessage" />
+    <result column="last_user_id" jdbcType="BIGINT" property="lastUserId" />
     <result column="last_message_time" jdbcType="TIMESTAMP" property="lastMessageTime" />
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -67,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    session_id, user_one, user_two, last_message_id, last_message_time
+    session_id, user_one, user_two, last_message, last_user_id, last_message_time
   </sql>
   <select id="selectByExample" parameterType="com.coderman.club.model.message.MessageSessionExample" resultMap="BaseResultMap">
     select
@@ -101,9 +102,11 @@
   </delete>
   <insert id="insert" parameterType="com.coderman.club.model.message.MessageSessionModel">
     insert into club_message_session (session_id, user_one, user_two, 
-      last_message_id, last_message_time)
+      last_message, last_user_id, last_message_time
+      )
     values (#{sessionId,jdbcType=BIGINT}, #{userOne,jdbcType=BIGINT}, #{userTwo,jdbcType=BIGINT}, 
-      #{lastMessageId,jdbcType=BIGINT}, #{lastMessageTime,jdbcType=TIMESTAMP})
+      #{lastMessage,jdbcType=VARCHAR}, #{lastUserId,jdbcType=BIGINT}, #{lastMessageTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.coderman.club.model.message.MessageSessionModel">
     insert into club_message_session
@@ -117,8 +120,11 @@
       <if test="userTwo != null">
         user_two,
       </if>
-      <if test="lastMessageId != null">
-        last_message_id,
+      <if test="lastMessage != null">
+        last_message,
+      </if>
+      <if test="lastUserId != null">
+        last_user_id,
       </if>
       <if test="lastMessageTime != null">
         last_message_time,
@@ -134,8 +140,11 @@
       <if test="userTwo != null">
         #{userTwo,jdbcType=BIGINT},
       </if>
-      <if test="lastMessageId != null">
-        #{lastMessageId,jdbcType=BIGINT},
+      <if test="lastMessage != null">
+        #{lastMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="lastUserId != null">
+        #{lastUserId,jdbcType=BIGINT},
       </if>
       <if test="lastMessageTime != null">
         #{lastMessageTime,jdbcType=TIMESTAMP},
@@ -160,8 +169,11 @@
       <if test="record.userTwo != null">
         user_two = #{record.userTwo,jdbcType=BIGINT},
       </if>
-      <if test="record.lastMessageId != null">
-        last_message_id = #{record.lastMessageId,jdbcType=BIGINT},
+      <if test="record.lastMessage != null">
+        last_message = #{record.lastMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastUserId != null">
+        last_user_id = #{record.lastUserId,jdbcType=BIGINT},
       </if>
       <if test="record.lastMessageTime != null">
         last_message_time = #{record.lastMessageTime,jdbcType=TIMESTAMP},
@@ -176,7 +188,8 @@
     set session_id = #{record.sessionId,jdbcType=BIGINT},
       user_one = #{record.userOne,jdbcType=BIGINT},
       user_two = #{record.userTwo,jdbcType=BIGINT},
-      last_message_id = #{record.lastMessageId,jdbcType=BIGINT},
+      last_message = #{record.lastMessage,jdbcType=VARCHAR},
+      last_user_id = #{record.lastUserId,jdbcType=BIGINT},
       last_message_time = #{record.lastMessageTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -191,8 +204,11 @@
       <if test="userTwo != null">
         user_two = #{userTwo,jdbcType=BIGINT},
       </if>
-      <if test="lastMessageId != null">
-        last_message_id = #{lastMessageId,jdbcType=BIGINT},
+      <if test="lastMessage != null">
+        last_message = #{lastMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="lastUserId != null">
+        last_user_id = #{lastUserId,jdbcType=BIGINT},
       </if>
       <if test="lastMessageTime != null">
         last_message_time = #{lastMessageTime,jdbcType=TIMESTAMP},
@@ -204,7 +220,8 @@
     update club_message_session
     set user_one = #{userOne,jdbcType=BIGINT},
       user_two = #{userTwo,jdbcType=BIGINT},
-      last_message_id = #{lastMessageId,jdbcType=BIGINT},
+      last_message = #{lastMessage,jdbcType=VARCHAR},
+      last_user_id = #{lastUserId,jdbcType=BIGINT},
       last_message_time = #{lastMessageTime,jdbcType=TIMESTAMP}
     where session_id = #{sessionId,jdbcType=BIGINT}
   </update>
@@ -213,4 +230,47 @@
 <include refid="Base_Column_List"></include>
     from club_message_session where user_one = #{userOne} and user_two =#{userTwo}
   </select>
+  <insert id="insertSelectiveReturnKey" useGeneratedKeys="true" keyProperty="sessionId" parameterType="com.coderman.club.model.message.MessageSessionModel">
+    insert into club_message_session
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sessionId != null">
+        session_id,
+      </if>
+      <if test="userOne != null">
+        user_one,
+      </if>
+      <if test="userTwo != null">
+        user_two,
+      </if>
+      <if test="lastMessage != null">
+        last_message,
+      </if>
+      <if test="lastUserId != null">
+        last_user_id,
+      </if>
+      <if test="lastMessageTime != null">
+        last_message_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sessionId != null">
+        #{sessionId,jdbcType=BIGINT},
+      </if>
+      <if test="userOne != null">
+        #{userOne,jdbcType=BIGINT},
+      </if>
+      <if test="userTwo != null">
+        #{userTwo,jdbcType=BIGINT},
+      </if>
+      <if test="lastMessage != null">
+        #{lastMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="lastUserId != null">
+        #{lastUserId,jdbcType=BIGINT},
+      </if>
+      <if test="lastMessageTime != null">
+        #{lastMessageTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
 </mapper>

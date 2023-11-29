@@ -285,63 +285,133 @@ public class MessageSessionExample {
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdIsNull() {
-            addCriterion("last_message_id is null");
+        public Criteria andLastMessageIsNull() {
+            addCriterion("last_message is null");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdIsNotNull() {
-            addCriterion("last_message_id is not null");
+        public Criteria andLastMessageIsNotNull() {
+            addCriterion("last_message is not null");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdEqualTo(Long value) {
-            addCriterion("last_message_id =", value, "lastMessageId");
+        public Criteria andLastMessageEqualTo(String value) {
+            addCriterion("last_message =", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdNotEqualTo(Long value) {
-            addCriterion("last_message_id <>", value, "lastMessageId");
+        public Criteria andLastMessageNotEqualTo(String value) {
+            addCriterion("last_message <>", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdGreaterThan(Long value) {
-            addCriterion("last_message_id >", value, "lastMessageId");
+        public Criteria andLastMessageGreaterThan(String value) {
+            addCriterion("last_message >", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("last_message_id >=", value, "lastMessageId");
+        public Criteria andLastMessageGreaterThanOrEqualTo(String value) {
+            addCriterion("last_message >=", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdLessThan(Long value) {
-            addCriterion("last_message_id <", value, "lastMessageId");
+        public Criteria andLastMessageLessThan(String value) {
+            addCriterion("last_message <", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdLessThanOrEqualTo(Long value) {
-            addCriterion("last_message_id <=", value, "lastMessageId");
+        public Criteria andLastMessageLessThanOrEqualTo(String value) {
+            addCriterion("last_message <=", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdIn(List<Long> values) {
-            addCriterion("last_message_id in", values, "lastMessageId");
+        public Criteria andLastMessageLike(String value) {
+            addCriterion("last_message like", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdNotIn(List<Long> values) {
-            addCriterion("last_message_id not in", values, "lastMessageId");
+        public Criteria andLastMessageNotLike(String value) {
+            addCriterion("last_message not like", value, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdBetween(Long value1, Long value2) {
-            addCriterion("last_message_id between", value1, value2, "lastMessageId");
+        public Criteria andLastMessageIn(List<String> values) {
+            addCriterion("last_message in", values, "lastMessage");
             return (Criteria) this;
         }
 
-        public Criteria andLastMessageIdNotBetween(Long value1, Long value2) {
-            addCriterion("last_message_id not between", value1, value2, "lastMessageId");
+        public Criteria andLastMessageNotIn(List<String> values) {
+            addCriterion("last_message not in", values, "lastMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastMessageBetween(String value1, String value2) {
+            addCriterion("last_message between", value1, value2, "lastMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastMessageNotBetween(String value1, String value2) {
+            addCriterion("last_message not between", value1, value2, "lastMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdIsNull() {
+            addCriterion("last_user_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdIsNotNull() {
+            addCriterion("last_user_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdEqualTo(Long value) {
+            addCriterion("last_user_id =", value, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdNotEqualTo(Long value) {
+            addCriterion("last_user_id <>", value, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdGreaterThan(Long value) {
+            addCriterion("last_user_id >", value, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("last_user_id >=", value, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdLessThan(Long value) {
+            addCriterion("last_user_id <", value, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdLessThanOrEqualTo(Long value) {
+            addCriterion("last_user_id <=", value, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdIn(List<Long> values) {
+            addCriterion("last_user_id in", values, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdNotIn(List<Long> values) {
+            addCriterion("last_user_id not in", values, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdBetween(Long value1, Long value2) {
+            addCriterion("last_user_id between", value1, value2, "lastUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastUserIdNotBetween(Long value1, Long value2) {
+            addCriterion("last_user_id not between", value1, value2, "lastUserId");
             return (Criteria) this;
         }
 

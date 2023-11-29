@@ -27,8 +27,11 @@ public class MessageSessionModel extends BaseModel {
     @ApiModelProperty(value = "用户2")
     private Long userTwo;
 
-    @ApiModelProperty(value = "最后一条私信id")
-    private Long lastMessageId;
+    @ApiModelProperty(value = "最后一条消息内容")
+    private String lastMessage;
+
+    @ApiModelProperty(value = "最后发送人id")
+    private Long lastUserId;
 
     @ApiModelProperty(value = "最后一条私信时间")
     private Date lastMessageTime;

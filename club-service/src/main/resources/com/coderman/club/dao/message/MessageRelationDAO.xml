@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.dao.message.MessageRelationDAO">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.message.MessageRelationModel">
+    <id column="relation_id" jdbcType="BIGINT" property="relationId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="message_id" jdbcType="BIGINT" property="messageId" />
+    <result column="session_id" jdbcType="BIGINT" property="sessionId" />
+    <result column="is_delete" jdbcType="BIT" property="isDelete" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    relation_id, user_id, message_id, session_id, is_delete
+  </sql>
+  <select id="selectByExample" parameterType="com.coderman.club.model.message.MessageRelationExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from club_message_relation
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from club_message_relation
+    where relation_id = #{relationId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from club_message_relation
+    where relation_id = #{relationId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.coderman.club.model.message.MessageRelationExample">
+    delete from club_message_relation
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.coderman.club.model.message.MessageRelationModel">
+    insert into club_message_relation (relation_id, user_id, message_id, 
+      session_id, is_delete)
+    values (#{relationId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{messageId,jdbcType=BIGINT}, 
+      #{sessionId,jdbcType=BIGINT}, #{isDelete,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.coderman.club.model.message.MessageRelationModel">
+    insert into club_message_relation
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="relationId != null">
+        relation_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="messageId != null">
+        message_id,
+      </if>
+      <if test="sessionId != null">
+        session_id,
+      </if>
+      <if test="isDelete != null">
+        is_delete,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="relationId != null">
+        #{relationId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="messageId != null">
+        #{messageId,jdbcType=BIGINT},
+      </if>
+      <if test="sessionId != null">
+        #{sessionId,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null">
+        #{isDelete,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.coderman.club.model.message.MessageRelationExample" resultType="java.lang.Long">
+    select count(*) from club_message_relation
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update club_message_relation
+    <set>
+      <if test="record.relationId != null">
+        relation_id = #{record.relationId,jdbcType=BIGINT},
+      </if>
+      <if test="record.userId != null">
+        user_id = #{record.userId,jdbcType=BIGINT},
+      </if>
+      <if test="record.messageId != null">
+        message_id = #{record.messageId,jdbcType=BIGINT},
+      </if>
+      <if test="record.sessionId != null">
+        session_id = #{record.sessionId,jdbcType=BIGINT},
+      </if>
+      <if test="record.isDelete != null">
+        is_delete = #{record.isDelete,jdbcType=BIT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update club_message_relation
+    set relation_id = #{record.relationId,jdbcType=BIGINT},
+      user_id = #{record.userId,jdbcType=BIGINT},
+      message_id = #{record.messageId,jdbcType=BIGINT},
+      session_id = #{record.sessionId,jdbcType=BIGINT},
+      is_delete = #{record.isDelete,jdbcType=BIT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.coderman.club.model.message.MessageRelationModel">
+    update club_message_relation
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="messageId != null">
+        message_id = #{messageId,jdbcType=BIGINT},
+      </if>
+      <if test="sessionId != null">
+        session_id = #{sessionId,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null">
+        is_delete = #{isDelete,jdbcType=BIT},
+      </if>
+    </set>
+    where relation_id = #{relationId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.message.MessageRelationModel">
+    update club_message_relation
+    set user_id = #{userId,jdbcType=BIGINT},
+      message_id = #{messageId,jdbcType=BIGINT},
+      session_id = #{sessionId,jdbcType=BIGINT},
+      is_delete = #{isDelete,jdbcType=BIT}
+    where relation_id = #{relationId,jdbcType=BIGINT}
+  </update>
+</mapper>
