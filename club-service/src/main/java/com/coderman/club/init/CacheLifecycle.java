@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * @author Administrator
+ */
 @Lazy(value = false)
 @Component
 public class CacheLifecycle implements SmartLifecycle {

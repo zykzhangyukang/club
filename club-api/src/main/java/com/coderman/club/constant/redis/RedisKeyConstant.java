@@ -22,6 +22,7 @@ public interface RedisKeyConstant {
      * 论坛板块缓存
      */
     public static final String REDIS_SECTION_CACHE = "REDIS_SECTION_CACHE";
+    public static final String REDIS_CAROUSE_CACHE = "REDIS_CAROUSE_CACHE";
 
     /**
      * websocket回话
