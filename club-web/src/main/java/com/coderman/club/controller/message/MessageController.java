@@ -1,8 +1,16 @@
 package com.coderman.club.controller.message;
 
+import com.coderman.club.dto.message.MessageSendDTO;
+import com.coderman.club.service.message.MessageService;
+import com.coderman.club.vo.common.ResultVO;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 /**
  * @author ：zhangyukang
@@ -13,6 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/api/message")
 public class MessageController {
 
+    @Resource
+    private MessageService messageService;
 
+    @ApiOperation(value = "发送私信")
+    @PostMapping(value = "/send")
+    public ResultVO<Void> send(@RequestBody MessageSendDTO messageSendDTO){
 
+        return this.messageService.send(messageSendDTO);
+    }
 }

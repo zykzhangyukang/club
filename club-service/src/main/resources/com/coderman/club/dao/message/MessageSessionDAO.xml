@@ -3,8 +3,8 @@
 <mapper namespace="com.coderman.club.dao.message.MessageSessionDAO">
   <resultMap id="BaseResultMap" type="com.coderman.club.model.message.MessageSessionModel">
     <id column="session_id" jdbcType="BIGINT" property="sessionId" />
-    <result column="user_id" jdbcType="BIGINT" property="userId" />
-    <result column="sender_id" jdbcType="BIGINT" property="senderId" />
+    <result column="user_one" jdbcType="BIGINT" property="userOne" />
+    <result column="user_two" jdbcType="BIGINT" property="userTwo" />
     <result column="last_message_id" jdbcType="BIGINT" property="lastMessageId" />
     <result column="last_message_time" jdbcType="TIMESTAMP" property="lastMessageTime" />
   </resultMap>
@@ -67,7 +67,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    session_id, user_id, sender_id, last_message_id, last_message_time
+    session_id, user_one, user_two, last_message_id, last_message_time
   </sql>
   <select id="selectByExample" parameterType="com.coderman.club.model.message.MessageSessionExample" resultMap="BaseResultMap">
     select
@@ -100,9 +100,9 @@
     </if>
   </delete>
   <insert id="insert" parameterType="com.coderman.club.model.message.MessageSessionModel">
-    insert into club_message_session (session_id, user_id, sender_id, 
+    insert into club_message_session (session_id, user_one, user_two, 
       last_message_id, last_message_time)
-    values (#{sessionId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{senderId,jdbcType=BIGINT}, 
+    values (#{sessionId,jdbcType=BIGINT}, #{userOne,jdbcType=BIGINT}, #{userTwo,jdbcType=BIGINT}, 
       #{lastMessageId,jdbcType=BIGINT}, #{lastMessageTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.coderman.club.model.message.MessageSessionModel">
@@ -111,11 +111,11 @@
       <if test="sessionId != null">
         session_id,
       </if>
-      <if test="userId != null">
-        user_id,
+      <if test="userOne != null">
+        user_one,
       </if>
-      <if test="senderId != null">
-        sender_id,
+      <if test="userTwo != null">
+        user_two,
       </if>
       <if test="lastMessageId != null">
         last_message_id,
@@ -128,11 +128,11 @@
       <if test="sessionId != null">
         #{sessionId,jdbcType=BIGINT},
       </if>
-      <if test="userId != null">
-        #{userId,jdbcType=BIGINT},
+      <if test="userOne != null">
+        #{userOne,jdbcType=BIGINT},
       </if>
-      <if test="senderId != null">
-        #{senderId,jdbcType=BIGINT},
+      <if test="userTwo != null">
+        #{userTwo,jdbcType=BIGINT},
       </if>
       <if test="lastMessageId != null">
         #{lastMessageId,jdbcType=BIGINT},
@@ -154,11 +154,11 @@
       <if test="record.sessionId != null">
         session_id = #{record.sessionId,jdbcType=BIGINT},
       </if>
-      <if test="record.userId != null">
-        user_id = #{record.userId,jdbcType=BIGINT},
+      <if test="record.userOne != null">
+        user_one = #{record.userOne,jdbcType=BIGINT},
       </if>
-      <if test="record.senderId != null">
-        sender_id = #{record.senderId,jdbcType=BIGINT},
+      <if test="record.userTwo != null">
+        user_two = #{record.userTwo,jdbcType=BIGINT},
       </if>
       <if test="record.lastMessageId != null">
         last_message_id = #{record.lastMessageId,jdbcType=BIGINT},
@@ -174,8 +174,8 @@
   <update id="updateByExample" parameterType="map">
     update club_message_session
     set session_id = #{record.sessionId,jdbcType=BIGINT},
-      user_id = #{record.userId,jdbcType=BIGINT},
-      sender_id = #{record.senderId,jdbcType=BIGINT},
+      user_one = #{record.userOne,jdbcType=BIGINT},
+      user_two = #{record.userTwo,jdbcType=BIGINT},
       last_message_id = #{record.lastMessageId,jdbcType=BIGINT},
       last_message_time = #{record.lastMessageTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
@@ -185,11 +185,11 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.coderman.club.model.message.MessageSessionModel">
     update club_message_session
     <set>
-      <if test="userId != null">
-        user_id = #{userId,jdbcType=BIGINT},
+      <if test="userOne != null">
+        user_one = #{userOne,jdbcType=BIGINT},
       </if>
-      <if test="senderId != null">
-        sender_id = #{senderId,jdbcType=BIGINT},
+      <if test="userTwo != null">
+        user_two = #{userTwo,jdbcType=BIGINT},
       </if>
       <if test="lastMessageId != null">
         last_message_id = #{lastMessageId,jdbcType=BIGINT},
@@ -202,10 +202,15 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.message.MessageSessionModel">
     update club_message_session
-    set user_id = #{userId,jdbcType=BIGINT},
-      sender_id = #{senderId,jdbcType=BIGINT},
+    set user_one = #{userOne,jdbcType=BIGINT},
+      user_two = #{userTwo,jdbcType=BIGINT},
       last_message_id = #{lastMessageId,jdbcType=BIGINT},
       last_message_time = #{lastMessageTime,jdbcType=TIMESTAMP}
     where session_id = #{sessionId,jdbcType=BIGINT}
   </update>
+  <select id="selectSessionByUser" resultMap="BaseResultMap">
+    select
+<include refid="Base_Column_List"></include>
+    from club_message_session where user_one = #{userOne} and user_two =#{userTwo}
+  </select>
 </mapper>

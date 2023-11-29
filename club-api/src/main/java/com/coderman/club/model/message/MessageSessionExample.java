@@ -165,123 +165,123 @@ public class MessageSessionExample {
             return (Criteria) this;
         }
 
-        public Criteria andUserIdIsNull() {
-            addCriterion("user_id is null");
+        public Criteria andUserOneIsNull() {
+            addCriterion("user_one is null");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdIsNotNull() {
-            addCriterion("user_id is not null");
+        public Criteria andUserOneIsNotNull() {
+            addCriterion("user_one is not null");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdEqualTo(Long value) {
-            addCriterion("user_id =", value, "userId");
+        public Criteria andUserOneEqualTo(Long value) {
+            addCriterion("user_one =", value, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdNotEqualTo(Long value) {
-            addCriterion("user_id <>", value, "userId");
+        public Criteria andUserOneNotEqualTo(Long value) {
+            addCriterion("user_one <>", value, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdGreaterThan(Long value) {
-            addCriterion("user_id >", value, "userId");
+        public Criteria andUserOneGreaterThan(Long value) {
+            addCriterion("user_one >", value, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("user_id >=", value, "userId");
+        public Criteria andUserOneGreaterThanOrEqualTo(Long value) {
+            addCriterion("user_one >=", value, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdLessThan(Long value) {
-            addCriterion("user_id <", value, "userId");
+        public Criteria andUserOneLessThan(Long value) {
+            addCriterion("user_one <", value, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdLessThanOrEqualTo(Long value) {
-            addCriterion("user_id <=", value, "userId");
+        public Criteria andUserOneLessThanOrEqualTo(Long value) {
+            addCriterion("user_one <=", value, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdIn(List<Long> values) {
-            addCriterion("user_id in", values, "userId");
+        public Criteria andUserOneIn(List<Long> values) {
+            addCriterion("user_one in", values, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdNotIn(List<Long> values) {
-            addCriterion("user_id not in", values, "userId");
+        public Criteria andUserOneNotIn(List<Long> values) {
+            addCriterion("user_one not in", values, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdBetween(Long value1, Long value2) {
-            addCriterion("user_id between", value1, value2, "userId");
+        public Criteria andUserOneBetween(Long value1, Long value2) {
+            addCriterion("user_one between", value1, value2, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andUserIdNotBetween(Long value1, Long value2) {
-            addCriterion("user_id not between", value1, value2, "userId");
+        public Criteria andUserOneNotBetween(Long value1, Long value2) {
+            addCriterion("user_one not between", value1, value2, "userOne");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdIsNull() {
-            addCriterion("sender_id is null");
+        public Criteria andUserTwoIsNull() {
+            addCriterion("user_two is null");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdIsNotNull() {
-            addCriterion("sender_id is not null");
+        public Criteria andUserTwoIsNotNull() {
+            addCriterion("user_two is not null");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdEqualTo(Long value) {
-            addCriterion("sender_id =", value, "senderId");
+        public Criteria andUserTwoEqualTo(Long value) {
+            addCriterion("user_two =", value, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdNotEqualTo(Long value) {
-            addCriterion("sender_id <>", value, "senderId");
+        public Criteria andUserTwoNotEqualTo(Long value) {
+            addCriterion("user_two <>", value, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdGreaterThan(Long value) {
-            addCriterion("sender_id >", value, "senderId");
+        public Criteria andUserTwoGreaterThan(Long value) {
+            addCriterion("user_two >", value, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("sender_id >=", value, "senderId");
+        public Criteria andUserTwoGreaterThanOrEqualTo(Long value) {
+            addCriterion("user_two >=", value, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdLessThan(Long value) {
-            addCriterion("sender_id <", value, "senderId");
+        public Criteria andUserTwoLessThan(Long value) {
+            addCriterion("user_two <", value, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdLessThanOrEqualTo(Long value) {
-            addCriterion("sender_id <=", value, "senderId");
+        public Criteria andUserTwoLessThanOrEqualTo(Long value) {
+            addCriterion("user_two <=", value, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdIn(List<Long> values) {
-            addCriterion("sender_id in", values, "senderId");
+        public Criteria andUserTwoIn(List<Long> values) {
+            addCriterion("user_two in", values, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdNotIn(List<Long> values) {
-            addCriterion("sender_id not in", values, "senderId");
+        public Criteria andUserTwoNotIn(List<Long> values) {
+            addCriterion("user_two not in", values, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdBetween(Long value1, Long value2) {
-            addCriterion("sender_id between", value1, value2, "senderId");
+        public Criteria andUserTwoBetween(Long value1, Long value2) {
+            addCriterion("user_two between", value1, value2, "userTwo");
             return (Criteria) this;
         }
 
-        public Criteria andSenderIdNotBetween(Long value1, Long value2) {
-            addCriterion("sender_id not between", value1, value2, "senderId");
+        public Criteria andUserTwoNotBetween(Long value1, Long value2) {
+            addCriterion("user_two not between", value1, value2, "userTwo");
             return (Criteria) this;
         }
 

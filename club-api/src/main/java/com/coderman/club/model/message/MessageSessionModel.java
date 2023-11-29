@@ -21,11 +21,11 @@ public class MessageSessionModel extends BaseModel {
     @ApiModelProperty(value = "会话id")
     private Long sessionId;
 
-    @ApiModelProperty(value = "用户id")
-    private Long userId;
+    @ApiModelProperty(value = "用户1")
+    private Long userOne;
 
-    @ApiModelProperty(value = "发送人id")
-    private Long senderId;
+    @ApiModelProperty(value = "用户2")
+    private Long userTwo;
 
     @ApiModelProperty(value = "最后一条私信id")
     private Long lastMessageId;
