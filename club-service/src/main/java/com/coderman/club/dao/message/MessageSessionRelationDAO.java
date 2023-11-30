@@ -24,4 +24,11 @@ public interface MessageSessionRelationDAO extends BaseDAO<MessageSessionRelatio
      * @param sessionId
      */
     void updateReadCountZero(@Param(value = "userId") Long targetUserId,@Param(value = "sessionId") Long sessionId);
+
+    /**
+     * 删除用户会话关联
+     * @param userId
+     * @param sessionId
+     */
+    int updateDeleteFlag(@Param(value = "userId") Long userId,@Param(value = "sessionId") Long sessionId);
 }

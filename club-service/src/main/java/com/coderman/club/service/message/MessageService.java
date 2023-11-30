@@ -43,4 +43,12 @@ public interface MessageService {
      */
     ResultVO<List<MessageSessionVO>> getSessions();
 
+    /**
+     * 关闭会话
+     *
+     * @param sessionId
+     * @return
+     */
+    ResultVO<Void> closeSession(Long sessionId);
+
 }

@@ -191,6 +191,22 @@ public class MessageServiceImpl implements MessageService {
         return ResultUtil.getSuccessList(MessageSessionVO.class, sessionVos);
     }
 
+    @Override
+    public ResultVO<Void> closeSession(Long sessionId) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        if(sessionId == null || sessionId < 0){
+            return ResultUtil.getWarn("参数错误！");
+        }
+
+        this.messageSessionRelationDAO.updateDeleteFlag(current.getUserId(), sessionId);
+        return ResultUtil.getSuccess();
+    }
+
 
     private MessageModel createMessage(Long sessionId, Long userId, Long receiverId, String content) {
 

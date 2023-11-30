@@ -42,6 +42,13 @@ public class MessageController {
         return this.messageService.getSessions();
     }
 
+    @ApiOperation(value = "关闭会话")
+    @PostMapping(value = "/close/session")
+    public ResultVO<Void> closeSession(Long sessionId){
+
+        return this.messageService.closeSession(sessionId);
+    }
+
     @ApiOperation(value = "获取会话消息")
     @PostMapping(value = "/list")
     public ResultVO<List<MessageVO>> getSessionMessages(Long sessionId){

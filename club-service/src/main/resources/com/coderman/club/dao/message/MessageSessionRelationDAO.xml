@@ -216,4 +216,7 @@
   <update id="updateReadCountZero">
     update club_message_session_relation set un_read_count = 0 where  user_id = #{userId} and session_id = #{sessionId}
   </update>
+  <update id="updateDeleteFlag" >
+    update club_message_session_relation set is_delete = 1 where user_id = #{userId} and session_id = #{sessionId}
+  </update>
 </mapper>
