@@ -2,8 +2,6 @@ package com.coderman.club.init;
 
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
-import com.coderman.club.dao.carousel.CarouselDAO;
-import com.coderman.club.model.carousel.CarouselModel;
 import com.coderman.club.service.carouse.CarouseService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.section.SectionService;
@@ -15,12 +13,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 首页缓存初始化
+ *
  * @author Administrator
  */
 @Lazy(value = false)
@@ -57,18 +54,24 @@ public class IndexCacheInitializer {
      * 首页轮播图数据加载
      */
     private void initCarouseCache() {
-        this.redisService.del(RedisKeyConstant.REDIS_CAROUSE_CACHE, RedisDbConstant.REDIS_BIZ_CACHE);
+
+        final String tempKey = RedisKeyConstant.REDIS_CAROUSE_CACHE + "_" + System.currentTimeMillis();
         List<CarouseVO> carouselVoList = this.carouseService.getCarouselVoList();
-        this.redisService.setListData(RedisKeyConstant.REDIS_CAROUSE_CACHE, carouselVoList, RedisDbConstant.REDIS_BIZ_CACHE);
+        this.redisService.setListData(tempKey, carouselVoList, RedisDbConstant.REDIS_BIZ_CACHE);
+        // 重命名key
+        this.redisService.rename(tempKey,RedisKeyConstant.REDIS_CAROUSE_CACHE, RedisDbConstant.REDIS_BIZ_CACHE);
     }
 
     /**
      * 首页栏目缓存数据加载
      */
     private void initSectionCache() {
-        this.redisService.del(RedisKeyConstant.REDIS_SECTION_CACHE, RedisDbConstant.REDIS_BIZ_CACHE);
+
+        final String tempKey = RedisKeyConstant.REDIS_SECTION_CACHE + "_" + System.currentTimeMillis();
         List<SectionVO> sectionVOList = this.sectionService.getSectionVoList();
-        this.redisService.setListData(RedisKeyConstant.REDIS_SECTION_CACHE, sectionVOList, RedisDbConstant.REDIS_BIZ_CACHE);
+        this.redisService.setListData(tempKey, sectionVOList, RedisDbConstant.REDIS_BIZ_CACHE);
+        // 重命名key
+        this.redisService.rename(tempKey,RedisKeyConstant.REDIS_SECTION_CACHE, RedisDbConstant.REDIS_BIZ_CACHE);
     }
 
 

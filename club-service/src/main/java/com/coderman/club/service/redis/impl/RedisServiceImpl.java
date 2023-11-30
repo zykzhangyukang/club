@@ -158,6 +158,20 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public void rename(String oldKey, String newKey, int db) {
+
+        redisTemplate.execute(new RedisCallback() {
+            @Override
+            public Object doInRedis(RedisConnection redisConnection) throws DataAccessException {
+
+                redisConnection.select(db);
+                redisConnection.rename(serializeKey(oldKey), serializeKey(newKey));
+                return null;
+            }
+        });
+    }
+
+    @Override
     public long hIncrBy(String key, String field, long value, int db) {
 
 

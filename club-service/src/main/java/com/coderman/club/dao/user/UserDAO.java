@@ -5,6 +5,9 @@ import com.coderman.club.model.user.UserExample;
 import com.coderman.club.model.user.UserModel;
 import org.apache.ibatis.annotations.Param;
 
+/**
+ * @author Administrator
+ */
 public interface UserDAO extends BaseDAO<UserModel, UserExample> {
 
     UserModel selectByUsername(@Param(value = "username") String username);

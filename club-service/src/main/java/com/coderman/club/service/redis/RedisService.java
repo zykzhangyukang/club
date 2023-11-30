@@ -50,6 +50,16 @@ public interface RedisService {
     public long incr(String key, int db);
 
     /**
+     * 重命名key
+     *
+     * @param oldKey 原来的key
+     * @param newKey 新的key
+     * @param db 数据库索引
+     * @return 如果 key 存在于数据库中，返回 true；否则返回 false。
+     */
+    public void rename(String oldKey, String newKey,int db);
+
+    /**
      * 将指定哈希表的字段值自增指定的量。
      *
      * @param key    哈希表的键名

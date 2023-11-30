@@ -343,4 +343,19 @@
         location = #{location,jdbcType=VARCHAR}
     where user_id = #{userId,jdbcType=BIGINT}
   </update>
+  <select id="selectUserInfoVoMap" resultType="com.coderman.club.vo.user.UserInfoVO">
+    SELECT
+      t1.user_id,
+      t2.username,
+      t2.nickname,
+      t1.avatar
+    FROM
+      club_user_info t1
+        inner join club_user t2 on t1.user_id = t2.user_id
+    where
+       t1.user_id in
+        <foreach collection="userIds" item="item" separator="," open="(" close=")">
+          #{item}
+        </foreach>
+  </select>
 </mapper>

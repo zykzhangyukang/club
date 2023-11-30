@@ -11,11 +11,14 @@ import com.coderman.club.model.message.MessageRelationModel;
 import com.coderman.club.model.message.MessageSessionModel;
 import com.coderman.club.model.message.MessageSessionRelationModel;
 import com.coderman.club.service.message.MessageService;
+import com.coderman.club.service.user.UserInfoService;
 import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.message.MessageSessionVO;
 import com.coderman.club.vo.message.MessageVO;
 import com.coderman.club.vo.user.AuthUserVO;
+import com.coderman.club.vo.user.UserInfoVO;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -47,6 +52,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Resource
     private MessageSessionDAO messageSessionDAO;
+
+    @Resource
+    private UserInfoService userInfoService;
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
@@ -148,6 +156,39 @@ public class MessageServiceImpl implements MessageService {
 
         // 将对方发给我的消息标记未已读 TODO
         this.messageRelationDAO.updateReadStatus(targetUserId, sessionId);
+    }
+
+    @Override
+    public ResultVO<List<MessageSessionVO>> getSessions() {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+
+            return ResultUtil.getWarn("用户未登录！");
+        }
+        List<MessageSessionVO> sessionVos = this.messageSessionDAO.selectSessionList(current.getUserId());
+
+        List<Long> userIds = sessionVos.stream()
+                .map(e -> {
+                    Long userOne = e.getUserOne();
+                    Long userTwo = e.getUserTwo();
+                    return Objects.equals(current.getUserId(), userOne) ? userTwo : userOne;
+                }).distinct().collect(Collectors.toList());
+
+        // 设置头像和昵称
+        Map<Long, UserInfoVO> userInfoVoMap = this.userInfoService.selectUserInfoVoMap(userIds);
+        for (MessageSessionVO sessionVo : sessionVos) {
+            Long otherId = Objects.equals(current.getUserId(), sessionVo.getUserOne()) ? sessionVo.getUserTwo() : sessionVo.getUserOne();
+
+            UserInfoVO userInfoVO = userInfoVoMap.get(otherId);
+            if(userInfoVO!=null){
+                sessionVo.setAvatar(userInfoVO.getAvatar());
+                sessionVo.setNickname(userInfoVO.getNickname());
+                sessionVo.setUsername(userInfoVO.getUsername());
+            }
+        }
+
+        return ResultUtil.getSuccessList(MessageSessionVO.class, sessionVos);
     }
 
 

@@ -3,6 +3,7 @@ package com.coderman.club.controller.message;
 import com.coderman.club.dto.message.MessageSendDTO;
 import com.coderman.club.service.message.MessageService;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.message.MessageSessionVO;
 import com.coderman.club.vo.message.MessageVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,6 +34,13 @@ public class MessageController {
         return this.messageService.send(messageSendDTO);
     }
 
+
+    @ApiOperation(value = "获取会话列表")
+    @PostMapping(value = "/sessions")
+    public ResultVO<List<MessageSessionVO>> getSessions(){
+
+        return this.messageService.getSessions();
+    }
 
     @ApiOperation(value = "获取会话消息")
     @PostMapping(value = "/list")

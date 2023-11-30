@@ -1,8 +1,11 @@
 package com.coderman.club.service.user;
 
 import com.coderman.club.model.user.UserInfoModel;
+import com.coderman.club.vo.user.UserInfoVO;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Administrator
@@ -41,4 +44,12 @@ public interface UserInfoService {
      * @param userInfoModel
      */
     void insertSelective(UserInfoModel userInfoModel);
+
+    /**
+     * 获取用户头像
+     *
+     * @param userIds
+     * @return
+     */
+    Map<Long, UserInfoVO> selectUserInfoVoMap(List<Long> userIds);
 }

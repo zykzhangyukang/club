@@ -14,6 +14,7 @@ import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
+import com.coderman.club.model.user.UserExample;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
@@ -30,6 +31,7 @@ import com.coderman.club.vo.user.AuthUserVO;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
+import com.google.common.collect.Maps;
 import com.wf.captcha.SpecCaptcha;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,6 +46,7 @@ import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -657,4 +660,6 @@ public class UserServiceImpl implements UserService {
 
         return ResultUtil.getSuccess(UserInfoVO.class, userInfoVO);
     }
+
+
 }

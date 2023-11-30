@@ -3,7 +3,10 @@ package com.coderman.club.dao.message;
 import com.coderman.club.dao.common.BaseDAO;
 import com.coderman.club.model.message.MessageSessionExample;
 import com.coderman.club.model.message.MessageSessionModel;
+import com.coderman.club.vo.message.MessageSessionVO;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author Administrator
@@ -23,4 +26,11 @@ public interface MessageSessionDAO extends BaseDAO<MessageSessionModel, MessageS
      * @param messageSessionModel
      */
     void insertSelectiveReturnKey(MessageSessionModel messageSessionModel);
+
+    /**
+     * 获取用户会话
+     * @param userId
+     * @return
+     */
+    List<MessageSessionVO> selectSessionList(@Param(value = "userId") Long userId);
 }

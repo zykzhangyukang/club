@@ -2,6 +2,7 @@ package com.coderman.club.service.message;
 
 import com.coderman.club.dto.message.MessageSendDTO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.message.MessageSessionVO;
 import com.coderman.club.vo.message.MessageVO;
 
 import java.util.List;
@@ -34,4 +35,12 @@ public interface MessageService {
      * @param sessionId
      */
     void updateReadStatus(Long targetUserId, Long sessionId);
+
+    /**
+     * 会话列表获取
+     *
+     * @return
+     */
+    ResultVO<List<MessageSessionVO>> getSessions();
+
 }

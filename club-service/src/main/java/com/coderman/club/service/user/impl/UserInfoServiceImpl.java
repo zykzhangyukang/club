@@ -1,14 +1,22 @@
 package com.coderman.club.service.user.impl;
 
 import com.coderman.club.dao.user.UserInfoDAO;
+import com.coderman.club.model.user.UserExample;
 import com.coderman.club.model.user.UserInfoExample;
 import com.coderman.club.model.user.UserInfoModel;
+import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.user.UserInfoService;
+import com.coderman.club.vo.user.UserInfoVO;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -53,5 +61,13 @@ public class UserInfoServiceImpl implements UserInfoService {
             return;
         }
         this.userInfoDAO.insertSelective(userInfoModel);
+    }
+
+    @Override
+    public Map<Long, UserInfoVO> selectUserInfoVoMap(List<Long> userIds) {
+        if(CollectionUtils.isEmpty(userIds)){
+            return Maps.newHashMap();
+        }
+        return this.userInfoDAO.selectUserInfoVoMap(userIds);
     }
 }

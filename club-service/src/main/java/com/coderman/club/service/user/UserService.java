@@ -8,6 +8,9 @@ import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Administrator
  */
@@ -98,5 +101,4 @@ public interface UserService {
      * @return
      */
     ResultVO<UserInfoVO> updateInit();
-
 }
