@@ -14,11 +14,13 @@ import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
+import com.coderman.club.model.point.PointAccountModel;
 import com.coderman.club.model.user.UserExample;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.notification.NotificationService;
+import com.coderman.club.service.point.PointAccountService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.user.UserFollowingService;
@@ -64,6 +66,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private NotificationService notificationService;
+
+    @Resource
+    private PointAccountService pointAccountService;
 
     @Resource
     private RedisService redisService;
@@ -294,6 +299,13 @@ public class UserServiceImpl implements UserService {
         this.userInfoService.insertSelective(userInfoModel);
 
         // 用户积分账户信息
+        PointAccountModel pointAccountModel = new PointAccountModel();
+        pointAccountModel.setUserId(registerModel.getUserId());
+        pointAccountModel.setCreateTime(registerModel.getCreateTime());
+        pointAccountModel.setPointsBalance(0);
+        pointAccountModel.setUserCode(registerModel.getUserCode());
+        this.pointAccountService.insertSelective(pointAccountModel);
+
 
         return registerModel;
     }
