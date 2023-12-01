@@ -66,7 +66,7 @@ public class UserController {
         return this.userService.updateInfo(userInfoDTO);
     }
 
-    @ApiOperation(value = "修改用户信息")
+    @ApiOperation(value = "获取用户信息")
     @GetMapping(value = "/update/init")
     public ResultVO<UserInfoVO> updateInit() {
 

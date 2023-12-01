@@ -24,6 +24,9 @@ public class UserInfoModel extends BaseModel {
     @ApiModelProperty(value = "用户id")
     private Long userId;
 
+    @ApiModelProperty(value = "用户编号")
+    private String userCode;
+
     @ApiModelProperty(value = "用户标签")
     private String userTags;
 

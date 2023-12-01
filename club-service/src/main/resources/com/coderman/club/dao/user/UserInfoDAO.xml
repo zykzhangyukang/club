@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.coderman.club.model.user.UserInfoModel">
     <id column="user_info_id" jdbcType="BIGINT" property="userInfoId" />
     <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
     <result column="user_tags" jdbcType="VARCHAR" property="userTags" />
     <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     <result column="gender" jdbcType="VARCHAR" property="gender" />
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    user_info_id, user_id, user_tags, avatar, gender, bio, website, location, followers_count, 
-    following_count, register_time, last_login_time
+    user_info_id, user_id, user_code, user_tags, avatar, gender, bio, website, location, 
+    followers_count, following_count, register_time, last_login_time
   </sql>
   <select id="selectByExample" parameterType="com.coderman.club.model.user.UserInfoExample" resultMap="BaseResultMap">
     select
@@ -108,16 +109,16 @@
     </if>
   </delete>
   <insert id="insert" parameterType="com.coderman.club.model.user.UserInfoModel">
-    insert into club_user_info (user_info_id, user_id, user_tags, 
-      avatar, gender, bio, 
-      website, location, followers_count, 
-      following_count, register_time, last_login_time
-      )
-    values (#{userInfoId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{userTags,jdbcType=VARCHAR}, 
-      #{avatar,jdbcType=VARCHAR}, #{gender,jdbcType=VARCHAR}, #{bio,jdbcType=VARCHAR}, 
-      #{website,jdbcType=VARCHAR}, #{location,jdbcType=VARCHAR}, #{followersCount,jdbcType=BIGINT}, 
-      #{followingCount,jdbcType=BIGINT}, #{registerTime,jdbcType=TIMESTAMP}, #{lastLoginTime,jdbcType=TIMESTAMP}
-      )
+    insert into club_user_info (user_info_id, user_id, user_code, 
+      user_tags, avatar, gender, 
+      bio, website, location, 
+      followers_count, following_count, register_time, 
+      last_login_time)
+    values (#{userInfoId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{userCode,jdbcType=VARCHAR}, 
+      #{userTags,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{gender,jdbcType=VARCHAR}, 
+      #{bio,jdbcType=VARCHAR}, #{website,jdbcType=VARCHAR}, #{location,jdbcType=VARCHAR}, 
+      #{followersCount,jdbcType=BIGINT}, #{followingCount,jdbcType=BIGINT}, #{registerTime,jdbcType=TIMESTAMP}, 
+      #{lastLoginTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.coderman.club.model.user.UserInfoModel">
     insert into club_user_info
@@ -127,6 +128,9 @@
       </if>
       <if test="userId != null">
         user_id,
+      </if>
+      <if test="userCode != null">
+        user_code,
       </if>
       <if test="userTags != null">
         user_tags,
@@ -165,6 +169,9 @@
       </if>
       <if test="userId != null">
         #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="userCode != null">
+        #{userCode,jdbcType=VARCHAR},
       </if>
       <if test="userTags != null">
         #{userTags,jdbcType=VARCHAR},
@@ -213,6 +220,9 @@
       <if test="record.userId != null">
         user_id = #{record.userId,jdbcType=BIGINT},
       </if>
+      <if test="record.userCode != null">
+        user_code = #{record.userCode,jdbcType=VARCHAR},
+      </if>
       <if test="record.userTags != null">
         user_tags = #{record.userTags,jdbcType=VARCHAR},
       </if>
@@ -252,6 +262,7 @@
     update club_user_info
     set user_info_id = #{record.userInfoId,jdbcType=BIGINT},
       user_id = #{record.userId,jdbcType=BIGINT},
+      user_code = #{record.userCode,jdbcType=VARCHAR},
       user_tags = #{record.userTags,jdbcType=VARCHAR},
       avatar = #{record.avatar,jdbcType=VARCHAR},
       gender = #{record.gender,jdbcType=VARCHAR},
@@ -271,6 +282,9 @@
     <set>
       <if test="userId != null">
         user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="userCode != null">
+        user_code = #{userCode,jdbcType=VARCHAR},
       </if>
       <if test="userTags != null">
         user_tags = #{userTags,jdbcType=VARCHAR},
@@ -308,6 +322,7 @@
   <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.user.UserInfoModel">
     update club_user_info
     set user_id = #{userId,jdbcType=BIGINT},
+      user_code = #{userCode,jdbcType=VARCHAR},
       user_tags = #{userTags,jdbcType=VARCHAR},
       avatar = #{avatar,jdbcType=VARCHAR},
       gender = #{gender,jdbcType=VARCHAR},

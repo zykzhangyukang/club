@@ -42,6 +42,10 @@ public class MD5Utils {
         }
     }
 
+    public static String md5HexWithSalt(String value, String salt) {
+        return md5Hex(value + salt, "UTF-8");
+    }
+
     /**
      * Calculate MD5 hex string with encode charset.
      *

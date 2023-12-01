@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
                 return ResultUtil.getWarn("用户状态异常，请联系管理员处理！");
             }
 
-            String encryptPwd = MD5Utils.md5Hex(password.getBytes());
+            String encryptPwd = MD5Utils.md5HexWithSalt(password, userModel.getSalt());
             if (!StringUtils.equals(encryptPwd, userModel.getPassword())) {
 
                 return ResultUtil.getWarn("用户名或密码错误！");
@@ -272,10 +272,13 @@ public class UserServiceImpl implements UserService {
      */
     private UserModel createClubUser(String username, String password, String email) {
 
+        final String salt = RandomStringUtils.randomAlphabetic(32);
+
         // 用户账号信息
         UserModel registerModel = new UserModel();
         registerModel.setCreateTime(new Date());
-        registerModel.setPassword(MD5Utils.md5Hex(password.getBytes()));
+        registerModel.setSalt(salt);
+        registerModel.setPassword(MD5Utils.md5HexWithSalt(password, salt));
         registerModel.setEmail(email);
         registerModel.setUsername(username);
         registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
@@ -287,6 +290,7 @@ public class UserServiceImpl implements UserService {
         // 用户详情信息
         UserInfoModel userInfoModel = new UserInfoModel();
         userInfoModel.setUserId(registerModel.getUserId());
+        userInfoModel.setUserCode(registerModel.getUserCode());
         userInfoModel.setBio(StringUtils.EMPTY);
         userInfoModel.setLocation(StringUtils.EMPTY);
         userInfoModel.setUserTags(StringUtils.EMPTY);

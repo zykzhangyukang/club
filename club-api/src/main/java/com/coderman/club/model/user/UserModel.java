@@ -36,6 +36,9 @@ public class UserModel extends BaseModel {
     @ApiModelProperty(value = "密码")
     private String password;
 
+    @ApiModelProperty(value = "盐值")
+    private String salt;
+
     @ApiModelProperty(value = "账号状态")
     private String userStatus;
 
