@@ -16,6 +16,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -108,5 +109,23 @@ public class SectionServiceImpl implements SectionService {
         }
 
         return firstLevelSection;
+    }
+
+    @Override
+    public SectionVO getSectionVoById(Long sectionId) {
+        if(sectionId == null){
+            return null;
+        }
+        SectionExample example = new SectionExample();
+        example.createCriteria().andSectionIdEqualTo(sectionId).andIsActiveEqualTo(Boolean.TRUE);
+        List<SectionModel> sectionModels = this.sectionDAO.selectByExample(example);
+        if(CollectionUtils.isEmpty(sectionModels)){
+            return null;
+        }
+
+        SectionModel sectionModel = sectionModels.get(0);
+        SectionVO sectionVO = new SectionVO();
+        BeanUtils.copyProperties(sectionModel, sectionVO);
+        return sectionVO;
     }
 }

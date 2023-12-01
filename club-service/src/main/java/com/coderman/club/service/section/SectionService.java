@@ -23,4 +23,12 @@ public interface SectionService {
      * @return
      */
     List<SectionVO> getSectionVoList();
+
+
+    /**
+     * 根据id板块列表获取
+     * @param sectionId
+     * @return
+     */
+    SectionVO getSectionVoById(Long sectionId);
 }
