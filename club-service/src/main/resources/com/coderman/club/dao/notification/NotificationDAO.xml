@@ -276,7 +276,7 @@
     select `type`, count(1) as un_read_count
     from club_notification
     where user_id = #{userId} and is_read = 0
-    group by type
+    group by `type`
   </select>
   <select id="getList" resultType="com.coderman.club.vo.notification.NotificationVO">
      SELECT

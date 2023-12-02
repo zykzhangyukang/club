@@ -55,7 +55,7 @@ public class MyChannelInterceptor implements ChannelInterceptor {
                 user = sessionId;
             }
 
-            log.info("用户:{} 的WebSocket连接已经断开,sessionId:{}", user, sessionId);
+            log.debug("用户:{} 的WebSocket连接已经断开,sessionId:{}", user, sessionId);
         }
     }
 

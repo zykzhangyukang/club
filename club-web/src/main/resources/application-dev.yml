@@ -26,3 +26,4 @@ logging:
     level:
       root: info
       com.coderman.club.dao: debug
+      com.coderman.club: debug

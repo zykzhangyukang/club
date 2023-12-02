@@ -489,15 +489,6 @@ public class UserServiceImpl implements UserService {
         // 编辑用户信息
         this.userInfoService.updateUserInfoByUserId(updateModel);
 
-        // 测试
-        NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                .senderId(current.getUserId())
-                .userIdList(Collections.singletonList(current.getUserId()))
-                .typeEnum(NotificationTypeEnum.FOLLOWING_USER)
-                .content(String.format(NotificationTypeEnum.FOLLOWING_USER.getTemplate(), current.getNickname()))
-                .build();
-        this.notificationService.saveAndNotify(notifyMsgDTO);
-
         return ResultUtil.getSuccess();
     }
 

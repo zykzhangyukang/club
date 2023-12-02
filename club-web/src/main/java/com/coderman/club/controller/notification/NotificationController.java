@@ -25,7 +25,7 @@ public class NotificationController {
     private NotificationService notificationService;
 
     @ApiOperation(value = "获取未读消息数")
-    @GetMapping(value = "/getUnReadCount")
+    @GetMapping(value = "/count")
     public ResultVO<Map<String,Object>> getUnReadCount(){
 
         return this.notificationService.getUnReadCount();

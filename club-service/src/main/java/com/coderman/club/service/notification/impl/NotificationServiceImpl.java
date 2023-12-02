@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -88,34 +89,57 @@ public class NotificationServiceImpl implements NotificationService {
 
         List<NotificationCountVO> notificationCountVos = this.notificationDAO.getUnReadCount(current.getUserId());
         long totalCount = 0L;
+        long sysCount = 0L;
+        long replyCount = 0L;
+        long zanCount = 0L;
+        long atCount = 0L;
+        long myMsgCount = 0L;
+        long followCount = 0L;
         for (NotificationCountVO notificationCountVo : notificationCountVos) {
-
             Long count = Optional.ofNullable(notificationCountVo.getUnReadCount()).orElse(0L);
             totalCount += count;
+
+            if (NotificationTypeEnum.FOLLOWING_USER.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType())) ||
+                    NotificationTypeEnum.REGISTER_WELCOME.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType()))
+            ) {
+                sysCount += notificationCountVo.getUnReadCount();
+            }
         }
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("totalUnReadCount", totalCount);
-        map.put("notificationList", notificationCountVos);
+        Map<String, Object> resultMap = new HashMap<>();
+        // 全部未读数
+        resultMap.put("totalCount", totalCount);
+        // @我的
+        resultMap.put("atCount", atCount);
+        // 回复我的
+        resultMap.put("replyCount", replyCount);
+        // 收到的赞
+        resultMap.put("zanCount", zanCount);
+        // 系统消息
+        resultMap.put("sysCount", sysCount);
+        // 关注信息
+        resultMap.put("followCount", followCount);
+        // 我的消息
+        resultMap.put("myMsgCount", myMsgCount);
 
         ResultVO<Map<String, Object>> resultVO = new ResultVO<>();
         resultVO.setCode(ResultConstant.RESULT_CODE_200);
-        resultVO.setResult(map);
+        resultVO.setResult(resultMap);
         return resultVO;
     }
 
     @Override
-    public ResultVO<List<NotificationVO>> getList(Boolean isRead,String type) {
+    public ResultVO<List<NotificationVO>> getList(Boolean isRead, String type) {
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
             return ResultUtil.getWarn("用户未登录！");
         }
-        if(StringUtils.isBlank(type)){
+        if (StringUtils.isBlank(type)) {
             return ResultUtil.getWarn("消息类型不能为空！");
         }
         NotificationTypeEnum byMsgType = NotificationTypeEnum.getByMsgType(type);
-        if(byMsgType == null){
+        if (byMsgType == null) {
             return ResultUtil.getWarn("参数错误！");
         }
 
@@ -138,16 +162,16 @@ public class NotificationServiceImpl implements NotificationService {
         if (current == null) {
             return ResultUtil.getWarn("用户未登录！");
         }
-        if(notificationId == null || notificationId < 0){
+        if (notificationId == null || notificationId < 0) {
             return ResultUtil.getWarn("参数错误！");
         }
 
         NotificationModel notificationModel = this.notificationDAO.selectByPrimaryKey(notificationId);
-        if(notificationModel == null){
+        if (notificationModel == null) {
             return ResultUtil.getWarn("消息不存在！");
         }
 
-        if(BooleanUtils.isFalse(notificationModel.getIsRead())){
+        if (BooleanUtils.isFalse(notificationModel.getIsRead())) {
             this.notificationDAO.updateReadStatus(BooleanUtils.toIntegerObject(true), current.getUserId(), notificationId);
         }
 
