@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PostCreateDTO extends BaseModel {
+public class PostPublishDTO extends BaseModel {
 
 
     @ApiModelProperty(value = "帖子所属板块")

@@ -1,6 +1,6 @@
 package com.coderman.club.service.post;
 
-import com.coderman.club.dto.post.PostCreateDTO;
+import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.vo.common.ResultVO;
 
 /**
@@ -10,17 +10,17 @@ public interface PostService {
 
     /**
      * 创建帖子
-     * @param postCreateDTO
+     * @param postPublishDTO
      * @return
      */
-    ResultVO<Void> postCreate(PostCreateDTO postCreateDTO);
+    ResultVO<Void> postPublish(PostPublishDTO postPublishDTO);
 
     /**
      * 获取防重token
      *
      * @return
      */
-    ResultVO<String> getRepeatToken();
+    ResultVO<String> postToken();
 
 
 }

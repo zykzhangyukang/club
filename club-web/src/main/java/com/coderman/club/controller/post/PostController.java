@@ -1,14 +1,11 @@
 package com.coderman.club.controller.post;
 
-import com.coderman.club.dto.post.PostCreateDTO;
+import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.vo.common.ResultVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -25,16 +22,16 @@ public class PostController {
     private PostService postService;
 
     @ApiOperation(value = "创建帖子")
-    @PutMapping(value = "/create")
-    public ResultVO<Void> postCreate(@RequestBody PostCreateDTO postCreateDTO) {
+    @PostMapping(value = "/publish")
+    public ResultVO<Void> postPublish(@RequestBody PostPublishDTO postPublishDTO) {
 
-        return this.postService.postCreate(postCreateDTO);
+        return this.postService.postPublish(postPublishDTO);
     }
 
     @ApiOperation(value = "获取防止重复token")
-    @PutMapping(value = "/token")
-    public ResultVO<String> getRepeatToken() {
+    @PostMapping(value = "/token")
+    public ResultVO<String> postToken() {
 
-        return this.postService.getRepeatToken();
+        return this.postService.postToken();
     }
 }

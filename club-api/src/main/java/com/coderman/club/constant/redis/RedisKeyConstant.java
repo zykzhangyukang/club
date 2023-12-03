@@ -22,7 +22,7 @@ public interface RedisKeyConstant {
     /**
      * 防重token
      */
-    public static final String REDIS_POST_REPEAT = "REDIS_POST_REPEAT";
+    public static final String REDIS_POST_REPEAT = "REDIS_POST_REPEAT:";
 
     /**
      * 论坛板块缓存

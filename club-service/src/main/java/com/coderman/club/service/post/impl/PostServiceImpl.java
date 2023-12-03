@@ -3,7 +3,8 @@ package com.coderman.club.service.post.impl;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.dao.post.PostDAO;
-import com.coderman.club.dto.post.PostCreateDTO;
+import com.coderman.club.dto.post.PostPublishDTO;
+import com.coderman.club.model.post.PostModel;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
@@ -44,51 +45,83 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
-    public ResultVO<Void> postCreate(PostCreateDTO postCreateDTO) {
+    public ResultVO<Void> postPublish(PostPublishDTO postPublishDTO) {
 
-        String title = postCreateDTO.getTitle();
-        Long sectionId = postCreateDTO.getSectionId();
-        String token = postCreateDTO.getToken();
+        String title = postPublishDTO.getTitle();
+        Long sectionId = postPublishDTO.getSectionId();
+        String token = postPublishDTO.getToken();
+        String content = postPublishDTO.getContent();
 
-        boolean tryLock = this.redisLockService.tryLock(RedisKeyConstant.REDIS_POST_CREATE_LOCK_PREFIX + token, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
-        if(!tryLock){
-
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
         }
 
-        // 防重校验
-        boolean exists = this.redisService.exists(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
-        if (!exists) {
-            return ResultUtil.getWarn("令牌已过期，请重新提交！");
+        final String lockName = RedisKeyConstant.REDIS_POST_CREATE_LOCK_PREFIX + token;
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
+        if (!tryLock) {
+            return ResultUtil.getWarn("发布帖子失败！");
+        }
+        try {
+
+            // 防重校验
+            boolean exists = this.redisService.exists(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
+            if (!exists) {
+                return ResultUtil.getWarn("数据已过期，请重新进行提交！");
+            }
+
+            if (StringUtils.isBlank(title)) {
+                return ResultUtil.getWarn("标题不能为空！");
+            }
+            if (sectionId == null || sectionId < 0) {
+                return ResultUtil.getWarn("板块不能为空！");
+            }
+            if (StringUtils.length(title) > 32) {
+                return ResultUtil.getWarn("标题字符最多32个字符！");
+            }
+            if (StringUtils.isBlank(content)) {
+                return ResultUtil.getWarn("帖子内容不能为空！");
+            }
+
+            SectionVO sectionVO = this.sectionService.getSectionVoById(sectionId);
+            if (sectionVO == null) {
+                throw new IllegalArgumentException("栏目信息不存在！");
+            }
+            // 保存帖子
+            PostModel postModel = new PostModel();
+            postModel.setTitle(title);
+            postModel.setContent(content);
+            postModel.setIsActive(Boolean.TRUE);
+            postModel.setUserId(current.getUserId());
+            postModel.setSectionId(sectionId);
+            postModel.setCreatedAt(new Date());
+            postModel.setLastUpdatedAt(new Date());
+            int rowCount = this.postDAO.insertSelective(postModel);
+
+            // 删除防重令牌
+            if (rowCount > 0) {
+                this.redisService.del(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
+            }
+        } finally {
+            this.redisLockService.unlock(lockName);
         }
 
+        return ResultUtil.getSuccess();
+    }
 
-        if (StringUtils.isBlank(title)) {
-            return ResultUtil.getWarn("标题不能为空！");
-        }
-        if (sectionId == null || sectionId < 0) {
-            return ResultUtil.getWarn("板块不能为空！");
-        }
-        if (StringUtils.length(title) > 32) {
-            return ResultUtil.getWarn("标题字符最多32个字符！");
-        }
+    @Override
+    public ResultVO<String> postToken() {
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
 
             return ResultUtil.getWarn("用户未登录！");
-        }
-        SectionVO sectionVO = this.sectionService.getSectionVoById(sectionId);
-        if (sectionVO == null) {
-            throw new IllegalArgumentException("栏目信息不存在！");
-        }
+        } else {
 
-        return null;
-    }
-
-    @Override
-    public ResultVO<String> getRepeatToken() {
-        String token = RandomStringUtils.randomAlphabetic(32);
-        this.redisService.setString(RedisKeyConstant.REDIS_POST_REPEAT+token, DateFormatUtils.format(new Date() , "yyyy-MM-dd HH:mm:ss"),60 * 30, RedisDbConstant.REDIS_BIZ_CACHE);
-        return ResultUtil.getSuccess(String.class, token);
+            String token = RandomStringUtils.randomAlphabetic(32);
+            this.redisService.setString(RedisKeyConstant.REDIS_POST_REPEAT + token,
+                    DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"), 60 * 30, RedisDbConstant.REDIS_BIZ_CACHE);
+            return ResultUtil.getSuccess(String.class, token);
+        }
     }
 }
