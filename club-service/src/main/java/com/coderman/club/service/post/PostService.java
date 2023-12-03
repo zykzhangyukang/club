@@ -2,6 +2,9 @@ package com.coderman.club.service.post;
 
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.vo.common.ResultVO;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 /**
  * @author Administrator
@@ -22,5 +25,10 @@ public interface PostService {
      */
     ResultVO<String> postToken();
 
-
+    /**
+     *
+     * @param file
+     * @return
+     */
+    ResultVO<String> uploadImage(MultipartFile file) throws IOException;
 }

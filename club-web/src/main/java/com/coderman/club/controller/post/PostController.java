@@ -1,13 +1,16 @@
 package com.coderman.club.controller.post;
 
+import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.vo.common.ResultVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 
 /**
  * @author ：zhangyukang
@@ -26,6 +29,15 @@ public class PostController {
     public ResultVO<Void> postPublish(@RequestBody PostPublishDTO postPublishDTO) {
 
         return this.postService.postPublish(postPublishDTO);
+    }
+
+
+    @ApiOperation(value = "上传图片")
+    @PostMapping(value = "/upload/image")
+    @RateLimit
+    public ResultVO<String> uploadImage(MultipartFile file) throws IOException {
+
+        return this.postService.uploadImage(file);
     }
 
     @ApiOperation(value = "获取防止重复token")

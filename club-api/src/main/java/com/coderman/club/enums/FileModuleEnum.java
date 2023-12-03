@@ -14,9 +14,9 @@ public enum FileModuleEnum {
     COMMON_MODULE("common", "公共模块"),
 
     /**
-     * 商品模块
+     * 帖子模块
      */
-    PRODUCT_MODULE("product" , "商品模块"),
+    POST_MODULE("post" , "帖子模块"),
 
     /**
      * 商品模块
