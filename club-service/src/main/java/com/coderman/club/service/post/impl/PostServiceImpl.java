@@ -4,6 +4,7 @@ import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.dao.post.PostDAO;
+import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.model.post.PostModel;
@@ -14,9 +15,12 @@ import com.coderman.club.service.section.SectionService;
 import com.coderman.club.utils.AliYunOssUtil;
 import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.ResultUtil;
+import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.post.PostListItemVO;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -26,9 +30,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -155,5 +159,47 @@ public class PostServiceImpl implements PostService {
         this.aliYunOssUtil.uploadStream(file.getInputStream(), url);
 
         return ResultUtil.getSuccess(String.class, CommonConstant.OSS_DOMAIN + url);
+    }
+
+    @Override
+    public ResultVO<PageVO<List<PostListItemVO>>> postPage(PostPageDTO postPageDTO) {
+
+        Long currentPage = postPageDTO.getCurrentPage();
+        Long pageSize = postPageDTO.getPageSize();
+        Long firstSectionId = postPageDTO.getFirstSectionId();
+        Long secondSectionId = postPageDTO.getSecondSectionId();
+
+        if (currentPage == null || currentPage < 1) {
+            currentPage = 1L;
+        }
+        if (pageSize == null || currentPage > 30) {
+            pageSize = 30L;
+        }
+
+        Map<String, Object> conditionMap = new HashMap<>();
+        conditionMap.put("limit", pageSize);
+        conditionMap.put("offset", (currentPage - 1) * pageSize);
+
+        // 只带了筛选一级分类, 查询对应的所有二级分类id
+        List<Long> sectionIdList = new ArrayList<>();
+        if (firstSectionId != null && firstSectionId > 0) {
+            sectionIdList = this.sectionService.getSectionVoByPid(firstSectionId)
+                    .stream().map(SectionVO::getSectionId)
+                    .distinct().collect(Collectors.toList());
+        } else if ((firstSectionId == null || firstSectionId < 0) && (secondSectionId != null && secondSectionId > 0)) {
+            sectionIdList = Collections.singletonList(secondSectionId);
+        }
+        if (CollectionUtils.isNotEmpty(sectionIdList)) {
+            conditionMap.put("sectionIdList", sectionIdList);
+        }
+
+        List<PostListItemVO> postListItemVos = new ArrayList<>();
+        Long count = this.postDAO.countPage(conditionMap);
+        if (count > 0) {
+
+            postListItemVos = this.postDAO.pageList(conditionMap);
+        }
+
+        return ResultUtil.getSuccessPage(PostListItemVO.class, new PageVO<>(count, postListItemVos, currentPage, pageSize));
     }
 }

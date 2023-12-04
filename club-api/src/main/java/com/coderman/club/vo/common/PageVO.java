@@ -15,12 +15,12 @@ public class PageVO<T> {
     /**
      * 当前页码
      */
-    private Integer currPage;
+    private Long currPage;
 
     /**
      * 页码显示条数
      */
-    private Integer pageRow = 30;
+    private Long pageRow = 30L;
 
     /**
      * 总页数
@@ -47,7 +47,7 @@ public class PageVO<T> {
     }
 
 
-    public PageVO(long totalRow, T dataList, int currPage, int pageRow) {
+    public PageVO(long totalRow, T dataList, long currPage, long pageRow) {
         this.currPage = currPage;
         this.pageRow = pageRow;
         this.totalRow = totalRow;

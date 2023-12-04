@@ -31,4 +31,12 @@ public interface SectionService {
      * @return
      */
     SectionVO getSectionVoById(Long sectionId);
+
+    /**
+     * 根据一级板块id查询所有二级板块
+     *
+     * @param firstSectionId
+     * @return
+     */
+    List<SectionVO> getSectionVoByPid(Long firstSectionId);
 }

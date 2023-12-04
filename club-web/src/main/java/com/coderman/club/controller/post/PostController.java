@@ -1,9 +1,12 @@
 package com.coderman.club.controller.post;
 
 import com.coderman.club.annotation.RateLimit;
+import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.service.post.PostService;
+import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.post.PostListItemVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author ：zhangyukang
@@ -30,6 +34,15 @@ public class PostController {
 
         return this.postService.postPublish(postPublishDTO);
     }
+
+
+    @ApiOperation(value = "帖子列表")
+    @PostMapping(value = "/page")
+    public ResultVO<PageVO<List<PostListItemVO>>> postPage(@RequestBody PostPageDTO postPageDTO) {
+
+        return this.postService.postPage(postPageDTO);
+    }
+
 
 
     @ApiOperation(value = "上传图片")

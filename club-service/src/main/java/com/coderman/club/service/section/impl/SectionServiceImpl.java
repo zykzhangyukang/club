@@ -14,6 +14,7 @@ import com.coderman.club.vo.user.AuthUserVO;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -127,5 +128,27 @@ public class SectionServiceImpl implements SectionService {
         SectionVO sectionVO = new SectionVO();
         BeanUtils.copyProperties(sectionModel, sectionVO);
         return sectionVO;
+    }
+
+    @Override
+    public List<SectionVO> getSectionVoByPid(Long firstSectionId) {
+
+        if(firstSectionId == null){
+            return Lists.newArrayList();
+        }
+
+        SectionExample example = new SectionExample();
+        example.createCriteria().andParentSectionEqualTo(firstSectionId).andIsActiveEqualTo(Boolean.TRUE);
+        List<SectionModel> sectionModels = this.sectionDAO.selectByExample(example);
+        if(CollectionUtils.isEmpty(sectionModels)){
+
+            return Lists.newArrayList();
+        }
+
+        return sectionModels.stream().map(e -> {
+            SectionVO sectionVO = new SectionVO();
+            BeanUtils.copyProperties(e, sectionVO);
+            return sectionVO;
+        }).collect(Collectors.toList());
     }
 }
