@@ -312,18 +312,76 @@
   </select>
 
     <select id="pageList" resultType="com.coderman.club.vo.post.PostListItemVO">
-    select
-    t1.post_id,
-     t1.user_id,
-     t1.section_id,
-     t1.title,
-     t1.created_at,
-    t1.last_updated_at,
-    t2.avatar
-    from club_post t1
-    left join club_user_info t2 on t1.user_id = t2.user_id
-    where t1.is_active = 1
-    order by t1.created_at desc
-    limit #{offset}, #{limit}
+        SELECT
+               t1.post_id,
+               t1.user_id,
+               t1.section_id,
+               t1.title,
+               t1.created_at,
+               t1.last_updated_at,
+               t2.nickname,
+               t3.avatar
+        FROM club_post t1
+                 LEFT JOIN club_user t2 ON t1.user_id = t2.user_id
+                 LEFT JOIN club_user_info t3 ON t2.user_id = t3.user_id
+        WHERE t1.is_active = 1
+        ORDER BY t1.created_at DESC
+        limit #{offset}, #{limit}
   </select>
+
+    <insert id="insertSelectiveReturnKey" useGeneratedKeys="true" keyProperty="postId">
+        insert into club_post
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="postId != null">
+                post_id,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="sectionId != null">
+                section_id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="createdAt != null">
+                created_at,
+            </if>
+            <if test="lastUpdatedAt != null">
+                last_updated_at,
+            </if>
+            <if test="isActive != null">
+                is_active,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="postId != null">
+                #{postId,jdbcType=BIGINT},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="sectionId != null">
+                #{sectionId,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lastUpdatedAt != null">
+                #{lastUpdatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isActive != null">
+                #{isActive,jdbcType=BIT},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
 </mapper>

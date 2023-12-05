@@ -8,6 +8,9 @@ import com.coderman.club.vo.post.PostListItemVO;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Administrator
+ */
 public interface PostDAO extends BaseDAO<PostModel, PostExample> {
 
     /**
@@ -23,4 +26,11 @@ public interface PostDAO extends BaseDAO<PostModel, PostExample> {
      * @return
      */
     List<PostListItemVO> pageList(Map<String, Object> conditionMap);
+
+    /**
+     * 新增帖子
+     * @param postModel
+     * @return
+     */
+    int insertSelectiveReturnKey(PostModel postModel);
 }

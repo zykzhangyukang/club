@@ -6,7 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Date;
+import java.util.List;
 
+/**
+ * @author Administrator
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class PostListItemVO extends BaseModel {
@@ -23,8 +27,14 @@ public class PostListItemVO extends BaseModel {
     @ApiModelProperty(value = "帖子标题")
     private String title;
 
+    @ApiModelProperty(value = "标签")
+    private List<String> tags;
+
     @ApiModelProperty(value = "头像")
     private String avatar;
+
+    @ApiModelProperty(value = "用户昵称")
+    private String nickname;
 
     @ApiModelProperty(value = "创建时间")
     private Date createdAt;

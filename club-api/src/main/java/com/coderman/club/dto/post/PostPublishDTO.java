@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 /**
  * @author ：zhangyukang
  * @date ：2023/12/01 15:47
@@ -19,6 +21,9 @@ public class PostPublishDTO extends BaseModel {
 
     @ApiModelProperty(value = "帖子标题")
     private String title;
+
+    @ApiModelProperty(value = "标签")
+    private List<String> tags;
 
     @ApiModelProperty(value = "内容")
     private String content;

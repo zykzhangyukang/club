@@ -4,10 +4,13 @@ import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.dao.post.PostDAO;
+import com.coderman.club.dao.post.PostTagDAO;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.model.post.PostModel;
+import com.coderman.club.model.post.PostTagExample;
+import com.coderman.club.model.post.PostTagModel;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
@@ -48,6 +51,9 @@ public class PostServiceImpl implements PostService {
     private PostDAO postDAO;
 
     @Resource
+    private PostTagDAO postTagDAO;
+
+    @Resource
     private RedisLockService redisLockService;
 
     @Resource
@@ -64,6 +70,7 @@ public class PostServiceImpl implements PostService {
         Long sectionId = postPublishDTO.getSectionId();
         String token = postPublishDTO.getToken();
         String content = postPublishDTO.getContent();
+        List<String> tags = postPublishDTO.getTags();
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
@@ -95,31 +102,57 @@ public class PostServiceImpl implements PostService {
             if (StringUtils.isBlank(content)) {
                 return ResultUtil.getWarn("帖子内容不能为空！");
             }
-
+            if (CollectionUtils.size(tags) > 5) {
+                return ResultUtil.getWarn("最多添加5个标签！");
+            }
+            for (String tag : tags) {
+                if (StringUtils.length(tag) > 20) {
+                    return ResultUtil.getWarn(tag + "-标签不能超过20个字符！");
+                }
+            }
             SectionVO sectionVO = this.sectionService.getSectionVoById(sectionId);
             if (sectionVO == null) {
                 throw new IllegalArgumentException("栏目信息不存在！");
             }
+
             // 保存帖子
-            PostModel postModel = new PostModel();
-            postModel.setTitle(title);
-            postModel.setContent(content);
-            postModel.setIsActive(Boolean.TRUE);
-            postModel.setUserId(current.getUserId());
-            postModel.setSectionId(sectionId);
-            postModel.setCreatedAt(new Date());
-            postModel.setLastUpdatedAt(new Date());
-            int rowCount = this.postDAO.insertSelective(postModel);
+            PostModel postModel = this.savePost(postPublishDTO);
+            // 保存标签关联关系
+            this.savePostTag(postModel, tags);
 
             // 删除防重令牌
-            if (rowCount > 0) {
-                this.redisService.del(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
-            }
+            this.redisService.del(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
+
         } finally {
             this.redisLockService.unlock(lockName);
         }
 
         return ResultUtil.getSuccess();
+    }
+
+    private PostModel savePost(PostPublishDTO dto) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        assert current != null;
+        Date currentTime = new Date();
+        // 保存帖子
+        PostModel postModel = new PostModel();
+        postModel.setTitle(dto.getTitle());
+        postModel.setContent(dto.getContent());
+        postModel.setIsActive(Boolean.TRUE);
+        postModel.setUserId(current.getUserId());
+        postModel.setSectionId(dto.getSectionId());
+        postModel.setCreatedAt(currentTime);
+        postModel.setLastUpdatedAt(currentTime);
+        this.postDAO.insertSelectiveReturnKey(postModel);
+        return postModel;
+    }
+
+    private void savePostTag(PostModel postModel, List<String> tagList) {
+        if (postModel == null || CollectionUtils.isEmpty(tagList)) {
+            return;
+        }
+        this.postTagDAO.insertBatch(postModel.getPostId(), tagList);
     }
 
     @Override
@@ -149,9 +182,9 @@ public class PostServiceImpl implements PostService {
         }
 
         long fileSizeInBytes = file.getSize();
-        long fileSizeInKB = fileSizeInBytes / 1024;
-        long fileSizeInMB = fileSizeInKB / 1024;
-        if (fileSizeInMB > 1) {
+        long fileSizeInKb = fileSizeInBytes / 1024;
+        long fileSizeInMb = fileSizeInKb / 1024;
+        if (fileSizeInMb > 1) {
             throw new IllegalArgumentException("文件大小超过限制（最大限制为1MB）");
         }
 
@@ -163,43 +196,56 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ResultVO<PageVO<List<PostListItemVO>>> postPage(PostPageDTO postPageDTO) {
-
-        Long currentPage = postPageDTO.getCurrentPage();
-        Long pageSize = postPageDTO.getPageSize();
-        Long firstSectionId = postPageDTO.getFirstSectionId();
-        Long secondSectionId = postPageDTO.getSecondSectionId();
-
-        if (currentPage == null || currentPage < 1) {
-            currentPage = 1L;
-        }
-        if (pageSize == null || currentPage > 30) {
-            pageSize = 30L;
-        }
+        long currentPage = postPageDTO.getCurrentPage() != null && postPageDTO.getCurrentPage() > 0 ? postPageDTO.getCurrentPage() : 1L;
+        long pageSize = postPageDTO.getPageSize() != null && postPageDTO.getPageSize() > 0 ? postPageDTO.getPageSize() : 30L;
 
         Map<String, Object> conditionMap = new HashMap<>();
         conditionMap.put("limit", pageSize);
         conditionMap.put("offset", (currentPage - 1) * pageSize);
 
-        // 只带了筛选一级分类, 查询对应的所有二级分类id
-        List<Long> sectionIdList = new ArrayList<>();
-        if (firstSectionId != null && firstSectionId > 0) {
-            sectionIdList = this.sectionService.getSectionVoByPid(firstSectionId)
-                    .stream().map(SectionVO::getSectionId)
-                    .distinct().collect(Collectors.toList());
-        } else if ((firstSectionId == null || firstSectionId < 0) && (secondSectionId != null && secondSectionId > 0)) {
-            sectionIdList = Collections.singletonList(secondSectionId);
-        }
-        if (CollectionUtils.isNotEmpty(sectionIdList)) {
-            conditionMap.put("sectionIdList", sectionIdList);
+        if (postPageDTO.getFirstSectionId() != null && postPageDTO.getFirstSectionId() > 0) {
+            List<Long> sectionIdList = this.sectionService.getSectionVoByPid(postPageDTO.getFirstSectionId())
+                    .stream()
+                    .map(SectionVO::getSectionId)
+                    .distinct()
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(sectionIdList)) {
+                conditionMap.put("sectionIdList", sectionIdList);
+            }
+        } else if (postPageDTO.getSecondSectionId() != null && postPageDTO.getSecondSectionId() > 0) {
+            conditionMap.put("sectionIdList", Collections.singletonList(postPageDTO.getSecondSectionId()));
         }
 
         List<PostListItemVO> postListItemVos = new ArrayList<>();
         Long count = this.postDAO.countPage(conditionMap);
         if (count > 0) {
-
             postListItemVos = this.postDAO.pageList(conditionMap);
+
+            this.buildPostItems(postListItemVos);
         }
 
         return ResultUtil.getSuccessPage(PostListItemVO.class, new PageVO<>(count, postListItemVos, currentPage, pageSize));
+    }
+
+    private void buildPostItems(List<PostListItemVO> postListItemVos) {
+        if (CollectionUtils.isEmpty(postListItemVos)) {
+            return;
+        }
+        List<Long> postIdList = postListItemVos.stream().map(PostListItemVO::getPostId).distinct().collect(Collectors.toList());
+        PostTagExample example = new PostTagExample();
+        example.createCriteria().andPostIdIn(postIdList);
+        final Map<Long, List<PostTagModel>> tagMap = this.postTagDAO.selectByExample(example).stream()
+                .collect(Collectors.groupingBy(PostTagModel::getPostId));
+
+        for (PostListItemVO postListItemVo : postListItemVos) {
+
+            List<PostTagModel> postTagModels = tagMap.get(postListItemVo.getPostId());
+
+            if (CollectionUtils.isNotEmpty(postTagModels)) {
+                // 帖子标签
+                List<String> tagNames = postTagModels.stream().distinct().map(PostTagModel::getTagName).collect(Collectors.toList());
+                postListItemVo.setTags(tagNames);
+            }
+        }
     }
 }
