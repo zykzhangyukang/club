@@ -107,7 +107,7 @@ public class AliYunOssUtil {
         Assert.isTrue(index > 0, String.format("根据文件名%s获取文件类型失败!!", originalFilename));
 
         // 文件类型
-        String fileType = originalFilename.substring(index + 1);
+        String fileType = StringUtils.lowerCase(originalFilename.substring(index + 1));
         Assert.isTrue(StringUtils.isNotBlank(fileType), String.format("根据文件名%s获取文件类型失败!!", originalFilename));
 
         Integer second = (int) Instant.now().getEpochSecond();

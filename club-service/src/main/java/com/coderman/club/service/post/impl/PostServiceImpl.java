@@ -96,20 +96,28 @@ public class PostServiceImpl implements PostService {
             if (sectionId == null || sectionId < 0) {
                 return ResultUtil.getWarn("板块不能为空！");
             }
+            if(StringUtils.length(title) < 5){
+                return ResultUtil.getWarn("标题不能少于5个字符！");
+            }
             if (StringUtils.length(title) > CommonConstant.LENGTH_128) {
                 return ResultUtil.getWarn("标题字符最多128个字符！");
             }
             if (StringUtils.isBlank(content)) {
                 return ResultUtil.getWarn("帖子内容不能为空！");
             }
-            if (CollectionUtils.size(tags) > 5) {
-                return ResultUtil.getWarn("最多添加5个标签！");
-            }
-            for (String tag : tags) {
-                if (StringUtils.length(tag) > 20) {
-                    return ResultUtil.getWarn(tag + "-标签不能超过20个字符！");
+            if(CollectionUtils.isNotEmpty(tags)){
+
+                if (CollectionUtils.size(tags) > 5) {
+                    return ResultUtil.getWarn("最多添加5个标签！");
+                }
+
+                for (String tag : tags) {
+                    if (StringUtils.length(tag) > 20) {
+                        return ResultUtil.getWarn(tag + "-标签不能超过20个字符！");
+                    }
                 }
             }
+
             SectionVO sectionVO = this.sectionService.getSectionVoById(sectionId);
             if (sectionVO == null) {
                 throw new IllegalArgumentException("栏目信息不存在！");
