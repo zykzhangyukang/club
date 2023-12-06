@@ -9,12 +9,14 @@ import java.util.List;
 
 /**
  * @author ：zhangyukang
- * @date ：2023/12/01 15:47
+ * @date ：2023/12/06 10:41
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PostPublishDTO extends BaseModel {
+public class PostUpdateDTO extends BaseModel {
 
+    @ApiModelProperty(value = "帖子id")
+    private Long postId;
 
     @ApiModelProperty(value = "帖子所属板块")
     private Long sectionId;
@@ -28,9 +30,7 @@ public class PostPublishDTO extends BaseModel {
     @ApiModelProperty(value = "内容")
     private String content;
 
-    @ApiModelProperty(value = "提交令牌")
-    private String token;
-
     @ApiModelProperty(value = "是否为草稿")
     private Boolean isDraft;
+
 }

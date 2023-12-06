@@ -3,6 +3,7 @@ package com.coderman.club.controller.post;
 import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
+import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
@@ -35,6 +36,13 @@ public class PostController {
 
         return this.postService.postPublish(postPublishDTO);
     }
+
+    @ApiOperation(value = "修改帖子")
+    @PutMapping(value = "/update")
+    public ResultVO<Void> postUpdate(@RequestBody PostUpdateDTO postUpdateDTO){
+        return this.postService.postUpdate(postUpdateDTO);
+    }
+
 
     @ApiOperation(value = "帖子详情")
     @GetMapping(value = "/detail")

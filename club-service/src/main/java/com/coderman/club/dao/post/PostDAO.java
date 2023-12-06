@@ -41,5 +41,27 @@ public interface PostDAO extends BaseDAO<PostModel, PostExample> {
      * @param id
      * @return
      */
-    PostDetailVO selectPostDetailVoById(@Param(value = "id") Long id);
+    PostDetailVO selectPostDetailVoById(@Param(value = "postId") Long id);
+
+    /**
+     * 增加帖子浏览量
+     *
+     * @param postId
+     */
+    void addViewsCount(@Param(value = "postId") Long postId);
+
+    /**
+     * 查询用户帖子
+     * @param userId
+     * @param postId
+     * @return
+     */
+    PostModel selectUserPostById(@Param(value = "userId") Long userId,@Param(value = "postId") Long postId);
+
+    /**
+     * 更新帖子
+     *
+     * @param updateModel
+     */
+    void updatePostWithContentById(@Param(value = "updateModel") PostModel updateModel);
 }

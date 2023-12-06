@@ -40,7 +40,6 @@ public interface RedisKeyConstant {
     public static final String CHANNEL_WEBSOCKET_NOTIFY = "TOPIC://WEBSOCKET_NOTIFY";
 
 
-
     /**
      * 用户令牌访问
      */
@@ -52,6 +51,10 @@ public interface RedisKeyConstant {
     /**
      * 登录验证码
      */
-    public static final String USER_LOGIN_CAPTCHA_PREFIX  = "club.login:captcha_code:";
-    public static final String USER_REGISTER_CAPTCHA_PREFIX  = "club.register:captcha_code:";
+    public static final String USER_LOGIN_CAPTCHA_PREFIX = "club.login:captcha_code:";
+    public static final String USER_REGISTER_CAPTCHA_PREFIX = "club.register:captcha_code:";
+    /**
+     * 帖子浏览量防刷
+     */
+    public static final String POST_VIEWS_LIMIT_PREFIX = "club:post:views_limit:";
 }

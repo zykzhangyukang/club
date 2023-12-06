@@ -355,6 +355,246 @@ public class PostExample {
             return (Criteria) this;
         }
 
+        public Criteria andViewsCountIsNull() {
+            addCriterion("views_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountIsNotNull() {
+            addCriterion("views_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountEqualTo(Integer value) {
+            addCriterion("views_count =", value, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountNotEqualTo(Integer value) {
+            addCriterion("views_count <>", value, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountGreaterThan(Integer value) {
+            addCriterion("views_count >", value, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("views_count >=", value, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountLessThan(Integer value) {
+            addCriterion("views_count <", value, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountLessThanOrEqualTo(Integer value) {
+            addCriterion("views_count <=", value, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountIn(List<Integer> values) {
+            addCriterion("views_count in", values, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountNotIn(List<Integer> values) {
+            addCriterion("views_count not in", values, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountBetween(Integer value1, Integer value2) {
+            addCriterion("views_count between", value1, value2, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andViewsCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("views_count not between", value1, value2, "viewsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountIsNull() {
+            addCriterion("likes_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountIsNotNull() {
+            addCriterion("likes_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountEqualTo(Integer value) {
+            addCriterion("likes_count =", value, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountNotEqualTo(Integer value) {
+            addCriterion("likes_count <>", value, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountGreaterThan(Integer value) {
+            addCriterion("likes_count >", value, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("likes_count >=", value, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountLessThan(Integer value) {
+            addCriterion("likes_count <", value, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountLessThanOrEqualTo(Integer value) {
+            addCriterion("likes_count <=", value, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountIn(List<Integer> values) {
+            addCriterion("likes_count in", values, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountNotIn(List<Integer> values) {
+            addCriterion("likes_count not in", values, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountBetween(Integer value1, Integer value2) {
+            addCriterion("likes_count between", value1, value2, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andLikesCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("likes_count not between", value1, value2, "likesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountIsNull() {
+            addCriterion("comments_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountIsNotNull() {
+            addCriterion("comments_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountEqualTo(Integer value) {
+            addCriterion("comments_count =", value, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountNotEqualTo(Integer value) {
+            addCriterion("comments_count <>", value, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountGreaterThan(Integer value) {
+            addCriterion("comments_count >", value, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("comments_count >=", value, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountLessThan(Integer value) {
+            addCriterion("comments_count <", value, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountLessThanOrEqualTo(Integer value) {
+            addCriterion("comments_count <=", value, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountIn(List<Integer> values) {
+            addCriterion("comments_count in", values, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountNotIn(List<Integer> values) {
+            addCriterion("comments_count not in", values, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountBetween(Integer value1, Integer value2) {
+            addCriterion("comments_count between", value1, value2, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andCommentsCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("comments_count not between", value1, value2, "commentsCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountIsNull() {
+            addCriterion("favorites_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountIsNotNull() {
+            addCriterion("favorites_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountEqualTo(Integer value) {
+            addCriterion("favorites_count =", value, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountNotEqualTo(Integer value) {
+            addCriterion("favorites_count <>", value, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountGreaterThan(Integer value) {
+            addCriterion("favorites_count >", value, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("favorites_count >=", value, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountLessThan(Integer value) {
+            addCriterion("favorites_count <", value, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountLessThanOrEqualTo(Integer value) {
+            addCriterion("favorites_count <=", value, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountIn(List<Integer> values) {
+            addCriterion("favorites_count in", values, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountNotIn(List<Integer> values) {
+            addCriterion("favorites_count not in", values, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountBetween(Integer value1, Integer value2) {
+            addCriterion("favorites_count between", value1, value2, "favoritesCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andFavoritesCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("favorites_count not between", value1, value2, "favoritesCount");
+            return (Criteria) this;
+        }
+
         public Criteria andCreatedAtIsNull() {
             addCriterion("created_at is null");
             return (Criteria) this;
@@ -532,6 +772,66 @@ public class PostExample {
 
         public Criteria andIsActiveNotBetween(Boolean value1, Boolean value2) {
             addCriterion("is_active not between", value1, value2, "isActive");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftIsNull() {
+            addCriterion("is_draft is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftIsNotNull() {
+            addCriterion("is_draft is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftEqualTo(Boolean value) {
+            addCriterion("is_draft =", value, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftNotEqualTo(Boolean value) {
+            addCriterion("is_draft <>", value, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftGreaterThan(Boolean value) {
+            addCriterion("is_draft >", value, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("is_draft >=", value, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftLessThan(Boolean value) {
+            addCriterion("is_draft <", value, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftLessThanOrEqualTo(Boolean value) {
+            addCriterion("is_draft <=", value, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftIn(List<Boolean> values) {
+            addCriterion("is_draft in", values, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftNotIn(List<Boolean> values) {
+            addCriterion("is_draft not in", values, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftBetween(Boolean value1, Boolean value2) {
+            addCriterion("is_draft between", value1, value2, "isDraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDraftNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("is_draft not between", value1, value2, "isDraft");
             return (Criteria) this;
         }
     }

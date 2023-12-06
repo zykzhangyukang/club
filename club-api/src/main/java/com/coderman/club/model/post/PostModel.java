@@ -30,6 +30,18 @@ public class PostModel extends BaseModel {
     @ApiModelProperty(value = "帖子标题")
     private String title;
 
+    @ApiModelProperty(value = "浏览量")
+    private Integer viewsCount;
+
+    @ApiModelProperty(value = "点赞量")
+    private Integer likesCount;
+
+    @ApiModelProperty(value = "评论量")
+    private Integer commentsCount;
+
+    @ApiModelProperty(value = "收藏量")
+    private Integer favoritesCount;
+
     @ApiModelProperty(value = "创建时间")
     private Date createdAt;
 
@@ -38,6 +50,9 @@ public class PostModel extends BaseModel {
 
     @ApiModelProperty(value = "是否启用")
     private Boolean isActive;
+
+    @ApiModelProperty(value = "是否为草稿")
+    private Boolean isDraft;
 
     @ApiModelProperty(value = "内容")
     private String content;

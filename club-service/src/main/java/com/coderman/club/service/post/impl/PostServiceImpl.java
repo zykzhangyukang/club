@@ -7,6 +7,7 @@ import com.coderman.club.dao.post.PostDAO;
 import com.coderman.club.dao.post.PostTagDAO;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
+import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.model.post.PostModel;
 import com.coderman.club.model.post.PostTagExample;
@@ -15,9 +16,7 @@ import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.section.SectionService;
-import com.coderman.club.utils.AliYunOssUtil;
-import com.coderman.club.utils.AuthUtil;
-import com.coderman.club.utils.ResultUtil;
+import com.coderman.club.utils.*;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.post.PostDetailVO;
@@ -25,6 +24,7 @@ import com.coderman.club.vo.post.PostListItemVO;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -108,6 +108,8 @@ public class PostServiceImpl implements PostService {
             }
             if(CollectionUtils.isNotEmpty(tags)){
 
+                // 标签去重
+                tags = tags.stream().distinct().collect(Collectors.toList());
                 if (CollectionUtils.size(tags) > 5) {
                     return ResultUtil.getWarn("最多添加5个标签！");
                 }
@@ -153,6 +155,7 @@ public class PostServiceImpl implements PostService {
         postModel.setSectionId(dto.getSectionId());
         postModel.setCreatedAt(currentTime);
         postModel.setLastUpdatedAt(currentTime);
+        postModel.setIsDraft(dto.getIsDraft() == null ? Boolean.FALSE : dto.getIsDraft());
         this.postDAO.insertSelectiveReturnKey(postModel);
         return postModel;
     }
@@ -239,17 +242,143 @@ public class PostServiceImpl implements PostService {
     @Override
     public ResultVO<PostDetailVO> postDetail(Long id) {
 
-        if(id == null || id < 0){
+        if (id == null || id < 0) {
             return ResultUtil.getWarn("帖子不存在请刷新重试！");
         }
 
         PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(id);
-        if(postDetailVO == null){
+        if (postDetailVO == null) {
 
             return ResultUtil.getWarn("帖子不存在请刷新重试！");
         }
 
+        // 增加浏览量
+        boolean result = this.addViewsCount(postDetailVO);
+        if (BooleanUtils.isTrue(result)) {
+            postDetailVO.setViewsCount(postDetailVO.getViewsCount() + 1);
+        }
+
+        // 设置标签
+        PostTagExample example = new PostTagExample();
+        example.createCriteria().andPostIdEqualTo(postDetailVO.getPostId());
+        List<String> tags = this.postTagDAO.selectByExample(example).stream().map(PostTagModel::getTagName).distinct().collect(Collectors.toList());
+        postDetailVO.setTags(tags);
+
         return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
+    public ResultVO<Void> postUpdate(PostUpdateDTO postUpdateDTO) {
+
+        Long postId = postUpdateDTO.getPostId();
+        if (postId == null || postId < 0) {
+
+            return ResultUtil.getWarn("参数错误！");
+        }
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        PostModel postModel = this.postDAO.selectUserPostById(current.getUserId(), postId);
+        if (postModel == null) {
+            return ResultUtil.getWarn("帖子不存在！");
+        }
+
+        if (StringUtils.isBlank(postUpdateDTO.getTitle())) {
+            return ResultUtil.getWarn("标题不能为空！");
+        }
+        if (postUpdateDTO.getSectionId() == null || postUpdateDTO.getSectionId() < 0) {
+            return ResultUtil.getWarn("板块不能为空！");
+        }
+        if (StringUtils.length(postUpdateDTO.getTitle()) < 5) {
+            return ResultUtil.getWarn("标题不能少于5个字符！");
+        }
+        if (StringUtils.length(postUpdateDTO.getTitle()) > CommonConstant.LENGTH_128) {
+            return ResultUtil.getWarn("标题字符最多128个字符！");
+        }
+        if (StringUtils.isBlank(postUpdateDTO.getContent())) {
+            return ResultUtil.getWarn("帖子内容不能为空！");
+        }
+        List<String> tags = postUpdateDTO.getTags();
+        if (CollectionUtils.isNotEmpty(tags)) {
+
+            // 标签去重
+            tags = tags.stream().distinct().collect(Collectors.toList());
+            if (CollectionUtils.size(postUpdateDTO.getTags()) > 5) {
+                return ResultUtil.getWarn("最多添加5个标签！");
+            }
+
+            for (String tag : postUpdateDTO.getTags()) {
+                if (StringUtils.length(tag) > 20) {
+                    return ResultUtil.getWarn(tag + "-标签不能超过20个字符！");
+                }
+            }
+        }
+
+        SectionVO sectionVO = this.sectionService.getSectionVoById(postUpdateDTO.getSectionId());
+        if (sectionVO == null) {
+            throw new IllegalArgumentException("栏目信息不存在！");
+        }
+
+        // 更新字段
+        PostModel updateModel = new PostModel();
+        updateModel.setPostId(postId);
+        updateModel.setTitle(postUpdateDTO.getTitle());
+        updateModel.setContent(postUpdateDTO.getContent());
+        updateModel.setLastUpdatedAt(new Date());
+        updateModel.setSectionId(postUpdateDTO.getSectionId());
+        updateModel.setIsDraft(postUpdateDTO.getIsDraft() == null ? Boolean.FALSE : postUpdateDTO.getIsDraft());
+        this.postDAO.updatePostWithContentById(updateModel);
+
+        // 贴子标签更新
+        this.updatePostTag(postUpdateDTO, tags);
+
+        return ResultUtil.getSuccess();
+    }
+
+
+    private void updatePostTag(PostUpdateDTO postUpdateDTO, List<String> tags) {
+
+        if(postUpdateDTO == null){
+            return;
+        }
+
+        // 先把之前的标签删掉
+        PostTagExample example = new PostTagExample();
+        example.createCriteria().andPostIdEqualTo(postUpdateDTO.getPostId());
+        this.postTagDAO.deleteByExample(example);
+
+        if(CollectionUtils.isNotEmpty(tags)){
+
+            this.postTagDAO.insertBatch(postUpdateDTO.getPostId(), tags);
+        }
+    }
+
+    private boolean addViewsCount(PostDetailVO postDetailVO) {
+
+        String redisLimitKey;
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current != null) {
+            redisLimitKey = RedisKeyConstant.POST_VIEWS_LIMIT_PREFIX + postDetailVO.getPostId() + ":" + current.getUserId();
+        } else {
+
+            String ip = IpUtil.getIp(HttpContextUtil.getHttpServletRequest());
+            redisLimitKey = RedisKeyConstant.POST_VIEWS_LIMIT_PREFIX + postDetailVO.getPostId() + ":" + ip;
+        }
+
+        // 判断redis中是否存在值，存在说明近1分钟有浏览过, 不存在则需要增加浏览量
+        boolean exists = this.redisService.exists(redisLimitKey, RedisDbConstant.REDIS_BIZ_CACHE);
+        if (!exists) {
+            this.postDAO.addViewsCount(postDetailVO.getPostId());
+            this.redisService.setString(redisLimitKey, "1", 60, RedisDbConstant.REDIS_BIZ_CACHE);
+            return true;
+        }
+
+        return false;
     }
 
     private void buildPostItems(List<PostListItemVO> postListItemVos) {

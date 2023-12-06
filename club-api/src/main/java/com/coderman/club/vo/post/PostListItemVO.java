@@ -41,4 +41,16 @@ public class PostListItemVO extends BaseModel {
 
     @ApiModelProperty(value = "最后更新时间")
     private Date lastUpdatedAt;
+
+    @ApiModelProperty(value = "浏览量")
+    private Integer viewsCount;
+
+    @ApiModelProperty(value = "点赞量")
+    private Integer likesCount;
+
+    @ApiModelProperty(value = "评论量")
+    private Integer commentsCount;
+
+    @ApiModelProperty(value = "收藏量")
+    private Integer favoritesCount;
 }

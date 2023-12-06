@@ -2,6 +2,7 @@ package com.coderman.club.service.post;
 
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
+import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.post.PostDetailVO;
@@ -50,4 +51,11 @@ public interface PostService {
      * @return
      */
     ResultVO<PostDetailVO> postDetail(Long id);
+
+    /**
+     * 更新帖子
+     * @param postUpdateDTO
+     * @return
+     */
+    ResultVO<Void> postUpdate(PostUpdateDTO postUpdateDTO);
 }

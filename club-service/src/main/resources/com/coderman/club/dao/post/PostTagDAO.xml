@@ -179,11 +179,12 @@
     where post_tag_id = #{postTagId,jdbcType=BIGINT}
   </update>
   <insert id="insertBatch">
-    <foreach collection="tagList" item="tagName" separator=";">
-      insert into club_post_tag (post_id, tag_name
-      )
-      values (#{postId,jdbcType=BIGINT}, #{tagName,jdbcType=VARCHAR}
-      )
-    </foreach>
+      insert into club_post_tag (post_id, tag_name)
+      values
+      <foreach collection="tagList" item="item" index="index" separator=",">
+        (
+        #{postId},#{item}
+        )
+      </foreach>
   </insert>
 </mapper>
