@@ -118,7 +118,7 @@ public class PostServiceImpl implements PostService {
             if (CollectionUtils.isNotEmpty(tags)) {
 
                 // 标签去重
-                tags = tags.stream().distinct().collect(Collectors.toList());
+                tags = tags.stream().filter(StringUtils::isNotBlank).map(StringUtils::trim).distinct().collect(Collectors.toList());
                 if (CollectionUtils.size(tags) > 5) {
                     return ResultUtil.getWarn("最多添加5个标签！");
                 }
@@ -315,7 +315,7 @@ public class PostServiceImpl implements PostService {
         if (CollectionUtils.isNotEmpty(tags)) {
 
             // 标签去重
-            tags = tags.stream().distinct().collect(Collectors.toList());
+            tags = tags.stream().filter(StringUtils::isNotBlank).map(StringUtils::trim).distinct().collect(Collectors.toList());
             if (CollectionUtils.size(postUpdateDTO.getTags()) > 5) {
                 return ResultUtil.getWarn("最多添加5个标签！");
             }

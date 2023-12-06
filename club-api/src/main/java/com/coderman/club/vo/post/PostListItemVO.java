@@ -36,6 +36,12 @@ public class PostListItemVO extends BaseModel {
     @ApiModelProperty(value = "用户昵称")
     private String nickname;
 
+    @ApiModelProperty(value = "用户账号")
+    private String username;
+
+    @ApiModelProperty(value = "栏目名称")
+    private String sectionName;
+
     @ApiModelProperty(value = "创建时间")
     private Date createdAt;
 
