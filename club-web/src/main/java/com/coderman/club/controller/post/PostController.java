@@ -6,6 +6,7 @@ import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,6 +36,13 @@ public class PostController {
         return this.postService.postPublish(postPublishDTO);
     }
 
+    @ApiOperation(value = "帖子详情")
+    @GetMapping(value = "/detail")
+    public ResultVO<PostDetailVO> postDetail(Long id){
+
+        return this.postService.postDetail(id);
+    }
+
 
     @ApiOperation(value = "帖子列表")
     @PostMapping(value = "/page")
@@ -53,7 +61,7 @@ public class PostController {
         return this.postService.uploadImage(file);
     }
 
-    @ApiOperation(value = "获取防止重复token")
+    @ApiOperation(value = "防重token获取")
     @PostMapping(value = "/token")
     public ResultVO<String> postToken() {
 

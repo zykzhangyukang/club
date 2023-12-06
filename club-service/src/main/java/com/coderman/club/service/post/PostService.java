@@ -4,6 +4,7 @@ import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,4 +43,11 @@ public interface PostService {
      * @return
      */
     ResultVO<PageVO<List<PostListItemVO>>> postPage(PostPageDTO postPageDTO);
+
+    /**
+     * 帖子详情
+     * @param id
+     * @return
+     */
+    ResultVO<PostDetailVO> postDetail(Long id);
 }

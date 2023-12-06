@@ -20,6 +20,7 @@ import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
@@ -233,6 +234,22 @@ public class PostServiceImpl implements PostService {
         }
 
         return ResultUtil.getSuccessPage(PostListItemVO.class, new PageVO<>(count, postListItemVos, currentPage, pageSize));
+    }
+
+    @Override
+    public ResultVO<PostDetailVO> postDetail(Long id) {
+
+        if(id == null || id < 0){
+            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+        }
+
+        PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(id);
+        if(postDetailVO == null){
+
+            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+        }
+
+        return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
     }
 
     private void buildPostItems(List<PostListItemVO> postListItemVos) {

@@ -89,6 +89,7 @@ public class AuthAspect {
         WHITE_LIST.add("/api/index/sections");
         WHITE_LIST.add("/api/index/carousels");
         WHITE_LIST.add("/api/post/page");
+        WHITE_LIST.add("/api/post/detail");
     }
 
     @Around("pointcut()")

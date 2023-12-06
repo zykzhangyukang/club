@@ -3,7 +3,9 @@ package com.coderman.club.dao.post;
 import com.coderman.club.dao.common.BaseDAO;
 import com.coderman.club.model.post.PostExample;
 import com.coderman.club.model.post.PostModel;
+import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -33,4 +35,11 @@ public interface PostDAO extends BaseDAO<PostModel, PostExample> {
      * @return
      */
     int insertSelectiveReturnKey(PostModel postModel);
+
+    /**
+     * 查询帖子详情
+     * @param id
+     * @return
+     */
+    PostDetailVO selectPostDetailVoById(@Param(value = "id") Long id);
 }
