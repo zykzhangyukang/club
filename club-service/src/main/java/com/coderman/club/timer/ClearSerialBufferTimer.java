@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 /**
  * @author coderman
@@ -12,12 +15,10 @@ import org.springframework.scheduling.annotation.Scheduled;
  * @Description: TOD
  * @date 2022/6/2121:38
  */
-@Configuration
-@EnableScheduling
-@SuppressWarnings("all")
+@Component
 public class ClearSerialBufferTimer {
 
-    @Autowired
+    @Resource
     private SerialNumberService serialNumberService;
 
     /**

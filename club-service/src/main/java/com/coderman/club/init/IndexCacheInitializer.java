@@ -53,7 +53,7 @@ public class IndexCacheInitializer {
     /**
      * 首页轮播图数据加载
      */
-    private void initCarouseCache() {
+    public void initCarouseCache() {
 
         final String tempKey = RedisKeyConstant.REDIS_CAROUSE_CACHE + "_" + System.currentTimeMillis();
         List<CarouseVO> carouselVoList = this.carouseService.getCarouselVoList();
@@ -65,7 +65,7 @@ public class IndexCacheInitializer {
     /**
      * 首页栏目缓存数据加载
      */
-    private void initSectionCache() {
+    public void initSectionCache() {
 
         final String tempKey = RedisKeyConstant.REDIS_SECTION_CACHE + "_" + System.currentTimeMillis();
         List<SectionVO> sectionVOList = this.sectionService.getSectionVoList();
@@ -75,15 +75,5 @@ public class IndexCacheInitializer {
     }
 
 
-    /**
-     * 栏目数据缓存5分钟刷新一次
-     */
-    @Scheduled(cron = "0 */5 * * * ?")
-    public void refreshIndexCache() {
-        initSectionCache();
-        log.info("refreshSectionCache#首页栏目缓存数据刷新完成....");
-        initCarouseCache();
-        log.info("refreshCarouseCache#首页轮播图数据刷新完成....");
-    }
 
 }
