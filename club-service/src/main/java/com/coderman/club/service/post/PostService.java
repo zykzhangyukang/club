@@ -58,4 +58,20 @@ public interface PostService {
      * @return
      */
     ResultVO<Void> postUpdate(PostUpdateDTO postUpdateDTO);
+
+    /**
+     * 点赞帖子
+     *
+     * @param postId
+     * @return
+     */
+    ResultVO<Void> postLike(Long postId);
+
+    /**
+     * 取消点赞
+     *
+     * @param postId
+     * @return
+     */
+    ResultVO<Void> postUnLike(Long postId);
 }

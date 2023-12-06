@@ -541,7 +541,7 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("不能关注自己！");
         }
 
-        final String lockName = RedisKeyConstant.REDIS_FOLLOW_LOCK_PREFIX + current + ":" + followedId;
+        final String lockName = RedisKeyConstant.REDIS_FOLLOW_LOCK_PREFIX + current.getUserId() + ":" + followedId;
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
         if (!tryLock) {
             return ResultUtil.getWarn("请勿重复操作！");

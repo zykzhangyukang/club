@@ -3,15 +3,18 @@ package com.coderman.club.service.post.impl;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
+import com.coderman.club.constant.user.PostConst;
 import com.coderman.club.dao.post.PostDAO;
+import com.coderman.club.dao.post.PostLikeDAO;
 import com.coderman.club.dao.post.PostTagDAO;
+import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.enums.FileModuleEnum;
-import com.coderman.club.model.post.PostModel;
-import com.coderman.club.model.post.PostTagExample;
-import com.coderman.club.model.post.PostTagModel;
+import com.coderman.club.enums.NotificationTypeEnum;
+import com.coderman.club.model.post.*;
+import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
@@ -52,6 +55,9 @@ public class PostServiceImpl implements PostService {
     private PostDAO postDAO;
 
     @Resource
+    private PostLikeDAO postLikeDAO;
+
+    @Resource
     private PostTagDAO postTagDAO;
 
     @Resource
@@ -62,6 +68,9 @@ public class PostServiceImpl implements PostService {
 
     @Resource
     private RedisService redisService;
+
+    @Resource
+    private NotificationService notificationService;
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
@@ -97,7 +106,7 @@ public class PostServiceImpl implements PostService {
             if (sectionId == null || sectionId < 0) {
                 return ResultUtil.getWarn("板块不能为空！");
             }
-            if(StringUtils.length(title) < 5){
+            if (StringUtils.length(title) < 5) {
                 return ResultUtil.getWarn("标题不能少于5个字符！");
             }
             if (StringUtils.length(title) > CommonConstant.LENGTH_128) {
@@ -106,7 +115,7 @@ public class PostServiceImpl implements PostService {
             if (StringUtils.isBlank(content)) {
                 return ResultUtil.getWarn("帖子内容不能为空！");
             }
-            if(CollectionUtils.isNotEmpty(tags)){
+            if (CollectionUtils.isNotEmpty(tags)) {
 
                 // 标签去重
                 tags = tags.stream().distinct().collect(Collectors.toList());
@@ -339,10 +348,149 @@ public class PostServiceImpl implements PostService {
         return ResultUtil.getSuccess();
     }
 
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
+    public ResultVO<Void> postLike(Long postId) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        if (postId == null || postId < 0) {
+            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+        }
+
+        PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(postId);
+        if (postDetailVO == null) {
+            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+        }
+
+        int rowCount;
+        boolean isFirstLike = false;
+
+        final String lockName = RedisKeyConstant.REDIS_POST_LIKE_LOCK_PREFIX + current.getUserId() + ":" + postId;
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
+        if (!tryLock) {
+            return ResultUtil.getWarn("请勿重复操作！");
+        }
+
+        try {
+
+            // 判断之前是否有点赞过
+            PostLikeExample example = new PostLikeExample();
+            example.createCriteria().andPostIdEqualTo(postId).andUserIdEqualTo(current.getUserId());
+            List<PostLikeModel> postLikeModels = this.postLikeDAO.selectByExample(example);
+
+            if (CollectionUtils.isEmpty(postLikeModels)) {
+
+                PostLikeModel insertModel = new PostLikeModel();
+                insertModel.setUserId(current.getUserId());
+                insertModel.setPostId(postId);
+                insertModel.setCreateTime(new Date());
+                insertModel.setStatus(PostConst.LIKE_STATUS_NORMAL);
+                rowCount = this.postLikeDAO.insertSelective(insertModel);
+                isFirstLike = true;
+
+            } else {
+
+                PostLikeModel postLikeModel = postLikeModels.get(0);
+                if (StringUtils.equals(postLikeModel.getStatus(), PostConst.LIKE_STATUS_NORMAL)) {
+
+                    return ResultUtil.getWarn("请勿重复点赞！");
+                }
+
+                PostLikeModel updateModel = new PostLikeModel();
+                updateModel.setPostLikeId(postLikeModel.getPostId());
+                updateModel.setStatus(PostConst.LIKE_STATUS_NORMAL);
+                rowCount = this.postLikeDAO.updateByPrimaryKeySelective(updateModel);
+            }
+
+            // 首次点赞消息通知 (点赞自己的帖子不通知)
+            if (isFirstLike && rowCount > 0 && !Objects.equals(current.getUserId(), postDetailVO.getUserId())) {
+
+                NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                        .senderId(0L)
+                        .userIdList(Collections.singletonList(postDetailVO.getUserId()))
+                        .typeEnum(NotificationTypeEnum.LIKE_POST)
+                        .content(String.format(NotificationTypeEnum.LIKE_POST.getTemplate(), current.getNickname(), postDetailVO.getTitle()))
+                        .build();
+                this.notificationService.saveAndNotify(notifyMsgDTO);
+            }
+
+            // 维护帖子点赞数
+            if (rowCount > 0) {
+                this.postDAO.addLikesCount(postId, 1);
+            }
+
+        } finally {
+
+            this.redisLockService.unlock(lockName);
+        }
+
+        return ResultUtil.getSuccess();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Throwable.class)
+    public ResultVO<Void> postUnLike(Long postId) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+
+            return ResultUtil.getWarn("用户未登录~");
+        }
+
+        if (postId == null || postId < 0) {
+            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+        }
+
+        PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(postId);
+        if (postDetailVO == null) {
+            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+        }
+
+        final String lockName = RedisKeyConstant.REDIS_POST_UNLIKE_LOCK_PREFIX + current.getUserId() + ":" + postId;
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
+        if (!tryLock) {
+            return ResultUtil.getWarn("请勿重复操作！");
+        }
+
+        try {
+
+            // 在club_post_like一定有数据
+            PostLikeExample example = new PostLikeExample();
+            example.createCriteria().andPostIdEqualTo(postId).andUserIdEqualTo(current.getUserId());
+            List<PostLikeModel> postLikeModels = this.postLikeDAO.selectByExample(example);
+
+            if (CollectionUtils.isNotEmpty(postLikeModels)) {
+                PostLikeModel postLikeModel = postLikeModels.get(0);
+                if (StringUtils.equals(postLikeModel.getStatus(), PostConst.LIKE_STATUS_CANCEL)) {
+
+                    return ResultUtil.getWarn("请勿重复取消点赞！");
+                }
+
+                PostLikeModel updateModel = new PostLikeModel();
+                updateModel.setPostLikeId(postLikeModel.getPostLikeId());
+                updateModel.setStatus(PostConst.LIKE_STATUS_CANCEL);
+                this.postLikeDAO.updateByPrimaryKeySelective(updateModel);
+
+                // 点赞数量-1
+                this.postDAO.addLikesCount(postId, -1);
+            }
+
+        } finally {
+
+            this.redisLockService.unlock(lockName);
+        }
+
+        return ResultUtil.getSuccess();
+    }
+
 
     private void updatePostTag(PostUpdateDTO postUpdateDTO, List<String> tags) {
 
-        if(postUpdateDTO == null){
+        if (postUpdateDTO == null) {
             return;
         }
 
@@ -351,7 +499,7 @@ public class PostServiceImpl implements PostService {
         example.createCriteria().andPostIdEqualTo(postUpdateDTO.getPostId());
         this.postTagDAO.deleteByExample(example);
 
-        if(CollectionUtils.isNotEmpty(tags)){
+        if (CollectionUtils.isNotEmpty(tags)) {
 
             this.postTagDAO.insertBatch(postUpdateDTO.getPostId(), tags);
         }
@@ -373,7 +521,7 @@ public class PostServiceImpl implements PostService {
         // 判断redis中是否存在值，存在说明近1分钟有浏览过, 不存在则需要增加浏览量
         boolean exists = this.redisService.exists(redisLimitKey, RedisDbConstant.REDIS_BIZ_CACHE);
         if (!exists) {
-            this.postDAO.addViewsCount(postDetailVO.getPostId());
+            this.postDAO.addViewsCount(postDetailVO.getPostId(), 1);
             this.redisService.setString(redisLimitKey, "1", 60, RedisDbConstant.REDIS_BIZ_CACHE);
             return true;
         }

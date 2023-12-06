@@ -32,13 +32,32 @@ public class PostController {
 
     @ApiOperation(value = "创建帖子")
     @PostMapping(value = "/publish")
+    @RateLimit
     public ResultVO<Void> postPublish(@RequestBody PostPublishDTO postPublishDTO) {
 
         return this.postService.postPublish(postPublishDTO);
     }
 
+    @ApiOperation(value = "点赞帖子")
+    @PostMapping(value = "/like/{postId}")
+    @RateLimit
+    public ResultVO<Void> postLike(@PathVariable(value = "postId") Long postId){
+
+        return this.postService.postLike(postId);
+    }
+
+    @ApiOperation(value = "取消点赞")
+    @PostMapping(value = "/unlike/{postId}")
+    @RateLimit
+    public ResultVO<Void> postUnLike(@PathVariable(value = "postId") Long postId){
+
+        return this.postService.postUnLike(postId);
+    }
+
+
     @ApiOperation(value = "修改帖子")
     @PutMapping(value = "/update")
+    @RateLimit
     public ResultVO<Void> postUpdate(@RequestBody PostUpdateDTO postUpdateDTO){
         return this.postService.postUpdate(postUpdateDTO);
     }

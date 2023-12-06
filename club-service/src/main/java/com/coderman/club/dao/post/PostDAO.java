@@ -48,7 +48,7 @@ public interface PostDAO extends BaseDAO<PostModel, PostExample> {
      *
      * @param postId
      */
-    void addViewsCount(@Param(value = "postId") Long postId);
+    void addViewsCount(@Param(value = "postId") Long postId,@Param(value = "count") Integer count);
 
     /**
      * 查询用户帖子
@@ -64,4 +64,11 @@ public interface PostDAO extends BaseDAO<PostModel, PostExample> {
      * @param updateModel
      */
     void updatePostWithContentById(@Param(value = "updateModel") PostModel updateModel);
+
+    /**
+     * 增加帖子点赞数
+     *
+     * @param postId
+     */
+    void addLikesCount(@Param(value = "postId") Long postId, @Param(value = "count") Integer count);
 }

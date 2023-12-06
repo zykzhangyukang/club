@@ -13,7 +13,11 @@ public enum NotificationTypeEnum {
     /**
      * 关注用户
      */
-    FOLLOWING_USER("following_user", "用户 【%s】 关注了你");
+    FOLLOWING_USER("following_user", "用户 【%s】 关注了你"),
+    /**
+     * 点赞帖子
+     */
+    LIKE_POST("like_post", "用户 【%s】点赞了你的帖子 【%s】");
 
     NotificationTypeEnum(String msgType, String template) {
         this.template = template;

@@ -531,7 +531,7 @@
     from club_post where post_id = #{postId} and user_id = #{userId} and is_active = 1
   </select>
   <update id="addViewsCount">
-    update club_post set views_count = views_count +1 where post_id = #{postId}
+    update club_post set views_count = views_count +#{count} where post_id = #{postId}
   </update>
   <update id="updatePostWithContentById">
     update club_post
@@ -542,5 +542,8 @@
         is_draft = #{updateModel.isDraft,jdbcType=BIT},
         content = #{updateModel.content,jdbcType=LONGVARCHAR}
     where post_id = #{updateModel.postId,jdbcType=BIGINT}
+  </update>
+  <update id="addLikesCount">
+    update club_post set likes_count = likes_count + #{count}  where post_id = #{postId}
   </update>
 </mapper>

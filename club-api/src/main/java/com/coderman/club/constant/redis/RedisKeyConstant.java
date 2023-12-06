@@ -18,6 +18,8 @@ public interface RedisKeyConstant {
     public static final String REDIS_FOLLOW_LOCK_PREFIX = "REDIS_FOLLOW_LOCK:";
     public static final String REDIS_UNFOLLOW_LOCK_PREFIX = "REDIS_UNFOLLOW_LOCK:";
     public static final String REDIS_POST_CREATE_LOCK_PREFIX = "REDIS_POST_CREATE_LOCK:";
+    public static final String REDIS_POST_LIKE_LOCK_PREFIX = "REDIS_POST_LIKE_LOCK";
+    public static final String REDIS_POST_UNLIKE_LOCK_PREFIX = "REDIS_POST_UNLIKE_LOCK";
 
     /**
      * 防重token
