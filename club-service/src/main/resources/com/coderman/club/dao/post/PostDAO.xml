@@ -549,4 +549,48 @@
   <update id="addLikesCount">
     update club_post set likes_count = likes_count + #{count}  where post_id = #{postId}
   </update>
+  <select id="getPostTaskList" resultType="com.coderman.club.vo.post.PostHotTaskVO">
+    SELECT
+      group_flag,
+      MIN( post_id ) AS beginId,
+      MAX( post_id ) AS endId
+    FROM
+      (
+        SELECT
+          CEIL( row_num / #{batchSize} ) AS group_flag,
+          post_id
+        FROM
+          (
+            SELECT
+              @rownum := @rownum + 1 AS row_num,
+              post_id
+            FROM
+                ( SELECT @rownum := 0 ) r,
+                club_post
+            ORDER BY
+              post_id ASC
+          ) ranked
+      ) grouped
+    GROUP BY
+      group_flag
+    ORDER BY
+      group_flag
+  </select>
+  <select id="getPostFormIndex" resultType="com.coderman.club.vo.post.PostHotVO">
+    SELECT
+      t1.post_id,
+      t1.user_id,
+      t1.section_id,
+      t1.title,
+      t1.views_count,
+      t1.likes_count,
+      t1.comments_count,
+      t1.favorites_count,
+      t1.created_at,
+      t1.last_updated_at
+    FROM club_post t1
+    WHERE t1.is_active = 1 and t1.is_draft = 0
+    and t1.post_id between #{beginId} and #{endId}
+    ORDER BY t1.created_at DESC
+  </select>
 </mapper>

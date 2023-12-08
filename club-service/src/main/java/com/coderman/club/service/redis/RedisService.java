@@ -469,4 +469,5 @@ public interface RedisService {
      * @param msgObj 消息内容
      */
     void sendMessage(String topic , Object msgObj);
+
 }
