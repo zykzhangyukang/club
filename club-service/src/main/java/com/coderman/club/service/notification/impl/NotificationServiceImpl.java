@@ -99,10 +99,16 @@ public class NotificationServiceImpl implements NotificationService {
             Long count = Optional.ofNullable(notificationCountVo.getUnReadCount()).orElse(0L);
             totalCount += count;
 
+            // 系统通知
             if (NotificationTypeEnum.FOLLOWING_USER.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType())) ||
                     NotificationTypeEnum.REGISTER_WELCOME.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType()))
             ) {
                 sysCount += notificationCountVo.getUnReadCount();
+            }
+
+            // 点赞我的
+            if(NotificationTypeEnum.LIKE_POST.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType()))){
+                zanCount +=notificationCountVo.getUnReadCount();
             }
         }
 

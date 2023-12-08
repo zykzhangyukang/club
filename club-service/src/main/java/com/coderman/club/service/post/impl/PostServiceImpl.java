@@ -218,13 +218,16 @@ public class PostServiceImpl implements PostService {
     @Override
     public ResultVO<PageVO<List<PostListItemVO>>> postPage(PostPageDTO postPageDTO) {
         long currentPage = postPageDTO.getCurrentPage() != null && postPageDTO.getCurrentPage() > 0 ? postPageDTO.getCurrentPage() : 1L;
-        long pageSize = postPageDTO.getPageSize() != null && postPageDTO.getPageSize() > 0 ? postPageDTO.getPageSize() : 30L;
+        long pageSize = postPageDTO.getPageSize() != null && postPageDTO.getPageSize() > 0 ? postPageDTO.getPageSize() : 20L;
 
         Map<String, Object> conditionMap = new HashMap<>();
         conditionMap.put("limit", pageSize);
         conditionMap.put("offset", (currentPage - 1) * pageSize);
 
-        if (postPageDTO.getFirstSectionId() != null && postPageDTO.getFirstSectionId() > 0) {
+        if ((postPageDTO.getSecondSectionId() == null || postPageDTO.getSecondSectionId() < 0)
+                && postPageDTO.getFirstSectionId() != null
+                && postPageDTO.getFirstSectionId() > 0) {
+
             List<Long> sectionIdList = this.sectionService.getSectionVoByPid(postPageDTO.getFirstSectionId())
                     .stream()
                     .map(SectionVO::getSectionId)

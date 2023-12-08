@@ -45,7 +45,8 @@ public class UpdateHotPostTimer {
     @Resource
     private RedisService redisService;
 
-    @Scheduled(cron = "0/10 * * * * ?")
+    //    @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "0 */5 * * * ?")
     public void refreshHotPosts() {
 
         List<PostHotTaskVO> taskVoList = this.postHotService.getPostTaskList(100);
@@ -87,9 +88,12 @@ public class UpdateHotPostTimer {
 
             // 计算热度
             BigDecimal score = this.getHotScore(postHotVO);
-            log.info("id:{} , 帖子：{}， 热度: {}", postHotVO.getPostId(),postHotVO.getTitle(), score);
 
             // 保存到热贴redis
+            if (score.compareTo(BigDecimal.ZERO) > 0) {
+
+                log.info("id:{} , 帖子：{}， 热度: {}", postHotVO.getPostId(), postHotVO.getTitle(), score);
+            }
 
         }
 
@@ -107,7 +111,7 @@ public class UpdateHotPostTimer {
         double basicHotness = viewsScore + likesScore + commentsScore;
 
         BigDecimal value = BigDecimal.valueOf(basicHotness);
-        return this.applyTimeDecay(post,value);
+        return this.applyTimeDecay(post, value);
     }
 
     private BigDecimal applyTimeDecay(PostHotVO post, BigDecimal hotness) {
