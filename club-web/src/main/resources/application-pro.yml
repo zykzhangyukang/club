@@ -1,0 +1,30 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: club
+  datasource:
+    username: root
+    password: DES@402239CE2BC2750281C31F4CEA2619B91D0AE9C2129F6555
+    url: jdbc:mysql://gz-cynosdbmysql-grp-4e4x79rx.sql.tencentcdb.com:23688/club_dev?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  redis:
+    host: 165.154.133.250
+    password: DES@99D5518076FE8F32214D66F4B59766B7
+    port: 6379
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+aliyun:
+  oss:
+    access-key-id: DES@15BF54A5AE211A5CF9D33FBC5F1DC0BBCBB930C2BCC7C3875F2EC4A83FE5B5FD
+    access-key-secret: DES@C198710CB2463E594B6599BE0ABE138AAC0735B5ABBD632655095EBE8F436582
+    end-point: oss-cn-shenzhen.aliyuncs.com
+    bucket-name: ioss-bucket
+logging:
+  level:
+    root: info
+    com.coderman.club.dao: warn
+    com.coderman.club: warn

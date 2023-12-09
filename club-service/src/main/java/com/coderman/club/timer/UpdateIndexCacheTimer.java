@@ -21,18 +21,18 @@ public class UpdateIndexCacheTimer {
     private IndexCacheInitializer indexCacheInitializer;
 
     /**
-     * 栏目数据缓存5分钟刷新一次
+     * 栏目数据缓存15分钟刷新一次
      */
-    @Scheduled(cron = "0 */5 * * * ?")
+    @Scheduled(cron = "0 */15 * * * ?")
     public void refreshIndexSectionsCache() {
         this.indexCacheInitializer.initSectionCache();
         log.info("refreshSectionCache#首页栏目缓存数据刷新完成....");
     }
 
     /**
-     * 栏目数据缓存10分钟刷新一次
+     * 栏目数据缓存15分钟刷新一次
      */
-    @Scheduled(cron = "0 */10 * * * ?")
+    @Scheduled(cron = "0 */15 * * * ?")
     public void refreshIndexCarousesCache() {
         this.indexCacheInitializer.initCarouseCache();
         log.info("refreshCarouseCache#首页轮播图数据刷新完成....");

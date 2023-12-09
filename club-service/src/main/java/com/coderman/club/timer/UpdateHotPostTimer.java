@@ -46,7 +46,7 @@ public class UpdateHotPostTimer {
     private RedisService redisService;
 
     //    @Scheduled(cron = "0/10 * * * * ?")
-    @Scheduled(cron = "0 */5 * * * ?")
+    @Scheduled(cron = "0 */30 * * * ?")
     public void refreshHotPosts() {
 
         List<PostHotTaskVO> taskVoList = this.postHotService.getPostTaskList(100);

@@ -25,7 +25,7 @@ public class ScheduleConfig implements SchedulingConfigurer {
         scheduler.setPoolSize(10);
         scheduler.setThreadNamePrefix("club--scheduler-thread");
         scheduler.setAwaitTerminationSeconds(60);
-        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.setWaitForTasksToCompleteOnShutdown(false);
         return scheduler;
     }
 

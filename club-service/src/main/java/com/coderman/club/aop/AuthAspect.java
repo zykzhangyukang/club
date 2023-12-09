@@ -111,7 +111,8 @@ public class AuthAspect {
 
             try {
                 authUserVO = USER_TOKEN_CACHE_MAP.get(tokenVal, () -> {
-                    log.debug("尝试从redis中获取用户信息结果.token:{}", tokenVal);
+
+                    log.warn("尝试从redis中获取用户信息结果.token:{}", tokenVal);
                     return this.redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + tokenVal, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
                 });
             } catch (Exception e) {
