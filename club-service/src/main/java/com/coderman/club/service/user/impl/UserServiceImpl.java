@@ -15,7 +15,6 @@ import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
 import com.coderman.club.model.point.PointAccountModel;
-import com.coderman.club.model.user.UserExample;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
@@ -33,22 +32,24 @@ import com.coderman.club.vo.user.AuthUserVO;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
-import com.google.common.collect.Maps;
-import com.wf.captcha.SpecCaptcha;
+import com.google.code.kaptcha.Producer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Base64Utils;
+import org.springframework.util.FastByteArrayOutputStream;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -84,6 +85,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private AliYunOssUtil aliYunOssUtil;
+
+    @Resource
+    private Producer producer;
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
@@ -503,11 +507,6 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("参数错误！");
         }
 
-        // 验证码生成
-        SpecCaptcha specCaptcha = new SpecCaptcha(100, 32, 5);
-        String base64 = specCaptcha.toBase64();
-        String code = specCaptcha.text();
-
         String redisKey;
         if (StringUtils.equals("login", captchaType)) {
             redisKey = RedisKeyConstant.USER_LOGIN_CAPTCHA_PREFIX + captchaKey;
@@ -517,9 +516,27 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("参数错误");
         }
 
-        // 保存到redis,60秒后过期
-        this.redisService.setString(redisKey, code, 60, RedisDbConstant.REDIS_DB_DEFAULT);
-        return ResultUtil.getSuccess(String.class, base64);
+        // 验证码生成
+        // 1.生成验证码字符
+        String text = producer.createText();
+        // 2.生成图片
+        BufferedImage bi = producer.createImage(text);
+
+        try (FastByteArrayOutputStream fos = new FastByteArrayOutputStream()) {
+
+            ImageIO.write(bi, "jpg", fos);
+            // 3.缓存至 redis 中
+            // 保存到redis,60秒后过期
+            this.redisService.setString(redisKey, text, 60, RedisDbConstant.REDIS_DB_DEFAULT);
+            // 4.返回验证码图片的base64编码
+            String imgEncode =new String(Base64.getEncoder().encode(fos.toByteArray()));
+            fos.flush();
+            return ResultUtil.getSuccess(String.class,  "data:image/png;base64," +imgEncode);
+        } catch (IOException e) {
+
+            return ResultUtil.getWarn("获取验证码失败！");
+        }
+
     }
 
     @Override

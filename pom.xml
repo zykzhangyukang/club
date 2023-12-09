@@ -33,7 +33,7 @@
         <knife4j.version>3.0.3</knife4j.version>
         <jasypt.boot.starter>2.1.1</jasypt.boot.starter>
         <ip2region.version>1.7</ip2region.version>
-        <captcha.version>1.6.2</captcha.version>
+        <captcha.version>2.3.2</captcha.version>
         <fastjson.version>1.2.71</fastjson.version>
         <aliyun.oss.version>3.17.1</aliyun.oss.version>
     </properties>
@@ -49,9 +49,10 @@
                 <version>${ip2region.version}</version>
             </dependency>
 
+
             <dependency>
-                <groupId>com.github.whvcse</groupId>
-                <artifactId>easy-captcha</artifactId>
+                <groupId>com.github.penggle</groupId>
+                <artifactId>kaptcha</artifactId>
                 <version>${captcha.version}</version>
             </dependency>
 
