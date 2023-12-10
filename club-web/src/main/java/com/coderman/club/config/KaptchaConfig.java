@@ -31,7 +31,7 @@ public class KaptchaConfig {
         // 验证码文本字符间距 默认为2
         properties.setProperty(KAPTCHA_TEXTPRODUCER_CHAR_SPACE, "3");
         // 验证码文本字符长度 默认为5
-        properties.setProperty(KAPTCHA_TEXTPRODUCER_CHAR_LENGTH, "4");
+        properties.setProperty(KAPTCHA_TEXTPRODUCER_CHAR_LENGTH, "5");
         // 验证码文本字体样式 默认为new Font("Arial", 1, fontSize), new Font("Courier", 1, fontSize)
         properties.setProperty(KAPTCHA_TEXTPRODUCER_FONT_NAMES, "Comic Sans MS,Arial,Courier");
         properties.setProperty(KAPTCHA_TEXTPRODUCER_CHAR_STRING, "0123456789");
