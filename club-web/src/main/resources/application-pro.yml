@@ -11,7 +11,7 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
   redis:
-    host: 165.154.133.250
+    host: 10.41.188.160 # 内网ip
     password: DES@99D5518076FE8F32214D66F4B59766B7
     port: 6379
 mybatis:
