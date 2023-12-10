@@ -38,6 +38,7 @@ public class UserController {
 
     @ApiOperation(value = "关注用户")
     @PostMapping(value = "/follow/{userId}")
+    @RateLimit
     public ResultVO<Void> follow(@PathVariable(value = "userId")  Long userId){
 
         return this.userService.follow(userId);
@@ -45,6 +46,7 @@ public class UserController {
 
     @ApiOperation(value = "取消关注用户")
     @PostMapping(value = "/unfollow/{userId}")
+    @RateLimit
     public ResultVO<Void> unfollow(@PathVariable(value = "userId")  Long userId){
 
         return this.userService.unfollow(userId);

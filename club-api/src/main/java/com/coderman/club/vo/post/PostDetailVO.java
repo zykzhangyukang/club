@@ -1,6 +1,8 @@
 package com.coderman.club.vo.post;
 
 import com.coderman.club.model.common.BaseModel;
+import com.coderman.club.model.section.SectionModel;
+import com.coderman.club.vo.section.SectionVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,6 +26,9 @@ public class PostDetailVO extends BaseModel {
 
     @ApiModelProperty(value = "帖子所属板块")
     private Long sectionId;
+    private String sectionName;
+    private Long parentSectionId;
+    private String parentSectionName;
 
     @ApiModelProperty(value = "帖子标题")
     private String title;
@@ -57,4 +62,7 @@ public class PostDetailVO extends BaseModel {
 
     @ApiModelProperty(value = "收藏量")
     private Integer favoritesCount;
+
+    @ApiModelProperty(value = "是否关注")
+    private Boolean isFollowed;
 }

@@ -1,5 +1,6 @@
 package com.coderman.club.service.user.impl;
 
+import com.coderman.club.constant.user.UserFollowingConst;
 import com.coderman.club.dao.user.UserFollowingDAO;
 import com.coderman.club.model.user.UserFollowingExample;
 import com.coderman.club.model.user.UserFollowingModel;
@@ -61,5 +62,19 @@ public class UserFollowingServiceImpl implements UserFollowingService {
             return;
         }
         this.userFollowingDAO.updateByPrimaryKeySelective(update);
+    }
+
+    @Override
+    public Boolean isFollowedUser(Long userId, Long targetUserId) {
+
+        if (userId == null || targetUserId == null) {
+            return false;
+        }
+
+        UserFollowingExample example = new UserFollowingExample();
+        example.createCriteria().andFollowerIdEqualTo(userId).andFollowedIdEqualTo(targetUserId).andStatusEqualTo(UserFollowingConst.FOLLOWING_STATUS_NORMAL);
+        Long aLong = this.userFollowingDAO.countByExample(example);
+
+        return aLong > 0;
     }
 }

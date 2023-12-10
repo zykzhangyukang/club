@@ -36,4 +36,12 @@ public interface UserFollowingService  {
      * @param update
      */
     void updateByPrimaryKeySelective(UserFollowingModel update);
+
+    /**
+     * 判断是否关注了该用户
+     * @param userId
+     * @param targetUserId
+     * @return
+     */
+    Boolean isFollowedUser(Long userId, Long targetUserId);
 }

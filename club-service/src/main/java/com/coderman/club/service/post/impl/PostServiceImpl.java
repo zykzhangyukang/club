@@ -19,6 +19,8 @@ import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.section.SectionService;
+import com.coderman.club.service.user.UserFollowingService;
+import com.coderman.club.service.user.UserService;
 import com.coderman.club.utils.*;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
@@ -62,6 +64,9 @@ public class PostServiceImpl implements PostService {
 
     @Resource
     private RedisLockService redisLockService;
+
+    @Resource
+    private UserFollowingService userFollowingService;
 
     @Resource
     private AliYunOssUtil aliYunOssUtil;
@@ -264,10 +269,20 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("帖子不存在请刷新重试！");
         }
 
-        // 增加浏览量
-        boolean result = this.addViewsCount(postDetailVO);
-        if (BooleanUtils.isTrue(result)) {
-            postDetailVO.setViewsCount(postDetailVO.getViewsCount() + 1);
+        //是否已关注当前发帖用户
+        Boolean isFollowed = false;
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current != null) {
+            isFollowed = this.userFollowingService.isFollowedUser(current.getUserId(), postDetailVO.getUserId());
+        }
+        postDetailVO.setIsFollowed(isFollowed);
+
+        // 查询一级栏目数据
+        Long pSectionId = postDetailVO.getParentSectionId();
+        if (pSectionId != null) {
+            SectionVO firstSection = this.sectionService.getSectionVoById(pSectionId);
+            postDetailVO.setParentSectionId(firstSection.getSectionId());
+            postDetailVO.setParentSectionName(firstSection.getSectionName());
         }
 
         // 设置标签
@@ -275,6 +290,12 @@ public class PostServiceImpl implements PostService {
         example.createCriteria().andPostIdEqualTo(postDetailVO.getPostId());
         List<String> tags = this.postTagDAO.selectByExample(example).stream().map(PostTagModel::getTagName).distinct().collect(Collectors.toList());
         postDetailVO.setTags(tags);
+
+        // 增加浏览量
+        boolean result = this.addViewsCount(postDetailVO);
+        if (BooleanUtils.isTrue(result)) {
+            postDetailVO.setViewsCount(postDetailVO.getViewsCount() + 1);
+        }
 
         return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
     }
