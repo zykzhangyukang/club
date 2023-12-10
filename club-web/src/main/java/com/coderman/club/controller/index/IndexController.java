@@ -34,14 +34,14 @@ public class IndexController {
     @ApiOperation(value = "板块列表获取")
     @GetMapping(value = "/sections")
     public ResultVO<List<SectionVO>> getSections(HttpServletResponse response) {
-        response.setHeader("Cache-Control", "max-age=" + 60);
+        response.setHeader("Cache-Control", "max-age=" + 60 * 15);
         return this.sectionService.getSectionVoCacheList();
     }
 
     @ApiOperation(value = "轮播图列表获取")
     @GetMapping(value = "/carousels")
     public ResultVO<List<CarouseVO>> getCarousels(HttpServletResponse response) {
-        response.setHeader("Cache-Control", "max-age=" + 60);
+        response.setHeader("Cache-Control", "max-age=" + 60 * 15);
         return this.carouseService.getCarouselVoCacheList();
     }
 }

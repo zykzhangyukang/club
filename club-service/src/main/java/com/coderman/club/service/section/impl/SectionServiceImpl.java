@@ -52,7 +52,7 @@ public class SectionServiceImpl implements SectionService {
             .initialCapacity(10)
             .maximumSize(500)
             .concurrencyLevel(5)
-            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .expireAfterWrite(15, TimeUnit.MINUTES)
             .recordStats()
             .build();
 
