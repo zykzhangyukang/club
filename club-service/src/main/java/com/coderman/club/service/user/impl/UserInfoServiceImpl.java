@@ -10,6 +10,7 @@ import com.coderman.club.vo.user.UserInfoVO;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -69,5 +70,14 @@ public class UserInfoServiceImpl implements UserInfoService {
             return Maps.newHashMap();
         }
         return this.userInfoDAO.selectUserInfoVoMap(userIds);
+    }
+
+    @Override
+    public void updateUserAvatar(Long userId, String avatarUrl) {
+
+        if(userId == null || StringUtils.isBlank(avatarUrl)){
+            return;
+        }
+        this.userInfoDAO.updateUserAvatar(userId, avatarUrl);
     }
 }

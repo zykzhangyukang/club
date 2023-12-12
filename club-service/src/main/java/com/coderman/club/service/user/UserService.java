@@ -7,7 +7,9 @@ import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -101,4 +103,11 @@ public interface UserService {
      * @return
      */
     ResultVO<UserInfoVO> updateInit();
+
+    /**
+     * 上传用户头像
+     * @param file
+     * @return
+     */
+    ResultVO<String> uploadAvatar(MultipartFile file) throws IOException;
 }

@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.FastByteArrayOutputStream;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -683,6 +684,40 @@ public class UserServiceImpl implements UserService {
         userInfoVO.setEmail(userModel.getEmail());
 
         return ResultUtil.getSuccess(UserInfoVO.class, userInfoVO);
+    }
+
+    @Override
+    public ResultVO<String> uploadAvatar(MultipartFile file) throws IOException {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if(current == null){
+
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        if (file.isEmpty()) {
+            return ResultUtil.getWarn("文件不能为空!");
+        }
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("请选择图片文件上传!");
+        }
+
+        long fileSizeInBytes = file.getSize();
+        long fileSizeInKb = fileSizeInBytes / 1024;
+        long fileSizeInMb = fileSizeInKb / 1024;
+        if (fileSizeInMb > 1) {
+            throw new IllegalArgumentException("文件大小超过限制（最大限制为1MB）");
+        }
+
+        String url = this.aliYunOssUtil.genFilePath(file.getOriginalFilename(), FileModuleEnum.USER_MODULE);
+        this.aliYunOssUtil.uploadStream(file.getInputStream(), url);
+
+        final String avatarUrl = CommonConstant.OSS_DOMAIN + url;
+
+        // 更新用户头像
+        this.userInfoService.updateUserAvatar(current.getUserId(), avatarUrl);
+
+        return ResultUtil.getSuccess(String.class, avatarUrl);
     }
 
 

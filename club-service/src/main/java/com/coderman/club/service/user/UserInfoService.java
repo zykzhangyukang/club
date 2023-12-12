@@ -52,4 +52,12 @@ public interface UserInfoService {
      * @return
      */
     Map<Long, UserInfoVO> selectUserInfoVoMap(List<Long> userIds);
+
+    /**
+     * 更新用户头像
+     *
+     * @param userId
+     * @param avatarUrl
+     */
+    void updateUserAvatar(Long userId, String avatarUrl);
 }

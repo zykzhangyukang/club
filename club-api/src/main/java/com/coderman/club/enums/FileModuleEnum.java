@@ -19,7 +19,7 @@ public enum FileModuleEnum {
     POST_MODULE("post" , "帖子模块"),
 
     /**
-     * 商品模块
+     * 用户模块
      */
     USER_MODULE("user" , "用户模块")
     ;

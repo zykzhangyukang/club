@@ -24,4 +24,6 @@ public interface UserInfoDAO extends BaseDAO<UserInfoModel, UserInfoExample> {
 
     @MapKey(value = "userId")
     Map<Long, UserInfoVO> selectUserInfoVoMap(@Param(value = "userIds") List<Long> userIds);
+
+    void updateUserAvatar(@Param(value = "userId") Long userId,@Param(value = "avatarUrl") String avatarUrl);
 }

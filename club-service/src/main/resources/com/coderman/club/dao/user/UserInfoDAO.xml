@@ -373,4 +373,7 @@
           #{item}
         </foreach>
   </select>
+  <update id="updateUserAvatar">
+    update club_user_info set avatar= #{avatarUrl} where user_id  =#{userId}
+  </update>
 </mapper>

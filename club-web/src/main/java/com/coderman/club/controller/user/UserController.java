@@ -13,8 +13,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 
 /**
  * @author ：zhangyukang
@@ -34,6 +36,14 @@ public class UserController {
     public ResultVO<UserLoginVO> login(@RequestBody UserLoginDTO userLoginDTO) {
 
         return this.userService.login(userLoginDTO);
+    }
+
+    @ApiOperation(value = "上传头像")
+    @PostMapping(value = "/upload/avatar")
+    @RateLimit
+    public ResultVO<String> uploadAvatar(MultipartFile file) throws IOException {
+
+        return this.userService.uploadAvatar(file);
     }
 
     @ApiOperation(value = "关注用户")
