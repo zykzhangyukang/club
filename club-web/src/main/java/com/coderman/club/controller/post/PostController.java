@@ -71,6 +71,15 @@ public class PostController {
     }
 
 
+    @ApiOperation(value = "删除帖子")
+    @DeleteMapping(value = "/detail/{id}")
+    @RateLimit
+    public ResultVO<Void> postDelete(@PathVariable(value = "id") Long id){
+
+        return this.postService.postDelete(id);
+    }
+
+
     @ApiOperation(value = "帖子列表")
     @PostMapping(value = "/page")
     public ResultVO<PageVO<List<PostListItemVO>>> postPage(@RequestBody PostPageDTO postPageDTO) {

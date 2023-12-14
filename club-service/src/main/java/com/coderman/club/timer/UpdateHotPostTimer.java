@@ -1,6 +1,7 @@
 package com.coderman.club.timer;
 
 import com.alibaba.fastjson.JSON;
+import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.service.post.PostHotService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.vo.post.PostHotTaskVO;
@@ -8,6 +9,8 @@ import com.coderman.club.vo.post.PostHotVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.data.redis.core.DefaultTypedTuple;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +18,9 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
@@ -45,6 +50,7 @@ public class UpdateHotPostTimer {
     @Resource
     private RedisService redisService;
 
+//    @Scheduled(cron = "*/10 * * * * *")
     @Scheduled(cron = "0 */30 * * * ?")
     public void refreshHotPosts() {
 
@@ -58,7 +64,6 @@ public class UpdateHotPostTimer {
                 @Override
                 public String get() {
                     try {
-
                         return deal(postHotTaskVO);
                     } catch (Exception e) {
 
@@ -77,12 +82,15 @@ public class UpdateHotPostTimer {
         });
     }
 
+    @SuppressWarnings("unchecked")
     private String deal(PostHotTaskVO postHotTaskVO) {
 
         Long beginId = postHotTaskVO.getBeginId();
         Long endId = postHotTaskVO.getEndId();
 
         List<PostHotVO> postHotVoList = this.postHotService.getPostFormIndex(beginId, endId);
+
+        Set<ZSetOperations.TypedTuple<Object>> typedTuples = new HashSet<>();
         for (PostHotVO postHotVO : postHotVoList) {
 
             // 计算热度
@@ -90,10 +98,15 @@ public class UpdateHotPostTimer {
 
             // 保存到热贴redis
             if (score.compareTo(BigDecimal.ZERO) > 0) {
-
-                log.info("id:{} , 帖子：{}， 热度: {}", postHotVO.getPostId(), postHotVO.getTitle(), score);
+                ZSetOperations.TypedTuple<Object> typedTuple = new DefaultTypedTuple<>(postHotVO.getPostId() + "@" + postHotVO.getTitle(), score.doubleValue());
+                typedTuples.add(typedTuple);
             }
+        }
 
+        // 批量添加到 zSet
+        if (!typedTuples.isEmpty()) {
+
+            this.redisService.getRedisTemplate().opsForZSet().add(RedisKeyConstant.REDIS_HOT_POST_CACHE, typedTuples);
         }
 
         return String.format("刷新帖子热度成功: [beginId: %s, endId: %s] ", beginId, endId);

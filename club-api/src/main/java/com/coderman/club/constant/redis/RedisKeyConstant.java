@@ -31,6 +31,7 @@ public interface RedisKeyConstant {
      */
     public static final String REDIS_SECTION_CACHE = "REDIS_SECTION_CACHE";
     public static final String REDIS_CAROUSE_CACHE = "REDIS_CAROUSE_CACHE";
+    public static final String REDIS_HOT_POST_CACHE = "REDIS_HOT_POST_CACHE";
 
     /**
      * websocket回话

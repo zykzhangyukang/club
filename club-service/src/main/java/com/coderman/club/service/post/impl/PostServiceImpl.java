@@ -511,6 +511,34 @@ public class PostServiceImpl implements PostService {
         return ResultUtil.getSuccess();
     }
 
+    @Override
+    public ResultVO<Void> postDelete(Long postId) {
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        if (postId == null || postId < 0) {
+            return ResultUtil.getWarn("参数错误！");
+        }
+
+        PostModel postModel = this.postDAO.selectUserPostById(current.getUserId(), postId);
+        if (postModel == null) {
+
+            return ResultUtil.getWarn("帖子不存在或已被删除！");
+        }
+
+        PostModel updateModel = new PostModel();
+        updateModel.setPostId(postId);
+        updateModel.setIsActive(Boolean.FALSE);
+        updateModel.setLastUpdatedAt(new Date());
+        this.postDAO.updateByPrimaryKeySelective(updateModel);
+
+        return ResultUtil.getSuccess();
+    }
+
 
     private void updatePostTag(PostUpdateDTO postUpdateDTO, List<String> tags) {
 

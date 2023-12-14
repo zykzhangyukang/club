@@ -74,4 +74,11 @@ public interface PostService {
      * @return
      */
     ResultVO<Void> postUnLike(Long postId);
+
+    /**
+     * 删除帖子
+     * @param postId
+     * @return
+     */
+    ResultVO<Void> postDelete(Long postId);
 }
