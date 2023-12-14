@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Base64Utils;
@@ -45,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -447,23 +449,42 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO<UserInfoVO> getUserInfo(String token) {
+    public ResultVO<UserLoginVO> getUserLoginInfo(String token) {
 
-        if (StringUtils.isBlank(token)) {
+        HttpServletRequest httpServletRequest = HttpContextUtil.getHttpServletRequest();
+        String requestHeader = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
 
-            return ResultUtil.getSuccess(UserInfoVO.class, null);
+        // 默认先取请求头上的token
+        token = (StringUtils.isNotBlank(requestHeader)) ? requestHeader : token;
 
-        } else {
+        AuthUserVO authUserVO = this.redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
+        if (authUserVO == null) {
 
-            UserInfoVO userInfoVO = null;
-            AuthUserVO authUserVO = this.redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
-            if (authUserVO != null) {
-                userInfoVO = new UserInfoVO();
-                BeanUtils.copyProperties(authUserVO, userInfoVO);
-            }
-
-            return ResultUtil.getSuccess(UserInfoVO.class, userInfoVO);
+            return ResultUtil.getSuccess(UserLoginVO.class, null);
         }
+
+        Long userId = authUserVO.getUserId();
+        UserInfoModel userInfoModel = this.userInfoService.selectByUserId(userId);
+        if (userInfoModel == null) {
+
+            return ResultUtil.getSuccess(UserLoginVO.class, null);
+        }
+
+        UserModel userModel = this.userDAO.selectByPrimaryKey(userId);
+        if (userModel == null) {
+
+            return ResultUtil.getSuccess(UserLoginVO.class, null);
+        }
+
+        UserLoginVO userLoginVO = new UserLoginVO();
+        userLoginVO.setUserId(authUserVO.getUserId());
+        userLoginVO.setUsername(authUserVO.getUsername());
+        userLoginVO.setAvatar(userInfoModel.getAvatar());
+        userLoginVO.setNickname(userModel.getNickname());
+        userLoginVO.setUserCode(userInfoModel.getUserCode());
+        userLoginVO.setRefreshToken(authUserVO.getRefreshToken());
+        userLoginVO.setToken(authUserVO.getToken());
+        return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
     }
 
     @Override

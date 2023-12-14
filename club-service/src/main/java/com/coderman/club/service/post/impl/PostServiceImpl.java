@@ -260,13 +260,13 @@ public class PostServiceImpl implements PostService {
     public ResultVO<PostDetailVO> postDetail(Long id) {
 
         if (id == null || id < 0) {
-            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
 
         PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(id);
         if (postDetailVO == null) {
 
-            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
 
         //是否已关注当前发帖用户
@@ -382,12 +382,12 @@ public class PostServiceImpl implements PostService {
         }
 
         if (postId == null || postId < 0) {
-            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
 
         PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(postId);
         if (postDetailVO == null) {
-            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
 
         int rowCount;
@@ -466,12 +466,12 @@ public class PostServiceImpl implements PostService {
         }
 
         if (postId == null || postId < 0) {
-            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
 
         PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(postId);
         if (postDetailVO == null) {
-            return ResultUtil.getWarn("帖子不存在请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
 
         final String lockName = RedisKeyConstant.REDIS_POST_UNLIKE_LOCK_PREFIX + current.getUserId() + ":" + postId;

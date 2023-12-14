@@ -11,7 +11,6 @@ import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -78,18 +77,18 @@ public class UserController {
         return this.userService.updateInfo(userInfoDTO);
     }
 
-    @ApiOperation(value = "获取用户信息")
+    @ApiOperation(value = "获取用户资料信息")
     @GetMapping(value = "/update/init")
     public ResultVO<UserInfoVO> updateInit() {
 
         return this.userService.updateInit();
     }
 
-    @ApiOperation(value = "获取用户信息")
+    @ApiOperation(value = "获取登录用户信息")
     @GetMapping(value = "/info")
-    public ResultVO<UserInfoVO> getUserInfo(String token) {
+    public ResultVO<UserLoginVO> getUserLoginInfo(String token) {
 
-        return this.userService.getUserInfo(token);
+        return this.userService.getUserLoginInfo(token);
     }
 
     @ApiOperation(value = "刷新令牌")

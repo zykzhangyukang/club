@@ -59,7 +59,7 @@ public interface UserService {
      * @param token
      * @return
      */
-    ResultVO<UserInfoVO> getUserInfo(String token);
+    ResultVO<UserLoginVO> getUserLoginInfo(String token);
 
     /**
      * 修改用户信息
