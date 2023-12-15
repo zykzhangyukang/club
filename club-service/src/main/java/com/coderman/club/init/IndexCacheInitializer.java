@@ -44,10 +44,19 @@ public class IndexCacheInitializer {
             this.initCarouseCache();
             log.info("首页轮播图缓存加载完成。。。");
 
+            this.initHotPostCache();
+            log.info("首页热门帖子标签加载完成。。。");
+
 
         } catch (Exception e) {
             log.error("缓存数据加载失败：{}", e.getMessage(), e);
         }
+    }
+
+    private void initHotPostCache() {
+
+
+
     }
 
     /**
