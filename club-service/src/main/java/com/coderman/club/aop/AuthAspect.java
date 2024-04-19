@@ -73,6 +73,8 @@ public class AuthAspect {
 
     @PostConstruct
     public void init() {
+        // 公众号消息验证
+        WHITE_LIST.add("/api/wechat/message");
         // 登录接口
         WHITE_LIST.add("/api/user/login");
         // 注册接口
