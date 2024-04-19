@@ -6,7 +6,6 @@ import com.coderman.club.exception.BusinessException;
 import com.coderman.club.utils.WechatUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.v3.oas.models.media.XML;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -19,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
 import java.util.stream.Collectors;
 
 /**
@@ -56,14 +55,14 @@ public class WechatController {
 
     @ApiOperation(value = "微信公众消息事件")
     @PostMapping(value = "/message")
-    public void messageEvent(HttpServletRequest req, HttpServletResponse resp) throws UnsupportedEncodingException {
-        req.setCharacterEncoding("UTF-8");
-        resp.setCharacterEncoding("UTF-8");
+    public void messageEvent(HttpServletRequest req, HttpServletResponse resp) {
+
+        String result = null;
+        PrintWriter out = null;
         try {
 
-            String fromXml = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-
             // 创建 SAXBuilder 对象来构建 XML 文档
+            String fromXml = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
             Document document = new SAXBuilder().build(new StringReader(fromXml));
             Element root = document.getRootElement();
 
@@ -85,13 +84,30 @@ public class WechatController {
                 //取消订阅
                 if ("unsubscribe".equals(wxBaseMessageDTO.getEvent())) {
                 }
-            } else if ("text".equals(wxBaseMessageDTO.getMsgType())) {
-                //判断为文本消息
-            }
 
+            } else if ("text".equals(wxBaseMessageDTO.getMsgType())) {
+                result = this.reply(wxBaseMessageDTO);
+            }
+            if (StringUtils.isBlank(result)) {
+                return;
+            }
+            resp.setCharacterEncoding("UTF-8");
+            out = resp.getWriter();
+            out.write(result);
         } catch (Exception e) {
             log.error("解析微信消息事件错误:{}", e.getMessage(), e);
+        } finally {
+            if (out != null) {
+                out.close();
+            }
         }
+    }
+
+    public String reply(WxBaseMessageDTO dto) {
+
+        String fromUserName = dto.getFromUserName();
+
+        return StringUtils.EMPTY;
     }
 
 
