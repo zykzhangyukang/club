@@ -1,53 +1,39 @@
 package com.coderman.club.dto.wechat;
 
 import com.coderman.club.model.common.BaseModel;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * @author ：zhangyukang
- * @date ：2024/04/19 16:09
+ * @date ：2024/04/19 17:34
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class WxBaseMessageDTO extends BaseModel {
 
-    /**
-     * 接收方帐号（收到的OpenID）
-     */
-    @JacksonXmlProperty(localName = "ToUserName")
+
+    @ApiModelProperty(value = "接收方帐号（收到的OpenID）")
     private String toUserName;
 
-    /**
-     * 开发者微信号
-     */
-    @JacksonXmlProperty(localName = "FromUserName")
+    @ApiModelProperty(value = "开发者微信号")
     private String fromUserName;
 
-    /**
-     * 消息创建时间 （整型）
-     */
-    @JacksonXmlProperty(localName = "CreateTime")
-    private Long createTime;
+    @ApiModelProperty(value = "消息创建时间 （整型）")
+    private String createTime;
 
-    /**
-     * 消息类型
-     */
-    @JacksonXmlProperty(localName = "MsgType")
+    @ApiModelProperty(value = "消息类型")
     private String msgType;
 
-    /**
-     * 消息内容
-     */
-    @JacksonXmlProperty(localName = "Content")
+    @ApiModelProperty(value = "消息内容")
     private String content;
 
-    /**
-     * 消息ID
-     */
-    @JacksonXmlProperty(localName = "MsgId")
+    @ApiModelProperty(value = "消息ID")
     private String msgId;
+
+    @ApiModelProperty(value = "事件类型")
+    private String event;
+
+
 }

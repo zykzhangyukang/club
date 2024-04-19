@@ -2,16 +2,16 @@ package com.coderman.club.controller.wechat;
 
 import com.alibaba.fastjson.JSON;
 import com.coderman.club.dto.wechat.WxBaseMessageDTO;
-import com.coderman.club.dto.wechat.WxEventMessageDTO;
 import com.coderman.club.exception.BusinessException;
-import com.coderman.club.utils.SignUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.coderman.club.utils.WechatUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.models.media.XML;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.stream.Collectors;
 
@@ -43,10 +44,11 @@ public class WechatController {
         String echostr = request.getParameter("echostr");
 
         log.info("收到来自微信的认证消息, signature:{},timestamp:{}, nonce:{},echostr:{}  ", signature, timestamp, nonce, echostr);
+
         if (StringUtils.isAnyBlank(signature, timestamp, nonce, echostr)) {
             throw new BusinessException("请求参数非法！");
         }
-        if (SignUtil.checkSignature(signature, timestamp, nonce)) {
+        if (WechatUtil.checkSignature(signature, timestamp, nonce)) {
             return echostr;
         }
         return StringUtils.EMPTY;
@@ -60,32 +62,36 @@ public class WechatController {
         try {
 
             String fromXml = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-            log.debug("收到来自微信的消息事件\n:{}", fromXml);
 
-            // 解析微信消息
-            this.messageParse(fromXml);
+            // 创建 SAXBuilder 对象来构建 XML 文档
+            Document document = new SAXBuilder().build(new StringReader(fromXml));
+            Element root = document.getRootElement();
+
+            WxBaseMessageDTO wxBaseMessageDTO = new WxBaseMessageDTO();
+            wxBaseMessageDTO.setToUserName(root.getChildText("ToUserName"));
+            wxBaseMessageDTO.setFromUserName(root.getChildText("FromUserName"));
+            wxBaseMessageDTO.setContent(root.getChildText("Content"));
+            wxBaseMessageDTO.setMsgId(root.getChildText("MsgId"));
+            wxBaseMessageDTO.setEvent(root.getChildText("Event"));
+            wxBaseMessageDTO.setCreateTime(root.getChildText("CreateTime"));
+
+            log.info(fromXml);
+            log.info("收到来自微信的消息事件: wxBaseMessageDTO:{}", JSON.toJSONString(wxBaseMessageDTO));
+
+            if ("event".equals(wxBaseMessageDTO.getMsgType())) {
+                //订阅
+                if ("subscribe".equals(wxBaseMessageDTO.getEvent())) {
+                }
+                //取消订阅
+                if ("unsubscribe".equals(wxBaseMessageDTO.getEvent())) {
+                }
+            } else if ("text".equals(wxBaseMessageDTO.getMsgType())) {
+                //判断为文本消息
+            }
 
         } catch (Exception e) {
             log.error("解析微信消息事件错误:{}", e.getMessage(), e);
         }
-    }
-
-    public void messageParse(String message) throws JsonProcessingException {
-        XmlMapper xmlMapper = new XmlMapper();
-        WxBaseMessageDTO baseMessage = xmlMapper.readValue(message, WxBaseMessageDTO.class);
-        //判断是否是事件类型
-        if ("event".equals(baseMessage.getMsgType())) {
-            WxEventMessageDTO event = xmlMapper.readValue(message, WxEventMessageDTO.class);
-            //订阅
-            if ("subscribe".equals(event.getEvent())) {
-            }
-            //取消订阅
-            if ("unsubscribe".equals(event.getEvent())) {
-            }
-        } else if ("text".equals(baseMessage.getMsgType())) {
-            //判断为文本消息
-        }
-        log.info("messageParse {}", JSON.toJSONString(baseMessage));
     }
 
 

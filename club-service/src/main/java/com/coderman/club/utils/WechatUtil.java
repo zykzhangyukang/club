@@ -8,7 +8,7 @@ import java.util.Arrays;
  * @author ：zhangyukang
  * @date ：2024/04/19 15:33
  */
-public class SignUtil {
+public class WechatUtil {
 
     /**
      * 微信公众号上的token一致，是服务器令牌（token），这里写什么。服务器就填什么
