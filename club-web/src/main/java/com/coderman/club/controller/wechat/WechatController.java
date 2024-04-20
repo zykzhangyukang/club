@@ -3,7 +3,9 @@ package com.coderman.club.controller.wechat;
 import com.alibaba.fastjson.JSON;
 import com.coderman.club.dto.wechat.WxBaseMessageDTO;
 import com.coderman.club.exception.BusinessException;
+import com.coderman.club.service.wechat.WechatService;
 import com.coderman.club.utils.WechatUtil;
+import com.coderman.club.vo.common.ResultVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
@@ -32,6 +35,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WechatController {
 
+    @Resource
+    private WechatService wechatService;
+
+    @ApiOperation(value = "获取微信公众令牌")
+    @GetMapping(value = "/code")
+    public ResultVO<String> getEventCode(String deviceId) {
+
+        return this.wechatService.getEventCode(deviceId);
+    }
+
+    @ApiOperation(value = "获取微信公众令牌")
+    @GetMapping(value = "/subscribe")
+    public ResultVO<String> subscribe(String deviceId) {
+
+        return this.wechatService.subscribe(deviceId);
+    }
 
     @ApiOperation(value = "校验微信公众令牌")
     @GetMapping(value = "/message")
@@ -57,7 +76,6 @@ public class WechatController {
     @PostMapping(value = "/message")
     public void messageEvent(HttpServletRequest req, HttpServletResponse resp) {
 
-        String result = null;
         PrintWriter out = null;
         try {
 
@@ -71,23 +89,15 @@ public class WechatController {
             wxBaseMessageDTO.setFromUserName(root.getChildText("FromUserName"));
             wxBaseMessageDTO.setContent(root.getChildText("Content"));
             wxBaseMessageDTO.setMsgId(root.getChildText("MsgId"));
+            wxBaseMessageDTO.setMsgType(root.getChildText("MsgType"));
             wxBaseMessageDTO.setEvent(root.getChildText("Event"));
             wxBaseMessageDTO.setCreateTime(root.getChildText("CreateTime"));
 
             log.info(fromXml);
             log.info("收到来自微信的消息事件: wxBaseMessageDTO:{}", JSON.toJSONString(wxBaseMessageDTO));
 
-            if ("event".equals(wxBaseMessageDTO.getMsgType())) {
-                //订阅
-                if ("subscribe".equals(wxBaseMessageDTO.getEvent())) {
-                }
-                //取消订阅
-                if ("unsubscribe".equals(wxBaseMessageDTO.getEvent())) {
-                }
+            String result = this.wechatService.replyMessage(wxBaseMessageDTO);
 
-            } else if ("text".equals(wxBaseMessageDTO.getMsgType())) {
-                result = this.reply(wxBaseMessageDTO);
-            }
             if (StringUtils.isBlank(result)) {
                 return;
             }
@@ -102,13 +112,4 @@ public class WechatController {
             }
         }
     }
-
-    public String reply(WxBaseMessageDTO dto) {
-
-        String fromUserName = dto.getFromUserName();
-
-        return StringUtils.EMPTY;
-    }
-
-
 }

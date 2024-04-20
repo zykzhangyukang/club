@@ -57,6 +57,8 @@ public interface RedisKeyConstant {
      */
     public static final String USER_LOGIN_CAPTCHA_PREFIX = "club.login:captcha_code:";
     public static final String USER_REGISTER_CAPTCHA_PREFIX = "club.register:captcha_code:";
+    public static final String USER_LOGIN_DEVICE_PREFIX = "club.login:device_code:";
+    public static final String USER_LOGIN_WECHAT_PREFIX = "club.login:wechat_code:";
     /**
      * 帖子浏览量防刷
      */
