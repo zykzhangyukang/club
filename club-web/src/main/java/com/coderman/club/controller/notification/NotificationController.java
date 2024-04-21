@@ -1,13 +1,12 @@
 package com.coderman.club.controller.notification;
 
+import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.notification.NotificationVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -32,10 +31,10 @@ public class NotificationController {
     }
 
     @ApiOperation(value = "获取消息通知列表")
-    @GetMapping(value = "/getList")
-    public ResultVO<List<NotificationVO>> getList(Boolean isRead,String type){
+    @PostMapping(value = "/page")
+    public ResultVO<List<NotificationVO>> getPage(@RequestBody NotificationDTO notificationDTO){
 
-        return this.notificationService.getList(isRead, type);
+        return this.notificationService.getPage(notificationDTO);
     }
 
     @ApiOperation(value = "已读消息")

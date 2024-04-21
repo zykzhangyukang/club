@@ -30,7 +30,7 @@ public interface NotificationDAO extends BaseDAO<NotificationModel, Notification
      * @param type
      * @return
      */
-    List<NotificationVO> getList(@Param(value = "userId") Long userId,@Param(value = "isRead") Boolean isRead,@Param(value = "type") String type);
+    List<NotificationVO> getPage(@Param(value = "userId") Long userId, @Param(value = "isRead") Boolean isRead, @Param(value = "type") String type);
 
     /**
      * 修改消息状态

@@ -9,7 +9,7 @@ public enum NotificationTypeEnum {
     /**
      * 注册欢迎
      */
-    REGISTER_WELCOME("register_welcome", "喂 ！%s 哇哦，您加入了我们这个超级酷的社区！欢迎来到这个疯狂有趣的地方，我们这里有各种神奇的东西等着您发现！"),
+    REGISTER_WELCOME("register_welcome", "你好：%s , 您加入了我们这个超级酷的社区！欢迎来到这个疯狂有趣的地方，我们这里有各种神奇的东西等着您发现！"),
     /**
      *
      */
@@ -17,11 +17,11 @@ public enum NotificationTypeEnum {
     /**
      * 关注用户
      */
-    FOLLOWING_USER("following_user", "用户 %s 关注了你"),
+    FOLLOWING_USER("following_user", "%s 关注了你"),
     /**
      * 点赞帖子
      */
-    LIKE_POST("like_post", "用户 %s 点赞了你的帖子 %s");
+    LIKE_POST("like_post", "%s 点赞了你的帖子 %s");
 
     NotificationTypeEnum(String msgType, String template) {
         this.template = template;

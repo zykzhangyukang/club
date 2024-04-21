@@ -4,6 +4,7 @@ import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.user.UserConstant;
 import com.coderman.club.dao.notification.NotificationDAO;
+import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.model.notification.NotificationModel;
@@ -24,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -101,7 +101,8 @@ public class NotificationServiceImpl implements NotificationService {
 
             // 系统通知
             if (NotificationTypeEnum.FOLLOWING_USER.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType())) ||
-                    NotificationTypeEnum.REGISTER_WELCOME.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType()))
+                    NotificationTypeEnum.REGISTER_WELCOME.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType())) ||
+                    NotificationTypeEnum.REGISTER_INIT_PWD.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType()))
             ) {
                 sysCount += notificationCountVo.getUnReadCount();
             }
@@ -135,7 +136,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public ResultVO<List<NotificationVO>> getList(Boolean isRead, String type) {
+    public ResultVO<List<NotificationVO>> getPage(NotificationDTO notificationDTO) {
+
+        String type = notificationDTO.getType();
+        Boolean isRead = notificationDTO.getIsRead();
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
@@ -144,12 +148,8 @@ public class NotificationServiceImpl implements NotificationService {
         if (StringUtils.isBlank(type)) {
             return ResultUtil.getWarn("消息类型不能为空！");
         }
-        NotificationTypeEnum byMsgType = NotificationTypeEnum.getByMsgType(type);
-        if (byMsgType == null) {
-            return ResultUtil.getWarn("参数错误！");
-        }
 
-        List<NotificationVO> notificationVos = this.notificationDAO.getList(current.getUserId(), isRead, type);
+        List<NotificationVO> notificationVos = this.notificationDAO.getPage(current.getUserId(), isRead, type);
         for (NotificationVO notificationVo : notificationVos) {
             if (Objects.equals(notificationVo.getSenderId(), 0L)) {
                 notificationVo.setSenderName("系统");

@@ -278,7 +278,7 @@
     where user_id = #{userId} and is_read = 0
     group by `type`
   </select>
-  <select id="getList" resultType="com.coderman.club.vo.notification.NotificationVO">
+  <select id="getPage" resultType="com.coderman.club.vo.notification.NotificationVO">
      SELECT
       cn.notification_id,
       cn.user_id,
@@ -301,9 +301,16 @@
       LEFT JOIN club_user_info cui2 ON cu2.user_id = cui2.user_id
       WHERE
        cn.user_id = #{userId}
-      <if test="type!=null and type!=''">
-        and cn.type = #{type}
-      </if>
+
+       <choose>
+       <!-- 系统消息 -->
+         <when test="type == 'system'">
+           and cn.type in ('register_welcome', 'register_init_pwd' , 'following_user')
+         </when>
+         <otherwise>
+           and cn.type = #{type}
+         </otherwise>
+       </choose>
      <if test="isRead!=null">
        and cn.is_read = #{isRead}
      </if>
