@@ -12,7 +12,10 @@ public interface ResultConstant {
      * 200 成功
      */
     Integer RESULT_CODE_200 = 200;
-
+    /**
+     * 201 用户需要绑定社区账号
+     */
+    Integer RESULT_CODE_201 = 201;
 
     /**
      * 400 请求错误

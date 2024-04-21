@@ -25,6 +25,9 @@ public class UserRegisterDTO extends BaseModel {
     @ApiModelProperty(value = "验证码")
     private String code;
 
+    @ApiModelProperty(value = "公众号openId")
+    private String mpOpenId;
+
     @ApiModelProperty(value = "验证码key")
     private String captchaKey;
 }

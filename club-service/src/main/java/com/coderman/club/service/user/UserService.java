@@ -110,4 +110,11 @@ public interface UserService {
      * @return
      */
     ResultVO<String> uploadAvatar(MultipartFile file) throws IOException;
+
+    /**
+     * 公众号登录
+     * @param openId
+     * @return
+     */
+    ResultVO<UserLoginVO> loginByMp(String openId);
 }

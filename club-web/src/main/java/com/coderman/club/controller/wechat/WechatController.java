@@ -1,11 +1,13 @@
 package com.coderman.club.controller.wechat;
 
 import com.alibaba.fastjson.JSON;
+import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.wechat.WxBaseMessageDTO;
 import com.coderman.club.exception.BusinessException;
 import com.coderman.club.service.wechat.WechatService;
 import com.coderman.club.utils.WechatUtil;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.user.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +49,7 @@ public class WechatController {
 
     @ApiOperation(value = "获取微信公众令牌")
     @GetMapping(value = "/subscribe")
-    public ResultVO<String> subscribe(String deviceId) {
+    public ResultVO<UserLoginVO> subscribe(String deviceId) {
 
         return this.wechatService.subscribe(deviceId);
     }
@@ -61,7 +63,7 @@ public class WechatController {
         String nonce = request.getParameter("nonce");
         String echostr = request.getParameter("echostr");
 
-        log.info("收到来自微信的认证消息, signature:{},timestamp:{}, nonce:{},echostr:{}  ", signature, timestamp, nonce, echostr);
+        log.debug("收到来自微信的认证消息, signature:{},timestamp:{}, nonce:{},echostr:{}  ", signature, timestamp, nonce, echostr);
 
         if (StringUtils.isAnyBlank(signature, timestamp, nonce, echostr)) {
             throw new BusinessException("请求参数非法！");
@@ -93,8 +95,8 @@ public class WechatController {
             wxBaseMessageDTO.setEvent(root.getChildText("Event"));
             wxBaseMessageDTO.setCreateTime(root.getChildText("CreateTime"));
 
-            log.info(fromXml);
-            log.info("收到来自微信的消息事件: wxBaseMessageDTO:{}", JSON.toJSONString(wxBaseMessageDTO));
+            log.debug(fromXml);
+            log.debug("收到来自微信的消息事件: wxBaseMessageDTO:{}", JSON.toJSONString(wxBaseMessageDTO));
 
             String result = this.wechatService.replyMessage(wxBaseMessageDTO);
 

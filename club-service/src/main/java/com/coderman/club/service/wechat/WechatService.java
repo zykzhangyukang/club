@@ -2,6 +2,7 @@ package com.coderman.club.service.wechat;
 
 import com.coderman.club.dto.wechat.WxBaseMessageDTO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.user.UserLoginVO;
 
 /**
  * @author zhangyukang
@@ -29,5 +30,5 @@ public interface WechatService {
      * @param deviceId
      * @return
      */
-    ResultVO<String> subscribe(String deviceId);
+    ResultVO<UserLoginVO> subscribe(String deviceId);
 }

@@ -8,6 +8,7 @@
     <result column="email" jdbcType="VARCHAR" property="email" />
     <result column="username" jdbcType="VARCHAR" property="username" />
     <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="mp_open_id" jdbcType="VARCHAR" property="mpOpenId" />
     <result column="salt" jdbcType="VARCHAR" property="salt" />
     <result column="user_status" jdbcType="VARCHAR" property="userStatus" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
@@ -72,287 +73,330 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    user_id, user_code, nickname, email, username, password, salt, user_status, create_time, 
-    update_time
-    </sql>
-    <select id="selectByExample" parameterType="com.coderman.club.model.user.UserExample" resultMap="BaseResultMap">
-        select
-        <if test="distinct">
-            distinct
-        </if>
-        <include refid="Base_Column_List"/>
-        from club_user
-        <if test="_parameter != null">
-            <include refid="Example_Where_Clause"/>
-        </if>
-        <if test="orderByClause != null">
-            order by ${orderByClause}
-        </if>
-    </select>
-    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from club_user
-        where user_id = #{userId,jdbcType=BIGINT}
-    </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-        delete
-        from club_user
-        where user_id = #{userId,jdbcType=BIGINT}
-    </delete>
-    <delete id="deleteByExample" parameterType="com.coderman.club.model.user.UserExample">
-        delete from club_user
-        <if test="_parameter != null">
-            <include refid="Example_Where_Clause"/>
-        </if>
-    </delete>
-    <insert id="insert" parameterType="com.coderman.club.model.user.UserModel">
-        insert into club_user (user_id, user_code, nickname,
-                               email, username, password,
-                               user_status, create_time, update_time)
-        values (#{userId,jdbcType=BIGINT}, #{userCode,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR},
-                #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
-                #{userStatus,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
-    </insert>
-    <insert id="insertSelective" parameterType="com.coderman.club.model.user.UserModel">
-        insert into club_user
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="userId != null">
-                user_id,
-            </if>
-            <if test="userCode != null">
-                user_code,
-            </if>
-            <if test="nickname != null">
-                nickname,
-            </if>
-            <if test="email != null">
-                email,
-            </if>
-            <if test="username != null">
-                username,
-            </if>
-            <if test="password != null">
-                password,
-            </if>
-            <if test="userStatus != null">
-                user_status,
-            </if>
-            <if test="createTime != null">
-                create_time,
-            </if>
-            <if test="updateTime != null">
-                update_time,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="userId != null">
-                #{userId,jdbcType=BIGINT},
-            </if>
-            <if test="userCode != null">
-                #{userCode,jdbcType=VARCHAR},
-            </if>
-            <if test="nickname != null">
-                #{nickname,jdbcType=VARCHAR},
-            </if>
-            <if test="email != null">
-                #{email,jdbcType=VARCHAR},
-            </if>
-            <if test="username != null">
-                #{username,jdbcType=VARCHAR},
-            </if>
-            <if test="password != null">
-                #{password,jdbcType=VARCHAR},
-            </if>
-            <if test="userStatus != null">
-                #{userStatus,jdbcType=VARCHAR},
-            </if>
-            <if test="createTime != null">
-                #{createTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="updateTime != null">
-                #{updateTime,jdbcType=TIMESTAMP},
-            </if>
-        </trim>
-    </insert>
-    <select id="countByExample" parameterType="com.coderman.club.model.user.UserExample" resultType="java.lang.Long">
-        select count(*) from club_user
-        <if test="_parameter != null">
-            <include refid="Example_Where_Clause"/>
-        </if>
-    </select>
-    <update id="updateByExampleSelective" parameterType="map">
-        update club_user
-        <set>
-            <if test="record.userId != null">
-                user_id = #{record.userId,jdbcType=BIGINT},
-            </if>
-            <if test="record.userCode != null">
-                user_code = #{record.userCode,jdbcType=VARCHAR},
-            </if>
-            <if test="record.nickname != null">
-                nickname = #{record.nickname,jdbcType=VARCHAR},
-            </if>
-            <if test="record.email != null">
-                email = #{record.email,jdbcType=VARCHAR},
-            </if>
-            <if test="record.username != null">
-                username = #{record.username,jdbcType=VARCHAR},
-            </if>
-            <if test="record.password != null">
-                password = #{record.password,jdbcType=VARCHAR},
-            </if>
-            <if test="record.userStatus != null">
-                user_status = #{record.userStatus,jdbcType=VARCHAR},
-            </if>
-            <if test="record.createTime != null">
-                create_time = #{record.createTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="record.updateTime != null">
-                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-            </if>
-        </set>
-        <if test="_parameter != null">
-            <include refid="Update_By_Example_Where_Clause"/>
-        </if>
-    </update>
-    <update id="updateByExample" parameterType="map">
-        update club_user
-        set user_id = #{record.userId,jdbcType=BIGINT},
+    user_id, user_code, nickname, email, username, password, mp_open_id, salt, user_status,
+    create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.coderman.club.model.user.UserExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from club_user
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from club_user
+    where user_id = #{userId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from club_user
+    where user_id = #{userId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.coderman.club.model.user.UserExample">
+    delete from club_user
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.coderman.club.model.user.UserModel">
+    insert into club_user (user_id, user_code, nickname,
+      email, username, password,
+      mp_open_id, salt, user_status,
+      create_time, update_time)
+    values (#{userId,jdbcType=BIGINT}, #{userCode,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR},
+      #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
+      #{mpOpenId,jdbcType=VARCHAR}, #{salt,jdbcType=VARCHAR}, #{userStatus,jdbcType=VARCHAR},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.coderman.club.model.user.UserModel">
+    insert into club_user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="userCode != null">
+        user_code,
+      </if>
+      <if test="nickname != null">
+        nickname,
+      </if>
+      <if test="email != null">
+        email,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="password != null">
+        password,
+      </if>
+      <if test="mpOpenId != null">
+        mp_open_id,
+      </if>
+      <if test="salt != null">
+        salt,
+      </if>
+      <if test="userStatus != null">
+        user_status,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="userCode != null">
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="nickname != null">
+        #{nickname,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="mpOpenId != null">
+        #{mpOpenId,jdbcType=VARCHAR},
+      </if>
+      <if test="salt != null">
+        #{salt,jdbcType=VARCHAR},
+      </if>
+      <if test="userStatus != null">
+        #{userStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.coderman.club.model.user.UserExample" resultType="java.lang.Long">
+    select count(*) from club_user
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update club_user
+    <set>
+      <if test="record.userId != null">
+        user_id = #{record.userId,jdbcType=BIGINT},
+      </if>
+      <if test="record.userCode != null">
         user_code = #{record.userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.nickname != null">
         nickname = #{record.nickname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.email != null">
         email = #{record.email,jdbcType=VARCHAR},
+      </if>
+      <if test="record.username != null">
         username = #{record.username,jdbcType=VARCHAR},
+      </if>
+      <if test="record.password != null">
         password = #{record.password,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mpOpenId != null">
+        mp_open_id = #{record.mpOpenId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.salt != null">
+        salt = #{record.salt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userStatus != null">
         user_status = #{record.userStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
-        update_time = #{record.updateTime,jdbcType=TIMESTAMP}
-        <if test="_parameter != null">
-            <include refid="Update_By_Example_Where_Clause"/>
-        </if>
-    </update>
-    <update id="updateByPrimaryKeySelective" parameterType="com.coderman.club.model.user.UserModel">
-        update club_user
-        <set>
-            <if test="userCode != null">
-                user_code = #{userCode,jdbcType=VARCHAR},
-            </if>
-            <if test="nickname != null">
-                nickname = #{nickname,jdbcType=VARCHAR},
-            </if>
-            <if test="email != null">
-                email = #{email,jdbcType=VARCHAR},
-            </if>
-            <if test="username != null">
-                username = #{username,jdbcType=VARCHAR},
-            </if>
-            <if test="password != null">
-                password = #{password,jdbcType=VARCHAR},
-            </if>
-            <if test="userStatus != null">
-                user_status = #{userStatus,jdbcType=VARCHAR},
-            </if>
-            <if test="createTime != null">
-                create_time = #{createTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="updateTime != null">
-                update_time = #{updateTime,jdbcType=TIMESTAMP},
-            </if>
-        </set>
-        where user_id = #{userId,jdbcType=BIGINT}
-    </update>
-    <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.user.UserModel">
-        update club_user
-        set user_code   = #{userCode,jdbcType=VARCHAR},
-            nickname    = #{nickname,jdbcType=VARCHAR},
-            email       = #{email,jdbcType=VARCHAR},
-            username    = #{username,jdbcType=VARCHAR},
-            password    = #{password,jdbcType=VARCHAR},
-            user_status = #{userStatus,jdbcType=VARCHAR},
-            create_time = #{createTime,jdbcType=TIMESTAMP},
-            update_time = #{updateTime,jdbcType=TIMESTAMP}
-        where user_id = #{userId,jdbcType=BIGINT}
-    </update>
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update club_user
+    set user_id = #{record.userId,jdbcType=BIGINT},
+      user_code = #{record.userCode,jdbcType=VARCHAR},
+      nickname = #{record.nickname,jdbcType=VARCHAR},
+      email = #{record.email,jdbcType=VARCHAR},
+      username = #{record.username,jdbcType=VARCHAR},
+      password = #{record.password,jdbcType=VARCHAR},
+      mp_open_id = #{record.mpOpenId,jdbcType=VARCHAR},
+      salt = #{record.salt,jdbcType=VARCHAR},
+      user_status = #{record.userStatus,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.coderman.club.model.user.UserModel">
+    update club_user
+    <set>
+      <if test="userCode != null">
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="nickname != null">
+        nickname = #{nickname,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="mpOpenId != null">
+        mp_open_id = #{mpOpenId,jdbcType=VARCHAR},
+      </if>
+      <if test="salt != null">
+        salt = #{salt,jdbcType=VARCHAR},
+      </if>
+      <if test="userStatus != null">
+        user_status = #{userStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where user_id = #{userId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.coderman.club.model.user.UserModel">
+    update club_user
+    set user_code = #{userCode,jdbcType=VARCHAR},
+      nickname = #{nickname,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      username = #{username,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      mp_open_id = #{mpOpenId,jdbcType=VARCHAR},
+      salt = #{salt,jdbcType=VARCHAR},
+      user_status = #{userStatus,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where user_id = #{userId,jdbcType=BIGINT}
+  </update>
 
-    <insert id="insertSelectiveReturnKey"  useGeneratedKeys="true" keyProperty="userId">
-      insert into club_user
-      <trim prefix="(" suffix=")" suffixOverrides=",">
-        <if test="userId != null">
-          user_id,
-        </if>
-        <if test="userCode != null">
-          user_code,
-        </if>
-        <if test="nickname != null">
-          nickname,
-        </if>
-        <if test="email != null">
-          email,
-        </if>
-        <if test="username != null">
-          username,
-        </if>
-        <if test="password != null">
-          password,
-        </if>
-        <if test="salt != null">
-          salt,
-        </if>
-        <if test="userStatus != null">
-          user_status,
-        </if>
-        <if test="createTime != null">
-          create_time,
-        </if>
-        <if test="updateTime != null">
-          update_time,
-        </if>
-      </trim>
-      <trim prefix="values (" suffix=")" suffixOverrides=",">
-        <if test="userId != null">
-          #{userId,jdbcType=BIGINT},
-        </if>
-        <if test="userCode != null">
-          #{userCode,jdbcType=VARCHAR},
-        </if>
-        <if test="nickname != null">
-          #{nickname,jdbcType=VARCHAR},
-        </if>
-        <if test="email != null">
-          #{email,jdbcType=VARCHAR},
-        </if>
-        <if test="username != null">
-          #{username,jdbcType=VARCHAR},
-        </if>
-        <if test="password != null">
-          #{password,jdbcType=VARCHAR},
-        </if>
-        <if test="salt != null">
-          #{salt,jdbcType=VARCHAR},
-        </if>
-        <if test="userStatus != null">
-          #{userStatus,jdbcType=VARCHAR},
-        </if>
-        <if test="createTime != null">
-          #{createTime,jdbcType=TIMESTAMP},
-        </if>
-        <if test="updateTime != null">
-          #{updateTime,jdbcType=TIMESTAMP},
-        </if>
-      </trim>
-    </insert>
+  <insert id="insertSelectiveReturnKey"  useGeneratedKeys="true" keyProperty="userId">
+    insert into club_user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="userCode != null">
+        user_code,
+      </if>
+      <if test="nickname != null">
+        nickname,
+      </if>
+      <if test="email != null">
+        email,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="password != null">
+        password,
+      </if>
+      <if test="mpOpenId != null">
+        mp_open_id,
+      </if>
+      <if test="salt != null">
+        salt,
+      </if>
+      <if test="userStatus != null">
+        user_status,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="userCode != null">
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="nickname != null">
+        #{nickname,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="mpOpenId != null">
+        #{mpOpenId,jdbcType=VARCHAR},
+      </if>
+      <if test="salt != null">
+        #{salt,jdbcType=VARCHAR},
+      </if>
+      <if test="userStatus != null">
+        #{userStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
 
-    <select id="selectByUsername" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"></include>
-        from club_user
-        where username = #{username}
-    </select>
+  <select id="selectByUsername" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from club_user
+    where username = #{username}
+  </select>
 
-    <select id="selectByEmail" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"></include>
-        from club_user
-        where email = #{email}
-    </select>
+  <select id="selectByEmail" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from club_user
+    where email = #{email}
+  </select>
+
+  <select id="selectByMpOpenId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from club_user
+    where mp_open_id = #{mpOpenId}
+  </select>
+
 </mapper>

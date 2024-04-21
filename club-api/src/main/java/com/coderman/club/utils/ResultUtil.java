@@ -106,6 +106,19 @@ public class ResultUtil {
         return t;
     }
 
+    /**
+     * 返回成功并携带数据
+     *
+     * @return
+     */
+    public static <T> ResultVO<T> getFail(int code, String msg,T data) {
+        ResultVO<T> t = new ResultVO<>();
+        t.setCode(code);
+        t.setMsg(msg);
+        t.setResult(data);
+        return t;
+    }
+
 
     /**
      * 返回成功并携带数据

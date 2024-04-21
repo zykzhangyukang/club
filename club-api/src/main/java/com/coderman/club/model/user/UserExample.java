@@ -515,6 +515,76 @@ public class UserExample {
             return (Criteria) this;
         }
 
+        public Criteria andMpOpenIdIsNull() {
+            addCriterion("mp_open_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdIsNotNull() {
+            addCriterion("mp_open_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdEqualTo(String value) {
+            addCriterion("mp_open_id =", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdNotEqualTo(String value) {
+            addCriterion("mp_open_id <>", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdGreaterThan(String value) {
+            addCriterion("mp_open_id >", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdGreaterThanOrEqualTo(String value) {
+            addCriterion("mp_open_id >=", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdLessThan(String value) {
+            addCriterion("mp_open_id <", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdLessThanOrEqualTo(String value) {
+            addCriterion("mp_open_id <=", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdLike(String value) {
+            addCriterion("mp_open_id like", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdNotLike(String value) {
+            addCriterion("mp_open_id not like", value, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdIn(List<String> values) {
+            addCriterion("mp_open_id in", values, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdNotIn(List<String> values) {
+            addCriterion("mp_open_id not in", values, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdBetween(String value1, String value2) {
+            addCriterion("mp_open_id between", value1, value2, "mpOpenId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMpOpenIdNotBetween(String value1, String value2) {
+            addCriterion("mp_open_id not between", value1, value2, "mpOpenId");
+            return (Criteria) this;
+        }
+
         public Criteria andSaltIsNull() {
             addCriterion("salt is null");
             return (Criteria) this;

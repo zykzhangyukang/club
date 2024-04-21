@@ -93,7 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
         long replyCount = 0L;
         long zanCount = 0L;
         long atCount = 0L;
-        long myMsgCount = 0L;
+        long chatCount = 0L;
         long followCount = 0L;
         for (NotificationCountVO notificationCountVo : notificationCountVos) {
             Long count = Optional.ofNullable(notificationCountVo.getUnReadCount()).orElse(0L);
@@ -126,7 +126,7 @@ public class NotificationServiceImpl implements NotificationService {
         // 关注信息
         resultMap.put("followCount", followCount);
         // 我的消息
-        resultMap.put("myMsgCount", myMsgCount);
+        resultMap.put("chatCount", chatCount);
 
         ResultVO<Map<String, Object>> resultVO = new ResultVO<>();
         resultVO.setCode(ResultConstant.RESULT_CODE_200);

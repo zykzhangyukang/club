@@ -7,9 +7,8 @@ package com.coderman.club.enums;
  */
 public enum SerialTypeEnum {
 
-    ORDER("order", "订单编号"),
-    USER_CODE("user_code", "用户编号"),
-    EMP_CODE("emp_code","员工工号");
+    NICK_CODE("nick_code", "昵称编号"),
+    USER_CODE("user_code", "用户编号");
 
 
     private String key;

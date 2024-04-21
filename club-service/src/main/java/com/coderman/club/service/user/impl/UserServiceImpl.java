@@ -14,6 +14,7 @@ import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
+import com.coderman.club.exception.BusinessException;
 import com.coderman.club.model.point.PointAccountModel;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
@@ -40,7 +41,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Base64Utils;
+import org.springframework.util.Assert;
 import org.springframework.util.FastByteArrayOutputStream;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -134,27 +135,9 @@ public class UserServiceImpl implements UserService {
                 return ResultUtil.getWarn("用户名或密码错误！");
             }
 
-            String token = RandomStringUtils.randomAlphabetic(50);
-            String refreshToken = RandomStringUtils.randomAlphabetic(50);
+            // 创建会话
+            UserLoginVO userLoginVO = this.createSession(userModel);
 
-            Date loginTime = new Date();
-
-            // 会话对象创建
-            AuthUserVO authUserVO = this.convertToAuthVO(userModel, token, refreshToken);
-            // 保存登录令牌 (1天)
-            this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, 60 * 60 * 24, RedisDbConstant.REDIS_DB_DEFAULT);
-            // 保存刷新令牌 (7天)
-            this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
-            // 更新最新登录时间
-            this.userInfoService.updateLastLoginTime(authUserVO.getUserId(), loginTime);
-            // 保存登录日志
-            this.userLoginLogService.insertLoginLog(authUserVO, loginTime);
-
-            UserLoginVO userLoginVO = new UserLoginVO();
-            BeanUtils.copyProperties(userModel, userLoginVO);
-            userLoginVO.setToken(token);
-            userLoginVO.setRefreshToken(refreshToken);
-            userLoginVO.setAvatar(authUserVO.getAvatar());
             return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
 
         } finally {
@@ -212,8 +195,8 @@ public class UserServiceImpl implements UserService {
     public ResultVO<Void> register(UserRegisterDTO userRegisterDTO) {
 
         String username = userRegisterDTO.getUsername();
-        String password = userRegisterDTO.getPassword();
         String email = userRegisterDTO.getEmail();
+        String mpOpenId = userRegisterDTO.getMpOpenId();
 
         final String lockName = RedisKeyConstant.REDIS_REGISTER_LOCK_PREFIX + userRegisterDTO.getUsername();
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
@@ -237,7 +220,7 @@ public class UserServiceImpl implements UserService {
 
             UserModel userModel = this.userDAO.selectByUsername(username);
             if (null != userModel) {
-                return ResultUtil.getWarn("当前用户名已被注册！");
+                return ResultUtil.getWarn("用户名已被注册！");
             }
 
             UserModel emailModel = this.userDAO.selectByEmail(email);
@@ -245,17 +228,15 @@ public class UserServiceImpl implements UserService {
                 return ResultUtil.getWarn("当前邮箱已被注册！");
             }
 
-            // 初始化用户相关信息
-            UserModel registerModel = createClubUser(username, password, email);
+            if (StringUtils.isBlank(mpOpenId)) {
+                UserModel mp = this.userDAO.selectByMpOpenId(mpOpenId);
+                if (mp != null) {
+                    return ResultUtil.getWarn("当前公众号openId已绑定其他账号！");
+                }
+            }
 
-            // 用户注册消息欢迎消息
-            NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                    .senderId(0L)
-                    .userIdList(Collections.singletonList(registerModel.getUserId()))
-                    .typeEnum(NotificationTypeEnum.REGISTER_WELCOME)
-                    .content(String.format(NotificationTypeEnum.REGISTER_WELCOME.getTemplate(), registerModel.getNickname()))
-                    .build();
-            DelayQueueUtil.submit(UUID.randomUUID().toString(), notifyMsgDTO, e -> notificationService.saveAndNotify(e), 1000 * 30);
+            // 初始化用户相关信息
+            this.createClubUser(userRegisterDTO);
 
         } finally {
             this.redisLockService.unlock(lockName);
@@ -272,14 +253,15 @@ public class UserServiceImpl implements UserService {
      * 3. 创建用户积分账户
      * ....
      *
-     * @param username
-     * @param password
-     * @param email
      * @return
      */
-    private UserModel createClubUser(String username, String password, String email) {
+    private UserModel createClubUser(UserRegisterDTO userRegisterDTO) {
 
         final String salt = RandomStringUtils.randomAlphabetic(32);
+        String password = userRegisterDTO.getPassword();
+        String username = userRegisterDTO.getUsername();
+        String email = userRegisterDTO.getEmail();
+        String mpOpenId = userRegisterDTO.getMpOpenId();
 
         // 用户账号信息
         UserModel registerModel = new UserModel();
@@ -288,10 +270,11 @@ public class UserServiceImpl implements UserService {
         registerModel.setPassword(MD5Utils.md5HexWithSalt(password, salt));
         registerModel.setEmail(email);
         registerModel.setUsername(username);
-        registerModel.setNickname("用户" + RandomStringUtils.randomAlphabetic(5));
+        registerModel.setNickname(SerialNumberUtil.get(SerialTypeEnum.NICK_CODE));
         registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
+        registerModel.setMpOpenId(mpOpenId);
         this.userDAO.insertSelectiveReturnKey(registerModel);
 
         // 用户详情信息
@@ -317,6 +300,15 @@ public class UserServiceImpl implements UserService {
         pointAccountModel.setUserCode(registerModel.getUserCode());
         this.pointAccountService.insertSelective(pointAccountModel);
 
+
+        // 用户注册消息欢迎消息
+        NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                .senderId(0L)
+                .userIdList(Collections.singletonList(registerModel.getUserId()))
+                .typeEnum(NotificationTypeEnum.REGISTER_WELCOME)
+                .content(String.format(NotificationTypeEnum.REGISTER_WELCOME.getTemplate(), registerModel.getNickname()))
+                .build();
+        notificationService.saveAndNotify(notifyMsgDTO);
 
         return registerModel;
     }
@@ -551,9 +543,9 @@ public class UserServiceImpl implements UserService {
             // 保存到redis,60秒后过期
             this.redisService.setString(redisKey, text, 60, RedisDbConstant.REDIS_DB_DEFAULT);
             // 4.返回验证码图片的base64编码
-            String imgEncode =new String(Base64.getEncoder().encode(fos.toByteArray()));
+            String imgEncode = new String(Base64.getEncoder().encode(fos.toByteArray()));
             fos.flush();
-            return ResultUtil.getSuccess(String.class,  "data:image/png;base64," +imgEncode);
+            return ResultUtil.getSuccess(String.class, "data:image/png;base64," + imgEncode);
         } catch (IOException e) {
 
             return ResultUtil.getWarn("获取验证码失败！");
@@ -682,12 +674,12 @@ public class UserServiceImpl implements UserService {
         }
 
         UserInfoModel userInfoModel = this.userInfoService.selectByUserId(current.getUserId());
-        if(userInfoModel == null){
+        if (userInfoModel == null) {
             return ResultUtil.getWarn("用户信息不存在！");
         }
 
         UserModel userModel = this.userDAO.selectByUsername(current.getUsername());
-        if(userModel == null){
+        if (userModel == null) {
             return ResultUtil.getWarn("用户信息不存在！");
         }
 
@@ -711,7 +703,7 @@ public class UserServiceImpl implements UserService {
     public ResultVO<String> uploadAvatar(MultipartFile file) throws IOException {
 
         AuthUserVO current = AuthUtil.getCurrent();
-        if(current == null){
+        if (current == null) {
 
             return ResultUtil.getWarn("用户未登录！");
         }
@@ -739,6 +731,65 @@ public class UserServiceImpl implements UserService {
         this.userInfoService.updateUserAvatar(current.getUserId(), avatarUrl);
 
         return ResultUtil.getSuccess(String.class, avatarUrl);
+    }
+
+    @Override
+    public ResultVO<UserLoginVO> loginByMp(String openId) {
+
+        Assert.notNull(openId, "openId 不能为空！");
+
+        // 判断用户是否存在
+        UserModel userModel = this.userDAO.selectByMpOpenId(openId);
+        if (userModel == null) {
+
+            UserRegisterDTO userRegisterDTO = new UserRegisterDTO();
+            userRegisterDTO.setUsername(RandomStringUtils.randomAlphabetic(11));
+            userRegisterDTO.setPassword(RandomStringUtils.randomAlphabetic(11));
+            userRegisterDTO.setEmail(userRegisterDTO.getUsername() + "@club.com");
+            userRegisterDTO.setMpOpenId(openId);
+
+            // 公众号自动注册逻辑
+            userModel = this.createClubUser(userRegisterDTO);
+
+            // 用户注册消息欢迎消息
+            NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                    .senderId(0L)
+                    .userIdList(Collections.singletonList(userModel.getUserId()))
+                    .typeEnum(NotificationTypeEnum.REGISTER_INIT_PWD)
+                    .content(String.format(NotificationTypeEnum.REGISTER_INIT_PWD.getTemplate(), userModel.getNickname(), userModel.getPassword()))
+                    .build();
+            notificationService.saveAndNotify(notifyMsgDTO);
+        }
+
+        UserLoginVO userLoginVO = createSession(userModel);
+
+        return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
+    }
+
+    private UserLoginVO createSession(UserModel userModel) {
+
+        String token = RandomStringUtils.randomAlphabetic(50);
+        String refreshToken = RandomStringUtils.randomAlphabetic(50);
+
+        Date loginTime = new Date();
+
+        // 会话对象创建
+        AuthUserVO authUserVO = this.convertToAuthVO(userModel, token, refreshToken);
+        // 保存登录令牌 (1天)
+        this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, 60 * 60 * 24, RedisDbConstant.REDIS_DB_DEFAULT);
+        // 保存刷新令牌 (7天)
+        this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
+        // 更新最新登录时间
+        this.userInfoService.updateLastLoginTime(authUserVO.getUserId(), loginTime);
+        // 保存登录日志
+        this.userLoginLogService.insertLoginLog(authUserVO, loginTime);
+
+        UserLoginVO userLoginVO = new UserLoginVO();
+        BeanUtils.copyProperties(userModel, userLoginVO);
+        userLoginVO.setToken(token);
+        userLoginVO.setRefreshToken(refreshToken);
+        userLoginVO.setAvatar(authUserVO.getAvatar());
+        return userLoginVO;
     }
 
 

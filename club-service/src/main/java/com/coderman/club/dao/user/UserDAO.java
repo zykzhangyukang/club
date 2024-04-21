@@ -14,5 +14,7 @@ public interface UserDAO extends BaseDAO<UserModel, UserExample> {
 
     UserModel selectByEmail(@Param(value = "email") String email);
 
+    UserModel selectByMpOpenId(@Param(value = "mpOpenId") String openId);
+
     int insertSelectiveReturnKey(UserModel userModel);
 }
