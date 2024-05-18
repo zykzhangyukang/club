@@ -73,7 +73,7 @@ public class AuthHandshakeInterceptor implements ChannelInterceptor {
 
         // 将用户id存到Redis中
         this.redisService.addToSet(RedisKeyConstant.WEBSOCKET_USER_SET, String.valueOf(userId), RedisDbConstant.REDIS_DB_DEFAULT);
-        log.debug("用户:{} 请求建立WebSocket连接, sessionId:{}", userId, sessionId);
+        log.info("用户:{} 请求建立WebSocket连接, sessionId:{}", userId, sessionId);
 
         return message;
     }

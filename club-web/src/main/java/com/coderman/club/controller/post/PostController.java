@@ -65,9 +65,9 @@ public class PostController {
 
     @ApiOperation(value = "帖子详情")
     @GetMapping(value = "/detail")
-    public ResultVO<PostDetailVO> postDetail(Long id){
+    public ResultVO<PostDetailVO> getPostDetail(String id){
 
-        return this.postService.postDetail(id);
+        return this.postService.getPostDetail(id);
     }
 
 

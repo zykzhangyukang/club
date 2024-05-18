@@ -50,12 +50,12 @@ public class MyChannelInterceptor implements ChannelInterceptor {
                 user = String.valueOf(myPrincipal.getUserId());
                 redisService.removeFromSet(RedisKeyConstant.WEBSOCKET_USER_SET, user, RedisDbConstant.REDIS_DB_DEFAULT);
 
+                log.info("用户:{} 的WebSocket连接已经断开,sessionId:{}", user, sessionId);
+
             } else {
 
                 user = sessionId;
             }
-
-            log.debug("用户:{} 的WebSocket连接已经断开,sessionId:{}", user, sessionId);
         }
     }
 

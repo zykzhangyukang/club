@@ -50,7 +50,7 @@ public interface PostService {
      * @param id
      * @return
      */
-    ResultVO<PostDetailVO> postDetail(Long id);
+    ResultVO<PostDetailVO> getPostDetail(String id);
 
     /**
      * 更新帖子

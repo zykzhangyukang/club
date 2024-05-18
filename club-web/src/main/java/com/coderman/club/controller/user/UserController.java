@@ -84,9 +84,9 @@ public class UserController {
 
     @ApiOperation(value = "获取登录用户信息")
     @GetMapping(value = "/info")
-    public ResultVO<UserLoginVO> getUserLoginInfo(String token) {
+    public ResultVO<UserLoginVO> getUserInfo() {
 
-        return this.userService.getUserLoginInfo(token);
+        return this.userService.getUserInfo();
     }
 
     @ApiOperation(value = "刷新令牌")

@@ -32,6 +32,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -257,16 +258,23 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResultVO<PostDetailVO> postDetail(Long id) {
+    public ResultVO<PostDetailVO> getPostDetail(String idStr) {
 
-        if (id == null || id < 0) {
-            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
+        if (!NumberUtils.isDigits(idStr)) {
+
+            return ResultUtil.getWarn("请求参数非法！");
+        }
+
+        long id = Long.parseLong(idStr);
+
+        if (id < 0) {
+            return ResultUtil.getWarn("帖子不存在或已被删除！");
         }
 
         PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(id);
         if (postDetailVO == null) {
 
-            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在或已被删除！");
         }
 
         //是否已关注当前发帖用户

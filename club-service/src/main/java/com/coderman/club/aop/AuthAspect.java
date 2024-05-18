@@ -55,8 +55,8 @@ public class AuthAspect {
             .maximumSize(500)
             //多线程并发数
             .concurrencyLevel(5)
-            //过期时间，写入后5分钟过期
-            .expireAfterWrite(5, TimeUnit.MINUTES)
+            //过期时间，写入后15s过期
+            .expireAfterWrite(15, TimeUnit.SECONDS)
             // 过期监听
             .removalListener((RemovalListener<String, AuthUserVO>) removalNotification -> {
                 log.debug("过期会话缓存清除 token:{} is removed cause:{}", removalNotification.getKey(), removalNotification.getCause());
@@ -87,8 +87,6 @@ public class AuthAspect {
         WHITE_LIST.add("/api/user/logout");
         // 图形验证码
         WHITE_LIST.add("/api/user/captcha");
-        // 用户信息获取
-        WHITE_LIST.add("/api/user/info");
         // 首页列表
         WHITE_LIST.add("/api/index/sections");
         WHITE_LIST.add("/api/index/carousels");
@@ -129,7 +127,7 @@ public class AuthAspect {
             return ResultUtil.getResult(String.class, ResultConstant.RESULT_CODE_401, "用户未登录", null);
         }
 
-        // 将回话保存到请求中
+        // 将h会话保存到请求中
         AuthUtil.setCurrent(authUserVO);
 
         return point.proceed();

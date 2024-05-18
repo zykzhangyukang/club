@@ -4,6 +4,7 @@ import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.user.UserIndexVO;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
@@ -56,10 +57,9 @@ public interface UserService {
     /**
      * 获取用户信息
      *
-     * @param token
      * @return
      */
-    ResultVO<UserLoginVO> getUserLoginInfo(String token);
+    ResultVO<UserLoginVO> getUserInfo();
 
     /**
      * 修改用户信息
@@ -117,4 +117,5 @@ public interface UserService {
      * @return
      */
     ResultVO<UserLoginVO> loginByMp(String openId);
+
 }

@@ -2,13 +2,18 @@ package com.coderman.club.controller.index;
 
 import com.coderman.club.service.carouse.CarouseService;
 import com.coderman.club.service.section.SectionService;
+import com.coderman.club.service.user.UserService;
 import com.coderman.club.vo.carouse.CarouseVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.section.SectionVO;
+import com.coderman.club.vo.user.UserIndexVO;
+import com.coderman.club.vo.user.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -33,15 +38,13 @@ public class IndexController {
 
     @ApiOperation(value = "板块列表获取")
     @GetMapping(value = "/sections")
-    public ResultVO<List<SectionVO>> getSections(HttpServletResponse response) {
-        response.setHeader("Cache-Control", "max-age=" + 60 * 15);
+    public ResultVO<List<SectionVO>> getSections() {
         return this.sectionService.getSectionVoCacheList();
     }
 
     @ApiOperation(value = "轮播图列表获取")
     @GetMapping(value = "/carousels")
-    public ResultVO<List<CarouseVO>> getCarousels(HttpServletResponse response) {
-        response.setHeader("Cache-Control", "max-age=" + 60 * 15);
+    public ResultVO<List<CarouseVO>> getCarousels() {
         return this.carouseService.getCarouselVoCacheList();
     }
 }

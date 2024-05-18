@@ -14,7 +14,6 @@ import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
-import com.coderman.club.exception.BusinessException;
 import com.coderman.club.model.point.PointAccountModel;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
@@ -441,41 +440,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVO<UserLoginVO> getUserLoginInfo(String token) {
+    public ResultVO<UserLoginVO> getUserInfo() {
 
-        HttpServletRequest httpServletRequest = HttpContextUtil.getHttpServletRequest();
-        String requestHeader = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+        AuthUserVO current = AuthUtil.getCurrent();
+        Assert.notNull(current, "用户未登录！");
 
-        // 默认先取请求头上的token
-        token = (StringUtils.isNotBlank(requestHeader)) ? requestHeader : token;
-
-        AuthUserVO authUserVO = this.redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
-        if (authUserVO == null) {
-
-            return ResultUtil.getSuccess(UserLoginVO.class, null);
-        }
-
-        Long userId = authUserVO.getUserId();
+        Long userId = current.getUserId();
         UserInfoModel userInfoModel = this.userInfoService.selectByUserId(userId);
-        if (userInfoModel == null) {
-
-            return ResultUtil.getSuccess(UserLoginVO.class, null);
-        }
-
         UserModel userModel = this.userDAO.selectByPrimaryKey(userId);
-        if (userModel == null) {
 
-            return ResultUtil.getSuccess(UserLoginVO.class, null);
-        }
+        Assert.notNull(current, "用户不存在！");
+        Assert.notNull(userInfoModel, "用户不存在！");
+
 
         UserLoginVO userLoginVO = new UserLoginVO();
-        userLoginVO.setUserId(authUserVO.getUserId());
-        userLoginVO.setUsername(authUserVO.getUsername());
+        userLoginVO.setUserId(current.getUserId());
+        userLoginVO.setUsername(current.getUsername());
         userLoginVO.setAvatar(userInfoModel.getAvatar());
         userLoginVO.setNickname(userModel.getNickname());
         userLoginVO.setUserCode(userInfoModel.getUserCode());
-        userLoginVO.setRefreshToken(authUserVO.getRefreshToken());
-        userLoginVO.setToken(authUserVO.getToken());
+        userLoginVO.setRefreshToken(current.getRefreshToken());
+        userLoginVO.setToken(current.getToken());
         return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
     }
 
