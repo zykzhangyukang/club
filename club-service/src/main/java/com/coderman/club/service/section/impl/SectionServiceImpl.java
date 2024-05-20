@@ -135,6 +135,7 @@ public class SectionServiceImpl implements SectionService {
         }
 
         List<SectionModel> sectionModels = this.sectionMapper.selectList(Wrappers.<SectionModel>lambdaQuery()
+                .eq(SectionModel::getParentSection, firstSectionId)
                 .eq(SectionModel::getIsActive, Boolean.TRUE));
 
         if(CollectionUtils.isEmpty(sectionModels)){
