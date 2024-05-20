@@ -20,7 +20,6 @@ import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.section.SectionService;
 import com.coderman.club.service.user.UserFollowingService;
-import com.coderman.club.service.user.UserService;
 import com.coderman.club.utils.*;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
@@ -262,19 +261,19 @@ public class PostServiceImpl implements PostService {
 
         if (!NumberUtils.isDigits(idStr)) {
 
-            return ResultUtil.getWarn("请求参数非法！");
+            return ResultUtil.getWarn("抱歉，该帖子不存在！");
         }
 
         long id = Long.parseLong(idStr);
 
         if (id < 0) {
-            return ResultUtil.getWarn("帖子不存在或已被删除！");
+            return ResultUtil.getWarn("抱歉，该帖子不存在！");
         }
 
         PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(id);
         if (postDetailVO == null) {
 
-            return ResultUtil.getWarn("帖子不存在或已被删除！");
+            return ResultUtil.getWarn("抱歉，该帖子不存在！");
         }
 
         //是否已关注当前发帖用户
@@ -311,74 +310,80 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> postUpdate(PostUpdateDTO postUpdateDTO) {
-
         Long postId = postUpdateDTO.getPostId();
         if (postId == null || postId < 0) {
-
-            return ResultUtil.getWarn("参数错误！");
+            return ResultUtil.getWarn("无效的帖子ID！");
         }
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
-            return ResultUtil.getWarn("用户未登录！");
+            return ResultUtil.getWarn("请先登录！");
         }
 
         PostModel postModel = this.postDAO.selectUserPostById(current.getUserId(), postId);
         if (postModel == null) {
-            return ResultUtil.getWarn("帖子不存在！");
+            return ResultUtil.getWarn("帖子不存在或无权编辑！");
         }
 
-        if (StringUtils.isBlank(postUpdateDTO.getTitle())) {
+        String title = postUpdateDTO.getTitle();
+        if (StringUtils.isBlank(title)) {
             return ResultUtil.getWarn("标题不能为空！");
         }
         if (postUpdateDTO.getSectionId() == null || postUpdateDTO.getSectionId() < 0) {
-            return ResultUtil.getWarn("板块不能为空！");
+            return ResultUtil.getWarn("请选择有效的板块！");
         }
-        if (StringUtils.length(postUpdateDTO.getTitle()) < 5) {
+        if (StringUtils.length(title) < 5) {
             return ResultUtil.getWarn("标题不能少于5个字符！");
         }
-        if (StringUtils.length(postUpdateDTO.getTitle()) > CommonConstant.LENGTH_128) {
-            return ResultUtil.getWarn("标题字符最多128个字符！");
+        if (StringUtils.length(title) > CommonConstant.LENGTH_128) {
+            return ResultUtil.getWarn("标题不能超过128个字符！");
         }
         if (StringUtils.isBlank(postUpdateDTO.getContent())) {
             return ResultUtil.getWarn("帖子内容不能为空！");
         }
+
         List<String> tags = postUpdateDTO.getTags();
         if (CollectionUtils.isNotEmpty(tags)) {
+            // 去除空白和重复的标签
+            tags = tags.stream()
+                    .filter(StringUtils::isNotBlank)
+                    .map(StringUtils::trim)
+                    .distinct()
+                    .collect(Collectors.toList());
 
-            // 标签去重
-            tags = tags.stream().filter(StringUtils::isNotBlank).map(StringUtils::trim).distinct().collect(Collectors.toList());
-            if (CollectionUtils.size(postUpdateDTO.getTags()) > 5) {
+            if (tags.size() > 5) {
                 return ResultUtil.getWarn("最多添加5个标签！");
             }
 
-            for (String tag : postUpdateDTO.getTags()) {
+            for (String tag : tags) {
                 if (StringUtils.length(tag) > 20) {
-                    return ResultUtil.getWarn(tag + "-标签不能超过20个字符！");
+                    return ResultUtil.getWarn("标签“" + tag + "”不能超过20个字符！");
                 }
             }
         }
 
         SectionVO sectionVO = this.sectionService.getSectionVoById(postUpdateDTO.getSectionId());
         if (sectionVO == null) {
-            throw new IllegalArgumentException("栏目信息不存在！");
+            throw new IllegalArgumentException("所选板块不存在！");
         }
 
-        // 更新字段
+        // 更新帖子内容
         PostModel updateModel = new PostModel();
         updateModel.setPostId(postId);
-        updateModel.setTitle(postUpdateDTO.getTitle());
+        updateModel.setTitle(title);
         updateModel.setContent(postUpdateDTO.getContent());
         updateModel.setLastUpdatedAt(new Date());
         updateModel.setSectionId(postUpdateDTO.getSectionId());
-        updateModel.setIsDraft(postUpdateDTO.getIsDraft() == null ? Boolean.FALSE : postUpdateDTO.getIsDraft());
+        updateModel.setIsDraft(postUpdateDTO.getIsDraft() != null ? postUpdateDTO.getIsDraft() : Boolean.FALSE);
+
         this.postDAO.updatePostWithContentById(updateModel);
 
-        // 贴子标签更新
+        // 更新标签
         this.updatePostTag(postUpdateDTO, tags);
 
-        return ResultUtil.getSuccess();
+        return ResultUtil.getSuccess("帖子更新成功！");
     }
+
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
@@ -466,59 +471,55 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> postUnLike(Long postId) {
-
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
-
-            return ResultUtil.getWarn("用户未登录~");
+            return ResultUtil.getWarn("您尚未登录，请先登录。");
         }
 
         if (postId == null || postId < 0) {
-            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新页面后重试。");
         }
 
         PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(postId);
         if (postDetailVO == null) {
-            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
+            return ResultUtil.getWarn("帖子不存在，请刷新页面后重试。");
         }
 
         final String lockName = RedisKeyConstant.REDIS_POST_UNLIKE_LOCK_PREFIX + current.getUserId() + ":" + postId;
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
         if (!tryLock) {
-            return ResultUtil.getWarn("请勿重复操作！");
+            return ResultUtil.getWarn("操作频繁，请稍后重试。");
         }
 
         try {
-
-            // 在club_post_like一定有数据
+            // 查询用户是否已点赞该帖子
             PostLikeExample example = new PostLikeExample();
             example.createCriteria().andPostIdEqualTo(postId).andUserIdEqualTo(current.getUserId());
             List<PostLikeModel> postLikeModels = this.postLikeDAO.selectByExample(example);
 
             if (CollectionUtils.isNotEmpty(postLikeModels)) {
                 PostLikeModel postLikeModel = postLikeModels.get(0);
+                // 检查点赞状态
                 if (StringUtils.equals(postLikeModel.getStatus(), PostConst.LIKE_STATUS_CANCEL)) {
-
-                    return ResultUtil.getWarn("请勿重复取消点赞！");
+                    return ResultUtil.getWarn("您已经取消过点赞了。");
                 }
 
+                // 更新点赞状态为取消
                 PostLikeModel updateModel = new PostLikeModel();
                 updateModel.setPostLikeId(postLikeModel.getPostLikeId());
                 updateModel.setStatus(PostConst.LIKE_STATUS_CANCEL);
                 this.postLikeDAO.updateByPrimaryKeySelective(updateModel);
 
-                // 点赞数量-1
+                // 更新帖子的点赞数量
                 this.postDAO.addLikesCount(postId, -1);
             }
-
         } finally {
-
+            // 释放锁
             this.redisLockService.unlock(lockName);
         }
 
-        return ResultUtil.getSuccess();
+        return ResultUtil.getSuccess("取消点赞成功");
     }
-
     @Override
     public ResultVO<Void> postDelete(Long postId) {
 

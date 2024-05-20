@@ -24,7 +24,7 @@
                         userId="${jdbc.username}" password="${jdbc.password}">
         </jdbcConnection>
 
-        <javaTypeResolver>
+        <javaTypeResolver type="com.coderman.club.plugins.TypeResolverDefaultImpl">
             <property name="forceBigDecimals" value="false"/>
         </javaTypeResolver>
 

@@ -25,5 +25,5 @@ aliyun:
 logging:
     level:
       root: info
-      com.coderman.club.dao: info
+      com.coderman.club.dao: debug
       com.coderman.club: info
