@@ -221,14 +221,14 @@ public class UserServiceImpl implements UserService {
                 return ResultUtil.getWarn("用户名已被注册！");
             }
 
-            UserModel emailModel = this.userMapper.selectByEmail(email);
-            if (null != emailModel) {
+            Integer emailCount = this.userMapper.selectCount(Wrappers.<UserModel>lambdaQuery().eq(UserModel::getEmail, email));
+            if (emailCount > 0) {
                 return ResultUtil.getWarn("当前邮箱已被注册！");
             }
 
             if (StringUtils.isBlank(mpOpenId)) {
-                UserModel mp = this.userMapper.selectByMpOpenId(mpOpenId);
-                if (mp != null) {
+                Integer mpCount = this.userMapper.selectCount(Wrappers.<UserModel>lambdaQuery().eq(UserModel::getMpOpenId, mpOpenId));
+                if (mpCount > 0) {
                     return ResultUtil.getWarn("当前公众号openId已绑定其他账号！");
                 }
             }
@@ -273,7 +273,7 @@ public class UserServiceImpl implements UserService {
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
         registerModel.setMpOpenId(mpOpenId);
-        this.userMapper.insertSelectiveReturnKey(registerModel);
+        this.userMapper.insert(registerModel);
 
         // 用户详情信息
         UserInfoModel userInfoModel = new UserInfoModel();
@@ -723,7 +723,7 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(openId, "openId 不能为空！");
 
         // 判断用户是否存在
-        UserModel userModel = this.userMapper.selectByMpOpenId(openId);
+        UserModel userModel = this.userMapper.selectOne(Wrappers.<UserModel>lambdaQuery().eq(UserModel::getMpOpenId, openId).last("limit 1"));
         if (userModel == null) {
 
             UserRegisterDTO userRegisterDTO = new UserRegisterDTO();

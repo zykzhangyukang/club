@@ -11,6 +11,7 @@ import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
+import com.coderman.club.exception.BusinessException;
 import com.coderman.club.mapper.post.PostLikeMapper;
 import com.coderman.club.mapper.post.PostMapper;
 import com.coderman.club.mapper.post.PostTagMapper;
@@ -101,12 +102,13 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("发布帖子失败！");
         }
 
+        // 防重校验
+        boolean exists = this.redisService.exists(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
+        if (!exists) {
+            return ResultUtil.getWarn("数据已过期，请重新进行提交！");
+        }
+
         try {
-            // 防重校验
-            boolean exists = this.redisService.exists(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
-            if (!exists) {
-                return ResultUtil.getWarn("数据已过期，请重新进行提交！");
-            }
 
             if (StringUtils.isBlank(title)) {
                 return ResultUtil.getWarn("标题不能为空！");
@@ -144,9 +146,10 @@ public class PostServiceImpl implements PostService {
             }
 
             // 保存帖子
-            PostModel postModel = this.savePost(postPublishDTO);
+            Long postId = this.saveOrUpdate(postPublishDTO);
+
             // 保存标签关联关系
-            this.savePostTag(postModel, tags);
+            this.savePostTag(postId, tags);
 
             // 删除防重令牌
             this.redisService.del(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
@@ -158,30 +161,50 @@ public class PostServiceImpl implements PostService {
         return ResultUtil.getSuccess();
     }
 
-    private PostModel savePost(PostPublishDTO dto) {
+    private Long saveOrUpdate(PostPublishDTO dto) {
 
         AuthUserVO current = AuthUtil.getCurrent();
         assert current != null;
         Date currentTime = new Date();
-        // 保存帖子
+
         PostModel postModel = new PostModel();
         postModel.setTitle(dto.getTitle());
         postModel.setContent(dto.getContent());
         postModel.setIsActive(Boolean.TRUE);
         postModel.setUserId(current.getUserId());
         postModel.setSectionId(dto.getSectionId());
-        postModel.setCreatedAt(currentTime);
-        postModel.setLastUpdatedAt(currentTime);
         postModel.setIsDraft(dto.getIsDraft() == null ? Boolean.FALSE : dto.getIsDraft());
-        this.postMapper.insertSelectiveReturnKey(postModel);
-        return postModel;
+
+        if (dto.getPostId() == null) {
+
+            // 保存帖子
+            postModel.setCreatedAt(currentTime);
+            this.postMapper.insert(postModel);
+        } else {
+
+            // 更新的时候校验
+            PostModel model = this.postMapper.selectById(dto.getPostId());
+            if (!Objects.equals(current.getUserId(), model.getUserId())) {
+                throw new BusinessException("禁止越权访问！");
+            }
+
+            postModel.setPostId(dto.getPostId());
+            postModel.setLastUpdatedAt(currentTime);
+            this.postMapper.updateById(postModel);
+        }
+
+        return postModel.getPostId();
     }
 
-    private void savePostTag(PostModel postModel, List<String> tagList) {
-        if (postModel == null || CollectionUtils.isEmpty(tagList)) {
-            return;
+    private void savePostTag(Long postId, List<String> tagList) {
+
+        // 如果是更新
+        if (postId != null) {
+
+            this.postTagMapper.delete(Wrappers.<PostTagModel>lambdaQuery().eq(PostTagModel::getPostId, postId));
         }
-        this.postTagMapper.insertBatch(postModel.getPostId(), tagList);
+
+        this.postTagMapper.insertBatch(postId, tagList);
     }
 
     @Override
@@ -297,7 +320,7 @@ public class PostServiceImpl implements PostService {
 
         // 设置标签
         List<String> tags = this.postTagMapper.selectList(Wrappers.<PostTagModel>lambdaQuery()
-        .eq(PostTagModel::getPostId, postDetailVO.getPostId())).stream().map(PostTagModel::getTagName).distinct().collect(Collectors.toList());
+                .eq(PostTagModel::getPostId, postDetailVO.getPostId())).stream().map(PostTagModel::getTagName).distinct().collect(Collectors.toList());
         postDetailVO.setTags(tags);
 
         // 增加浏览量

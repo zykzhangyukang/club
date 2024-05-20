@@ -33,13 +33,6 @@ public interface PostMapper extends BaseMapper<PostModel> {
     List<PostListItemVO> pageList(Map<String, Object> conditionMap);
 
     /**
-     * 新增帖子
-     * @param postModel
-     * @return
-     */
-    int insertSelectiveReturnKey(PostModel postModel);
-
-    /**
      * 查询帖子详情
      * @param id
      * @return

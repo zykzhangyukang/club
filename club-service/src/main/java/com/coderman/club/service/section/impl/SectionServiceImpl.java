@@ -110,18 +110,19 @@ public class SectionServiceImpl implements SectionService {
 
     @Override
     public SectionVO getSectionVoById(Long sectionId) {
-        if(sectionId == null){
+        if (sectionId == null) {
             return null;
         }
 
-        List<SectionModel> sectionModels = this.sectionMapper.selectList(Wrappers.<SectionModel>lambdaQuery()
-                .eq(SectionModel::getIsActive, Boolean.TRUE));
+        SectionModel sectionModel = this.sectionMapper.selectOne(Wrappers.<SectionModel>lambdaQuery()
+                .eq(SectionModel::getSectionId, sectionId)
+                .eq(SectionModel::getIsActive, Boolean.TRUE)
+                .last("limit 1"));
 
-        if(CollectionUtils.isEmpty(sectionModels)){
+        if (sectionModel == null) {
             return null;
         }
 
-        SectionModel sectionModel = sectionModels.get(0);
         SectionVO sectionVO = new SectionVO();
         BeanUtils.copyProperties(sectionModel, sectionVO);
         return sectionVO;
@@ -130,7 +131,7 @@ public class SectionServiceImpl implements SectionService {
     @Override
     public List<SectionVO> getSectionVoByPid(Long firstSectionId) {
 
-        if(firstSectionId == null){
+        if (firstSectionId == null) {
             return Lists.newArrayList();
         }
 
@@ -138,7 +139,7 @@ public class SectionServiceImpl implements SectionService {
                 .eq(SectionModel::getParentSection, firstSectionId)
                 .eq(SectionModel::getIsActive, Boolean.TRUE));
 
-        if(CollectionUtils.isEmpty(sectionModels)){
+        if (CollectionUtils.isEmpty(sectionModels)) {
 
             return Lists.newArrayList();
         }

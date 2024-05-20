@@ -15,6 +15,8 @@ import java.util.List;
 @Data
 public class PostPublishDTO extends BaseModel {
 
+    @ApiModelProperty(value = "帖子id")
+    private Long postId;
 
     @ApiModelProperty(value = "帖子所属板块")
     private Long sectionId;

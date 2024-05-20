@@ -1,6 +1,7 @@
 package com.coderman.club.config;
 
 import com.coderman.club.constant.common.ResultConstant;
+import com.coderman.club.exception.BusinessException;
 import com.coderman.club.exception.RateLimitException;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
@@ -30,6 +31,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
     }
 
+    @ExceptionHandler({
+            BusinessException.class,
+    })
+    public final ResponseEntity<Object> handleBizException(Exception ex, WebRequest request) throws Exception {
+        ResultVO<Object> err = ResultUtil.getResult(Object.class, ResultConstant.RESULT_CODE_500, ex.getMessage(), ExceptionUtils.getRootCauseMessage(ex));
+        log.error("业务异常：{}", ExceptionUtils.getRootCauseMessage(ex), ex);
+        return ResponseEntity.status(HttpStatus.OK).body(err);
+    }
 
     @ExceptionHandler({
             RateLimitException.class,
