@@ -1,6 +1,7 @@
 package com.coderman.club.plugins;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -69,7 +70,8 @@ public class MybatisModelPlugin extends PluginAdapter {
 
         // 导入包
         topLevelClass.addImportedType(Data.class.getName());
-        topLevelClass.addImportedType(ApiModel.class.getName());
+        topLevelClass.addImportedType(Data.class.getName());
+        topLevelClass.addImportedType(TableName.class.getName());
         topLevelClass.addImportedType(serializable);
 
         // 添加父类
@@ -78,6 +80,7 @@ public class MybatisModelPlugin extends PluginAdapter {
         // 添加注解
         topLevelClass.addAnnotation("@" + Data.class.getSimpleName());
         topLevelClass.addAnnotation("@" + ApiModel.class.getSimpleName() + "(value=\"" + topLevelClass.getType().getShortName() + "\", description = \"" + tableName + " 实体类\")");
+        topLevelClass.addAnnotation("@" + TableName.class.getSimpleName() + "(value=\"" + tableName + "\"");
         return true;
     }
 

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.notification.NotificationMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.notification.NotificationModel">
+    <id column="notification_id" jdbcType="BIGINT" property="notificationId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="sender_id" jdbcType="BIGINT" property="senderId" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="link" jdbcType="VARCHAR" property="link" />
+    <result column="is_read" jdbcType="BIT" property="isRead" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="read_time" jdbcType="TIMESTAMP" property="readTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    notification_id, user_id, sender_id, type, content, link, is_read, create_time, read_time
+  </sql>
+
+  <select id="getUnReadCount" resultType="com.coderman.club.vo.notification.NotificationCountVO">
+    select `type`, count(1) as un_read_count
+    from club_notification
+    where user_id = #{userId} and is_read = 0
+    group by `type`
+  </select>
+  <select id="getPage" resultType="com.coderman.club.vo.notification.NotificationVO">
+    SELECT
+    cn.notification_id,
+    cn.user_id,
+    cn.sender_id,
+    cn.type,
+    cn.content,
+    cn.link,
+    cn.is_read,
+    cn.create_time,
+    cn.read_time,
+    cu1.username AS username,
+    cui1.avatar AS userAvatar,
+    cu2.username AS senderName,
+    cui2.avatar AS senderAvatar
+    FROM
+    club_notification cn
+    LEFT JOIN club_user cu1 ON cn.user_id = cu1.user_id
+    LEFT JOIN club_user cu2 ON cn.sender_id = cu2.user_id
+    LEFT JOIN club_user_info cui1 ON cu1.user_id = cui1.user_id
+    LEFT JOIN club_user_info cui2 ON cu2.user_id = cui2.user_id
+    WHERE
+    cn.user_id = #{userId}
+
+    <choose>
+      <!-- 系统消息 -->
+      <when test="type == 'system'">
+        and cn.type in ('register_welcome', 'register_init_pwd' , 'following_user')
+      </when>
+      <otherwise>
+        and cn.type = #{type}
+      </otherwise>
+    </choose>
+    <if test="isRead!=null">
+      and cn.is_read = #{isRead}
+    </if>
+    ORDER BY
+    cn.create_time DESC
+  </select>
+
+  <update id="updateReadStatus">
+    update club_notification
+    set is_read = #{isRead}
+    <if test="isRead!=null and isRead==1">
+      , read_time =  now()
+    </if>
+    where notification_id = #{notificationId} and user_id = #{userId}
+  </update>
+</mapper>

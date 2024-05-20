@@ -1,6 +1,6 @@
 package com.coderman.club.service.post.impl;
 
-import com.coderman.club.dao.post.PostDAO;
+import com.coderman.club.mapper.post.PostMapper;
 import com.coderman.club.service.post.PostHotService;
 import com.coderman.club.vo.post.PostHotTaskVO;
 import com.coderman.club.vo.post.PostHotVO;
@@ -20,7 +20,7 @@ import java.util.List;
 public class PostHotServiceImpl implements PostHotService {
 
     @Resource
-    private PostDAO postDAO;
+    private PostMapper postMapper;
 
     @Override
     public List<PostHotTaskVO> getPostTaskList(Integer batchSize) {
@@ -28,7 +28,7 @@ public class PostHotServiceImpl implements PostHotService {
         if (batchSize == null || batchSize < 0) {
             batchSize = 100;
         }
-        return this.postDAO.getPostTaskList(batchSize);
+        return this.postMapper.getPostTaskList(batchSize);
     }
 
     @Override
@@ -36,6 +36,6 @@ public class PostHotServiceImpl implements PostHotService {
         if(beginId == null || beginId < 0 || endId == null || endId < 0){
             return Lists.newArrayList();
         }
-        return this.postDAO.getPostFormIndex(beginId, endId);
+        return this.postMapper.getPostFormIndex(beginId, endId);
     }
 }

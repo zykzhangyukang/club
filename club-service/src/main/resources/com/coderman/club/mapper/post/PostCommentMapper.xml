@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.post.PostCommentMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.post.PostCommentModel">
+    <id column="comment_id" jdbcType="BIGINT" property="commentId" />
+    <result column="post_id" jdbcType="BIGINT" property="postId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="is_active" jdbcType="BIT" property="isActive" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    comment_id, post_id, user_id, content, created_at, is_active
+  </sql>
+</mapper>

@@ -1,5 +1,7 @@
 package com.coderman.club.model.serial;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.coderman.club.model.common.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -13,8 +15,10 @@ import java.util.Date;
 @Accessors(chain = true)
 @Data
 @ApiModel(value="SerialNumberModel", description = "")
+@TableName(value = "pub_serial_number")
 public class SerialNumberModel extends BaseModel {
-    
+
+    @TableId(value = "serial_type")
     @ApiModelProperty(value = "")
     private String serialType;
 

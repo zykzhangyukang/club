@@ -1,23 +1,20 @@
 package com.coderman.club.service.section.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
-import com.coderman.club.dao.section.SectionDAO;
-import com.coderman.club.model.section.SectionExample;
+import com.coderman.club.mapper.section.SectionMapper;
 import com.coderman.club.model.section.SectionModel;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.section.SectionService;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.section.SectionVO;
-import com.coderman.club.vo.user.AuthUserVO;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +37,7 @@ import java.util.stream.Collectors;
 public class SectionServiceImpl implements SectionService {
 
     @Resource
-    private SectionDAO sectionDAO;
+    private SectionMapper sectionMapper;
 
     @Resource
     private RedisService redisService;
@@ -76,9 +73,8 @@ public class SectionServiceImpl implements SectionService {
 
     @Override
     public List<SectionVO> getSectionVoList() {
-        SectionExample example = new SectionExample();
-        example.createCriteria().andIsActiveEqualTo(Boolean.TRUE);
-        List<SectionModel> sectionModels = this.sectionDAO.selectByExample(example);
+        List<SectionModel> sectionModels = this.sectionMapper.selectList(Wrappers.<SectionModel>lambdaQuery()
+                .eq(SectionModel::getIsActive, Boolean.TRUE));
 
         // 组装成二级结构
         List<SectionVO> firstLevelSection = sectionModels.stream()
@@ -117,9 +113,10 @@ public class SectionServiceImpl implements SectionService {
         if(sectionId == null){
             return null;
         }
-        SectionExample example = new SectionExample();
-        example.createCriteria().andSectionIdEqualTo(sectionId).andIsActiveEqualTo(Boolean.TRUE);
-        List<SectionModel> sectionModels = this.sectionDAO.selectByExample(example);
+
+        List<SectionModel> sectionModels = this.sectionMapper.selectList(Wrappers.<SectionModel>lambdaQuery()
+                .eq(SectionModel::getIsActive, Boolean.TRUE));
+
         if(CollectionUtils.isEmpty(sectionModels)){
             return null;
         }
@@ -137,9 +134,9 @@ public class SectionServiceImpl implements SectionService {
             return Lists.newArrayList();
         }
 
-        SectionExample example = new SectionExample();
-        example.createCriteria().andParentSectionEqualTo(firstSectionId).andIsActiveEqualTo(Boolean.TRUE);
-        List<SectionModel> sectionModels = this.sectionDAO.selectByExample(example);
+        List<SectionModel> sectionModels = this.sectionMapper.selectList(Wrappers.<SectionModel>lambdaQuery()
+                .eq(SectionModel::getIsActive, Boolean.TRUE));
+
         if(CollectionUtils.isEmpty(sectionModels)){
 
             return Lists.newArrayList();

@@ -1,12 +1,12 @@
 package com.coderman.club.service.user.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.constant.user.UserConstant;
 import com.coderman.club.constant.user.UserFollowingConst;
-import com.coderman.club.dao.user.UserDAO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
@@ -14,6 +14,7 @@ import com.coderman.club.dto.user.UserRegisterDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.enums.SerialTypeEnum;
+import com.coderman.club.mapper.user.UserMapper;
 import com.coderman.club.model.point.PointAccountModel;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
@@ -37,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -46,7 +46,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -63,7 +62,7 @@ import java.util.regex.Pattern;
 public class UserServiceImpl implements UserService {
 
     @Resource
-    private UserDAO userDAO;
+    private UserMapper userMapper;
 
     @Resource
     private UserFollowingService userFollowingService;
@@ -119,7 +118,7 @@ public class UserServiceImpl implements UserService {
 
             String username = userLoginDTO.getUsername();
             String password = userLoginDTO.getPassword();
-            UserModel userModel = this.userDAO.selectByUsername(username);
+            UserModel userModel = this.userMapper.selectByUsername(username);
             if (userModel == null) {
 
                 return ResultUtil.getWarn("用户名或密码错误！");
@@ -217,18 +216,18 @@ public class UserServiceImpl implements UserService {
                 return ResultUtil.getWarn("验证码错误！");
             }
 
-            UserModel userModel = this.userDAO.selectByUsername(username);
+            UserModel userModel = this.userMapper.selectByUsername(username);
             if (null != userModel) {
                 return ResultUtil.getWarn("用户名已被注册！");
             }
 
-            UserModel emailModel = this.userDAO.selectByEmail(email);
+            UserModel emailModel = this.userMapper.selectByEmail(email);
             if (null != emailModel) {
                 return ResultUtil.getWarn("当前邮箱已被注册！");
             }
 
             if (StringUtils.isBlank(mpOpenId)) {
-                UserModel mp = this.userDAO.selectByMpOpenId(mpOpenId);
+                UserModel mp = this.userMapper.selectByMpOpenId(mpOpenId);
                 if (mp != null) {
                     return ResultUtil.getWarn("当前公众号openId已绑定其他账号！");
                 }
@@ -274,7 +273,7 @@ public class UserServiceImpl implements UserService {
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
         registerModel.setMpOpenId(mpOpenId);
-        this.userDAO.insertSelectiveReturnKey(registerModel);
+        this.userMapper.insertSelectiveReturnKey(registerModel);
 
         // 用户详情信息
         UserInfoModel userInfoModel = new UserInfoModel();
@@ -401,7 +400,7 @@ public class UserServiceImpl implements UserService {
             // 生成新的访问令牌和刷新token
             String newToken = RandomStringUtils.randomAlphabetic(50);
             String newRefreshToken = RandomStringUtils.randomAlphabetic(50);
-            UserModel userModel = this.userDAO.selectByPrimaryKey(oldAuthUserVo.getUserId());
+            UserModel userModel = this.userMapper.selectById(oldAuthUserVo.getUserId());
             if (userModel == null) {
 
                 return ResultUtil.getFail("会话错误，请重新登录！");
@@ -447,9 +446,9 @@ public class UserServiceImpl implements UserService {
 
         Long userId = current.getUserId();
         UserInfoModel userInfoModel = this.userInfoService.selectByUserId(userId);
-        UserModel userModel = this.userDAO.selectByPrimaryKey(userId);
+        UserModel userModel = this.userMapper.selectById(userId);
 
-        Assert.notNull(current, "用户不存在！");
+        Assert.notNull(userModel, "用户不存在！");
         Assert.notNull(userInfoModel, "用户不存在！");
 
 
@@ -484,10 +483,10 @@ public class UserServiceImpl implements UserService {
         updateModel.setLocation(userInfoDTO.getLocation());
 
         // 修改用户账号信息
-        UserModel record = new UserModel();
-        record.setUserId(current.getUserId());
-        record.setNickname(userInfoDTO.getNickname());
-        this.userDAO.updateByPrimaryKeySelective(record);
+        this.userMapper.update(null,
+                Wrappers.<UserModel>lambdaUpdate()
+                        .set(UserModel::getNickname, userInfoDTO.getNickname())
+                        .eq(UserModel::getUserId, current.getUserId()));
 
         // 编辑用户信息
         this.userInfoService.updateUserInfoByUserId(updateModel);
@@ -549,7 +548,7 @@ public class UserServiceImpl implements UserService {
         if (current == null) {
             return ResultUtil.getFail("当前用户未登录！");
         }
-        UserModel userModel = this.userDAO.selectByPrimaryKey(followedId);
+        UserModel userModel = this.userMapper.selectById(followedId);
         if (userModel == null) {
             return ResultUtil.getWarn("被关注的人不存在！");
         }
@@ -616,7 +615,7 @@ public class UserServiceImpl implements UserService {
         if (followedId == null || Objects.equals(followedId, current.getUserId())) {
             return ResultUtil.getWarn("参数错误！");
         }
-        UserModel userModel = this.userDAO.selectByPrimaryKey(followedId);
+        UserModel userModel = this.userMapper.selectById(followedId);
         if (userModel == null) {
             return ResultUtil.getWarn("被关注的人不存在！");
         }
@@ -663,7 +662,7 @@ public class UserServiceImpl implements UserService {
             return ResultUtil.getWarn("用户信息不存在！");
         }
 
-        UserModel userModel = this.userDAO.selectByUsername(current.getUsername());
+        UserModel userModel = this.userMapper.selectByUsername(current.getUsername());
         if (userModel == null) {
             return ResultUtil.getWarn("用户信息不存在！");
         }
@@ -724,7 +723,7 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(openId, "openId 不能为空！");
 
         // 判断用户是否存在
-        UserModel userModel = this.userDAO.selectByMpOpenId(openId);
+        UserModel userModel = this.userMapper.selectByMpOpenId(openId);
         if (userModel == null) {
 
             UserRegisterDTO userRegisterDTO = new UserRegisterDTO();

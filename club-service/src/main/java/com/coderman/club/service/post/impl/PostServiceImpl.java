@@ -1,19 +1,22 @@
 package com.coderman.club.service.post.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.constant.user.PostConst;
-import com.coderman.club.dao.post.PostDAO;
-import com.coderman.club.dao.post.PostLikeDAO;
-import com.coderman.club.dao.post.PostTagDAO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
-import com.coderman.club.model.post.*;
+import com.coderman.club.mapper.post.PostLikeMapper;
+import com.coderman.club.mapper.post.PostMapper;
+import com.coderman.club.mapper.post.PostTagMapper;
+import com.coderman.club.model.post.PostLikeModel;
+import com.coderman.club.model.post.PostModel;
+import com.coderman.club.model.post.PostTagModel;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
@@ -54,13 +57,13 @@ public class PostServiceImpl implements PostService {
     private SectionService sectionService;
 
     @Resource
-    private PostDAO postDAO;
+    private PostMapper postMapper;
 
     @Resource
-    private PostLikeDAO postLikeDAO;
+    private PostLikeMapper postLikeMapper;
 
     @Resource
-    private PostTagDAO postTagDAO;
+    private PostTagMapper postTagMapper;
 
     @Resource
     private RedisLockService redisLockService;
@@ -170,7 +173,7 @@ public class PostServiceImpl implements PostService {
         postModel.setCreatedAt(currentTime);
         postModel.setLastUpdatedAt(currentTime);
         postModel.setIsDraft(dto.getIsDraft() == null ? Boolean.FALSE : dto.getIsDraft());
-        this.postDAO.insertSelectiveReturnKey(postModel);
+        this.postMapper.insertSelectiveReturnKey(postModel);
         return postModel;
     }
 
@@ -178,7 +181,7 @@ public class PostServiceImpl implements PostService {
         if (postModel == null || CollectionUtils.isEmpty(tagList)) {
             return;
         }
-        this.postTagDAO.insertBatch(postModel.getPostId(), tagList);
+        this.postTagMapper.insertBatch(postModel.getPostId(), tagList);
     }
 
     @Override
@@ -246,9 +249,9 @@ public class PostServiceImpl implements PostService {
         }
 
         List<PostListItemVO> postListItemVos = new ArrayList<>();
-        Long count = this.postDAO.countPage(conditionMap);
+        Long count = this.postMapper.countPage(conditionMap);
         if (count > 0) {
-            postListItemVos = this.postDAO.pageList(conditionMap);
+            postListItemVos = this.postMapper.pageList(conditionMap);
 
             this.buildPostItems(postListItemVos);
         }
@@ -270,7 +273,7 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("抱歉，该帖子不存在！");
         }
 
-        PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(id);
+        PostDetailVO postDetailVO = this.postMapper.selectPostDetailVoById(id);
         if (postDetailVO == null) {
 
             return ResultUtil.getWarn("抱歉，该帖子不存在！");
@@ -293,9 +296,8 @@ public class PostServiceImpl implements PostService {
         }
 
         // 设置标签
-        PostTagExample example = new PostTagExample();
-        example.createCriteria().andPostIdEqualTo(postDetailVO.getPostId());
-        List<String> tags = this.postTagDAO.selectByExample(example).stream().map(PostTagModel::getTagName).distinct().collect(Collectors.toList());
+        List<String> tags = this.postTagMapper.selectList(Wrappers.<PostTagModel>lambdaQuery()
+        .eq(PostTagModel::getPostId, postDetailVO.getPostId())).stream().map(PostTagModel::getTagName).distinct().collect(Collectors.toList());
         postDetailVO.setTags(tags);
 
         // 增加浏览量
@@ -320,7 +322,7 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("请先登录！");
         }
 
-        PostModel postModel = this.postDAO.selectUserPostById(current.getUserId(), postId);
+        PostModel postModel = this.postMapper.selectUserPostById(current.getUserId(), postId);
         if (postModel == null) {
             return ResultUtil.getWarn("帖子不存在或无权编辑！");
         }
@@ -376,7 +378,7 @@ public class PostServiceImpl implements PostService {
         updateModel.setSectionId(postUpdateDTO.getSectionId());
         updateModel.setIsDraft(postUpdateDTO.getIsDraft() != null ? postUpdateDTO.getIsDraft() : Boolean.FALSE);
 
-        this.postDAO.updatePostWithContentById(updateModel);
+        this.postMapper.updatePostWithContentById(updateModel);
 
         // 更新标签
         this.updatePostTag(postUpdateDTO, tags);
@@ -398,7 +400,7 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
 
-        PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(postId);
+        PostDetailVO postDetailVO = this.postMapper.selectPostDetailVoById(postId);
         if (postDetailVO == null) {
             return ResultUtil.getWarn("帖子不存在，请刷新重试！");
         }
@@ -415,9 +417,9 @@ public class PostServiceImpl implements PostService {
         try {
 
             // 判断之前是否有点赞过
-            PostLikeExample example = new PostLikeExample();
-            example.createCriteria().andPostIdEqualTo(postId).andUserIdEqualTo(current.getUserId());
-            List<PostLikeModel> postLikeModels = this.postLikeDAO.selectByExample(example);
+            List<PostLikeModel> postLikeModels = this.postLikeMapper.selectList(Wrappers.<PostLikeModel>lambdaQuery()
+                    .eq(PostLikeModel::getPostId, postId)
+                    .eq(PostLikeModel::getUserId, current.getUserId()));
 
             if (CollectionUtils.isEmpty(postLikeModels)) {
 
@@ -426,7 +428,7 @@ public class PostServiceImpl implements PostService {
                 insertModel.setPostId(postId);
                 insertModel.setCreateTime(new Date());
                 insertModel.setStatus(PostConst.LIKE_STATUS_NORMAL);
-                rowCount = this.postLikeDAO.insertSelective(insertModel);
+                rowCount = this.postLikeMapper.insert(insertModel);
                 isFirstLike = true;
 
             } else {
@@ -440,7 +442,7 @@ public class PostServiceImpl implements PostService {
                 PostLikeModel updateModel = new PostLikeModel();
                 updateModel.setPostLikeId(postLikeModel.getPostId());
                 updateModel.setStatus(PostConst.LIKE_STATUS_NORMAL);
-                rowCount = this.postLikeDAO.updateByPrimaryKeySelective(updateModel);
+                rowCount = this.postLikeMapper.updateById(updateModel);
             }
 
             // 首次点赞消息通知 (点赞自己的帖子不通知)
@@ -457,7 +459,7 @@ public class PostServiceImpl implements PostService {
 
             // 维护帖子点赞数
             if (rowCount > 0) {
-                this.postDAO.addLikesCount(postId, 1);
+                this.postMapper.addLikesCount(postId, 1);
             }
 
         } finally {
@@ -480,7 +482,7 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("帖子不存在，请刷新页面后重试。");
         }
 
-        PostDetailVO postDetailVO = this.postDAO.selectPostDetailVoById(postId);
+        PostDetailVO postDetailVO = this.postMapper.selectPostDetailVoById(postId);
         if (postDetailVO == null) {
             return ResultUtil.getWarn("帖子不存在，请刷新页面后重试。");
         }
@@ -493,9 +495,9 @@ public class PostServiceImpl implements PostService {
 
         try {
             // 查询用户是否已点赞该帖子
-            PostLikeExample example = new PostLikeExample();
-            example.createCriteria().andPostIdEqualTo(postId).andUserIdEqualTo(current.getUserId());
-            List<PostLikeModel> postLikeModels = this.postLikeDAO.selectByExample(example);
+            List<PostLikeModel> postLikeModels = this.postLikeMapper.selectList(Wrappers.<PostLikeModel>lambdaQuery()
+                    .eq(PostLikeModel::getPostId, postId)
+                    .eq(PostLikeModel::getUserId, current.getUserId()));
 
             if (CollectionUtils.isNotEmpty(postLikeModels)) {
                 PostLikeModel postLikeModel = postLikeModels.get(0);
@@ -508,10 +510,10 @@ public class PostServiceImpl implements PostService {
                 PostLikeModel updateModel = new PostLikeModel();
                 updateModel.setPostLikeId(postLikeModel.getPostLikeId());
                 updateModel.setStatus(PostConst.LIKE_STATUS_CANCEL);
-                this.postLikeDAO.updateByPrimaryKeySelective(updateModel);
+                this.postLikeMapper.updateById(updateModel);
 
                 // 更新帖子的点赞数量
-                this.postDAO.addLikesCount(postId, -1);
+                this.postMapper.addLikesCount(postId, -1);
             }
         } finally {
             // 释放锁
@@ -520,6 +522,7 @@ public class PostServiceImpl implements PostService {
 
         return ResultUtil.getSuccess("取消点赞成功");
     }
+
     @Override
     public ResultVO<Void> postDelete(Long postId) {
 
@@ -533,7 +536,7 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("参数错误！");
         }
 
-        PostModel postModel = this.postDAO.selectUserPostById(current.getUserId(), postId);
+        PostModel postModel = this.postMapper.selectUserPostById(current.getUserId(), postId);
         if (postModel == null) {
 
             return ResultUtil.getWarn("帖子不存在或已被删除！");
@@ -543,7 +546,7 @@ public class PostServiceImpl implements PostService {
         updateModel.setPostId(postId);
         updateModel.setIsActive(Boolean.FALSE);
         updateModel.setLastUpdatedAt(new Date());
-        this.postDAO.updateByPrimaryKeySelective(updateModel);
+        this.postMapper.updateById(updateModel);
 
         return ResultUtil.getSuccess();
     }
@@ -556,13 +559,12 @@ public class PostServiceImpl implements PostService {
         }
 
         // 先把之前的标签删掉
-        PostTagExample example = new PostTagExample();
-        example.createCriteria().andPostIdEqualTo(postUpdateDTO.getPostId());
-        this.postTagDAO.deleteByExample(example);
+        this.postTagMapper.delete(Wrappers.<PostTagModel>lambdaQuery()
+                .eq(PostTagModel::getPostId, postUpdateDTO.getPostId()));
 
         if (CollectionUtils.isNotEmpty(tags)) {
 
-            this.postTagDAO.insertBatch(postUpdateDTO.getPostId(), tags);
+            this.postTagMapper.insertBatch(postUpdateDTO.getPostId(), tags);
         }
     }
 
@@ -582,7 +584,7 @@ public class PostServiceImpl implements PostService {
         // 判断redis中是否存在值，存在说明近1分钟有浏览过, 不存在则需要增加浏览量
         boolean exists = this.redisService.exists(redisLimitKey, RedisDbConstant.REDIS_BIZ_CACHE);
         if (!exists) {
-            this.postDAO.addViewsCount(postDetailVO.getPostId(), 1);
+            this.postMapper.addViewsCount(postDetailVO.getPostId(), 1);
             this.redisService.setString(redisLimitKey, "1", 60, RedisDbConstant.REDIS_BIZ_CACHE);
             return true;
         }
@@ -595,9 +597,8 @@ public class PostServiceImpl implements PostService {
             return;
         }
         List<Long> postIdList = postListItemVos.stream().map(PostListItemVO::getPostId).distinct().collect(Collectors.toList());
-        PostTagExample example = new PostTagExample();
-        example.createCriteria().andPostIdIn(postIdList);
-        final Map<Long, List<PostTagModel>> tagMap = this.postTagDAO.selectByExample(example).stream()
+        final Map<Long, List<PostTagModel>> tagMap = this.postTagMapper.selectList(Wrappers.<PostTagModel>lambdaQuery()
+                .in(PostTagModel::getPostId, postIdList)).stream()
                 .collect(Collectors.groupingBy(PostTagModel::getPostId));
 
         for (PostListItemVO postListItemVo : postListItemVos) {

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.point.PointAccountMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.point.PointAccountModel">
+    <id column="account_id" jdbcType="BIGINT" property="accountId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+    <result column="points_balance" jdbcType="INTEGER" property="pointsBalance" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    account_id, user_id, user_code, points_balance, create_time
+  </sql>
+</mapper>

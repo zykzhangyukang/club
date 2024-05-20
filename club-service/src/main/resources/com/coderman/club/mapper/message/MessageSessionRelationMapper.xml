@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.message.MessageSessionRelationMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.message.MessageSessionRelationModel">
+    <id column="relation_id" jdbcType="BIGINT" property="relationId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="session_id" jdbcType="BIGINT" property="sessionId" />
+    <result column="is_delete" jdbcType="BIT" property="isDelete" />
+    <result column="un_read_count" jdbcType="INTEGER" property="unReadCount" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    relation_id, user_id, session_id, is_delete, un_read_count
+  </sql>
+  <select id="selectUserRelation" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from club_message_session_relation where user_id = #{userId} and session_id = #{sessionId}
+  </select>
+  <update id="updateReadCountZero">
+    update club_message_session_relation set un_read_count = 0 where  user_id = #{userId} and session_id = #{sessionId}
+  </update>
+  <update id="updateDeleteFlag" >
+    update club_message_session_relation set is_delete = 1 where user_id = #{userId} and session_id = #{sessionId}
+  </update>
+</mapper>

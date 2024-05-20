@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.serial.SerialNumberMapper">
+
+  <select id="getSerialNumber" statementType="CALLABLE" parameterType="map">
+         {
+           call usp_get_serial_number
+               (
+                  #{serialType,mode=IN,jdbcType=VARCHAR},
+                  #{serialCount,mode=IN,jdbcType=INTEGER},
+                  #{nextSeq,mode=OUT,jdbcType=INTEGER},
+                  #{updateTime,mode=OUT,jdbcType=TIMESTAMP}
+               )
+         }
+    </select>
+</mapper>

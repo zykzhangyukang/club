@@ -3,10 +3,10 @@ package com.coderman.club.service.notification.impl;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.user.UserConstant;
-import com.coderman.club.dao.notification.NotificationDAO;
 import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.enums.NotificationTypeEnum;
+import com.coderman.club.mapper.notification.NotificationMapper;
 import com.coderman.club.model.notification.NotificationModel;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.utils.AuthUtil;
@@ -35,7 +35,7 @@ import java.util.*;
 public class NotificationServiceImpl implements NotificationService {
 
     @Resource
-    private NotificationDAO notificationDAO;
+    private NotificationMapper notificationMapper;
 
     @Resource
     private WebsocketUtil websocketUtil;
@@ -71,7 +71,7 @@ public class NotificationServiceImpl implements NotificationService {
             notificationModel.setLink(link);
             notificationModel.setType(typeEnum.getMsgType());
             notificationModel.setUserId(userId);
-            this.notificationDAO.insertSelective(notificationModel);
+            this.notificationMapper.insert(notificationModel);
 
             // websocket推送
             this.websocketUtil.sendToUser(senderId, userId, notificationModel);
@@ -87,7 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
             return ResultUtil.getWarn("用户未登录！");
         }
 
-        List<NotificationCountVO> notificationCountVos = this.notificationDAO.getUnReadCount(current.getUserId());
+        List<NotificationCountVO> notificationCountVos = this.notificationMapper.getUnReadCount(current.getUserId());
         long totalCount = 0L;
         long sysCount = 0L;
         long replyCount = 0L;
@@ -149,7 +149,7 @@ public class NotificationServiceImpl implements NotificationService {
             return ResultUtil.getWarn("消息类型不能为空！");
         }
 
-        List<NotificationVO> notificationVos = this.notificationDAO.getPage(current.getUserId(), isRead, type);
+        List<NotificationVO> notificationVos = this.notificationMapper.getPage(current.getUserId(), isRead, type);
         for (NotificationVO notificationVo : notificationVos) {
             if (Objects.equals(notificationVo.getSenderId(), 0L)) {
                 notificationVo.setSenderName("系统");
@@ -172,13 +172,13 @@ public class NotificationServiceImpl implements NotificationService {
             return ResultUtil.getWarn("参数错误！");
         }
 
-        NotificationModel notificationModel = this.notificationDAO.selectByPrimaryKey(notificationId);
+        NotificationModel notificationModel = this.notificationMapper.selectById(notificationId);
         if (notificationModel == null) {
             return ResultUtil.getWarn("消息不存在！");
         }
 
         if (BooleanUtils.isFalse(notificationModel.getIsRead())) {
-            this.notificationDAO.updateReadStatus(BooleanUtils.toIntegerObject(true), current.getUserId(), notificationId);
+            this.notificationMapper.updateReadStatus(BooleanUtils.toIntegerObject(true), current.getUserId(), notificationId);
         }
 
         return ResultUtil.getSuccess();

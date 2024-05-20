@@ -1,10 +1,7 @@
 package com.coderman.club.service.user.impl;
 
-import com.coderman.club.dao.user.UserInfoDAO;
-import com.coderman.club.model.user.UserExample;
-import com.coderman.club.model.user.UserInfoExample;
+import com.coderman.club.mapper.user.UserInfoMapper;
 import com.coderman.club.model.user.UserInfoModel;
-import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.user.UserInfoService;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.google.common.collect.Maps;
@@ -17,7 +14,6 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -28,7 +24,7 @@ import java.util.stream.Collectors;
 public class UserInfoServiceImpl implements UserInfoService {
 
     @Resource
-    private UserInfoDAO userInfoDAO;
+    private UserInfoMapper userInfoMapper;
 
     @Override
     public void updateLastLoginTime(Long userId, Date date) {
@@ -36,7 +32,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         if(userId == null || date == null){
             return;
         }
-        this.userInfoDAO.updateLastLoginTime(userId, date);
+        this.userInfoMapper.updateLastLoginTime(userId, date);
     }
 
     @Override
@@ -45,7 +41,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         if(userId == null){
             return null;
         }
-        return this.userInfoDAO.selectByUserId(userId);
+        return this.userInfoMapper.selectByUserId(userId);
     }
 
     @Override
@@ -53,7 +49,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         if(userInfoModel == null || userInfoModel.getUserId() == null){
             return 0;
         }
-        return this.userInfoDAO.updateUserInfoByUserId(userInfoModel);
+        return this.userInfoMapper.updateUserInfoByUserId(userInfoModel);
     }
 
     @Override
@@ -61,7 +57,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         if(userInfoModel == null){
             return;
         }
-        this.userInfoDAO.insertSelective(userInfoModel);
+        this.userInfoMapper.insert(userInfoModel);
     }
 
     @Override
@@ -69,7 +65,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         if(CollectionUtils.isEmpty(userIds)){
             return Maps.newHashMap();
         }
-        return this.userInfoDAO.selectUserInfoVoMap(userIds);
+        return this.userInfoMapper.selectUserInfoVoMap(userIds);
     }
 
     @Override
@@ -78,6 +74,6 @@ public class UserInfoServiceImpl implements UserInfoService {
         if(userId == null || StringUtils.isBlank(avatarUrl)){
             return;
         }
-        this.userInfoDAO.updateUserAvatar(userId, avatarUrl);
+        this.userInfoMapper.updateUserAvatar(userId, avatarUrl);
     }
 }

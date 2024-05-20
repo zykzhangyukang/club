@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.message.MessageMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.message.MessageModel">
+    <id column="message_id" jdbcType="BIGINT" property="messageId" />
+    <result column="session_id" jdbcType="BIGINT" property="sessionId" />
+    <result column="sender_id" jdbcType="BIGINT" property="senderId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    message_id, session_id, sender_id, user_id, content, create_time
+  </sql>
+
+  <select id="selectUserMessages" resultType="com.coderman.club.vo.message.MessageVO">
+    SELECT
+      t2.*
+    FROM
+      club_message_relation t1
+        INNER JOIN club_message t2 ON t1.message_id = t2.message_id
+    WHERE
+      t1.user_id = #{userId}
+      AND t2.session_id = #{sessionId}
+      AND t1.is_delete = 0
+    ORDER BY
+      t2.create_time
+  </select>
+  <insert id="insertSelectiveReturnKey" useGeneratedKeys="true" keyProperty="messageId" parameterType="com.coderman.club.model.message.MessageModel">
+    insert into club_message
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="messageId != null">
+        message_id,
+      </if>
+      <if test="sessionId != null">
+        session_id,
+      </if>
+      <if test="senderId != null">
+        sender_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="messageId != null">
+        #{messageId,jdbcType=BIGINT},
+      </if>
+      <if test="sessionId != null">
+        #{sessionId,jdbcType=BIGINT},
+      </if>
+      <if test="senderId != null">
+        #{senderId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+</mapper>

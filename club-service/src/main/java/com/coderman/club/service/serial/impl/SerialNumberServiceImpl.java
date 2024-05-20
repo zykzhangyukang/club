@@ -1,6 +1,6 @@
 package com.coderman.club.service.serial.impl;
-import com.coderman.club.dao.serial.SerialNumberDAO;
 import com.coderman.club.enums.SerialTypeEnum;
+import com.coderman.club.mapper.serial.SerialNumberMapper;
 import com.coderman.club.model.serial.SerialNumberModel;
 import com.coderman.club.service.serial.SerialNumberService;
 import com.coderman.club.vo.serial.SerialNumberVO;
@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -37,7 +36,7 @@ public class SerialNumberServiceImpl implements SerialNumberService {
      *
      */
     @Resource
-    private SerialNumberDAO serialNumberDAO;
+    private SerialNumberMapper serialNumberMapper;
 
 
     /**
@@ -194,7 +193,7 @@ public class SerialNumberServiceImpl implements SerialNumberService {
         paramMap.put("serialType", serialType.getKey());
         paramMap.put("serialCount", serialCount);
 
-        this.serialNumberDAO.getSerialNumber(paramMap);
+        this.serialNumberMapper.getSerialNumber(paramMap);
 
         SerialNumberVO dbSerial = new SerialNumberVO();
 
@@ -209,7 +208,7 @@ public class SerialNumberServiceImpl implements SerialNumberService {
 
         if (!this.dbSerialMap.containsKey(serialType)) {
 
-            SerialNumberModel serialNumModel = this.serialNumberDAO.selectByPrimaryKey(serialType.getKey());
+            SerialNumberModel serialNumModel = this.serialNumberMapper.selectById(serialType.getKey());
 
             this.dbSerialMap.put(serialType, serialNumModel);
         }

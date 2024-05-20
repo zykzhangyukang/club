@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.user.UserFollowingMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.user.UserFollowingModel">
+    <id column="follow_id" jdbcType="BIGINT" property="followId" />
+    <result column="follower_id" jdbcType="BIGINT" property="followerId" />
+    <result column="followed_id" jdbcType="BIGINT" property="followedId" />
+    <result column="follow_date" jdbcType="TIMESTAMP" property="followDate" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    follow_id, follower_id, followed_id, follow_date, status
+  </sql>
+</mapper>

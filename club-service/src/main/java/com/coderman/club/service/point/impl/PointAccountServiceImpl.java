@@ -1,6 +1,6 @@
 package com.coderman.club.service.point.impl;
 
-import com.coderman.club.dao.point.PointAccountDAO;
+import com.coderman.club.mapper.point.PointAccountMapper;
 import com.coderman.club.model.point.PointAccountModel;
 import com.coderman.club.service.point.PointAccountService;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,13 @@ import javax.annotation.Resource;
 public class PointAccountServiceImpl implements PointAccountService {
 
     @Resource
-    private PointAccountDAO pointAccountDAO;
+    private PointAccountMapper pointAccountDAO;
 
     @Override
     public void insertSelective(PointAccountModel pointAccountModel) {
         if(pointAccountModel == null){
             return;
         }
-        this.pointAccountDAO.insertSelective(pointAccountModel);
+        this.pointAccountDAO.insert(pointAccountModel);
     }
 }

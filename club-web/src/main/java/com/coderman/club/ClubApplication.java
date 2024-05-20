@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date ：2023/11/20 11:30
  */
 @SpringBootApplication
-@MapperScan(basePackages = {"com.coderman.*.dao"})
+@MapperScan(basePackages = {"com.coderman.*.mapper"})
 public class ClubApplication {
 
     public static void main(String[] args) {

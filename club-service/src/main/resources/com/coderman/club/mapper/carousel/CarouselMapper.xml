@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.carousel.CarouselMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.carousel.CarouselModel">
+    <id column="carousel_id" jdbcType="BIGINT" property="carouselId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="image_url" jdbcType="VARCHAR" property="imageUrl" />
+    <result column="target_url" jdbcType="VARCHAR" property="targetUrl" />
+    <result column="order_priority" jdbcType="INTEGER" property="orderPriority" />
+    <result column="is_active" jdbcType="BIT" property="isActive" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    carousel_id, title, description, image_url, target_url, order_priority, is_active
+  </sql>
+</mapper>

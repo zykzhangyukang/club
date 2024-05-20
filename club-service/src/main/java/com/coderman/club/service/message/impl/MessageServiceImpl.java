@@ -1,11 +1,12 @@
 package com.coderman.club.service.message.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
-import com.coderman.club.dao.message.MessageDAO;
-import com.coderman.club.dao.message.MessageRelationDAO;
-import com.coderman.club.dao.message.MessageSessionDAO;
-import com.coderman.club.dao.message.MessageSessionRelationDAO;
 import com.coderman.club.dto.message.MessageSendDTO;
+import com.coderman.club.mapper.message.MessageMapper;
+import com.coderman.club.mapper.message.MessageRelationMapper;
+import com.coderman.club.mapper.message.MessageSessionMapper;
+import com.coderman.club.mapper.message.MessageSessionRelationMapper;
 import com.coderman.club.model.message.MessageModel;
 import com.coderman.club.model.message.MessageRelationModel;
 import com.coderman.club.model.message.MessageSessionModel;
@@ -39,19 +40,19 @@ import java.util.stream.Collectors;
 public class MessageServiceImpl implements MessageService {
 
     @Resource
-    private MessageSessionRelationDAO messageSessionRelationDAO;
+    private MessageSessionRelationMapper messageSessionRelationMapper;
 
     @Resource
-    private MessageDAO messageDAO;
+    private MessageMapper messageMapper;
 
     @Resource
     private MessageService messageService;
 
     @Resource
-    private MessageRelationDAO messageRelationDAO;
+    private MessageRelationMapper messageRelationMapper;
 
     @Resource
-    private MessageSessionDAO messageSessionDAO;
+    private MessageSessionMapper messageSessionMapper;
 
     @Resource
     private UserInfoService userInfoService;
@@ -98,11 +99,11 @@ public class MessageServiceImpl implements MessageService {
         messageRelationModel.setUserId(userId);
         messageRelationModel.setSessionId(sessionId);
         messageRelationModel.setIsRead(Boolean.FALSE);
-        this.messageRelationDAO.insertSelective(messageRelationModel);
+        this.messageRelationMapper.insert(messageRelationModel);
     }
 
     private void createSessionRelation(Long userId, Long sessionId, Boolean isRead) {
-        MessageSessionRelationModel sessionRelationModel = this.messageSessionRelationDAO.selectUserRelation(userId, sessionId);
+        MessageSessionRelationModel sessionRelationModel = this.messageSessionRelationMapper.selectUserRelation(userId, sessionId);
         if (sessionRelationModel == null) {
 
             MessageSessionRelationModel insertModel = new MessageSessionRelationModel();
@@ -114,13 +115,13 @@ public class MessageServiceImpl implements MessageService {
             } else {
                 insertModel.setUnReadCount(1);
             }
-            this.messageSessionRelationDAO.insertSelective(insertModel);
+            this.messageSessionRelationMapper.insert(insertModel);
 
         } else if (BooleanUtils.isFalse(isRead)) {
-            MessageSessionRelationModel updateModel = new MessageSessionRelationModel();
-            updateModel.setRelationId(sessionRelationModel.getRelationId());
-            updateModel.setUnReadCount(sessionRelationModel.getUnReadCount() + 1);
-            this.messageSessionRelationDAO.updateByPrimaryKeySelective(updateModel);
+
+            this.messageSessionRelationMapper.update(null ,  Wrappers.<MessageSessionRelationModel>
+                    lambdaUpdate().set(MessageSessionRelationModel::getUnReadCount, sessionRelationModel.getUnReadCount() + 1)
+            .eq(MessageSessionRelationModel::getRelationId, sessionRelationModel.getRelationId()));
         }
     }
 
@@ -135,12 +136,12 @@ public class MessageServiceImpl implements MessageService {
             return ResultUtil.getWarn("参数错误！");
         }
 
-        MessageSessionModel sessionModel = this.messageSessionDAO.selectByPrimaryKey(sessionId);
+        MessageSessionModel sessionModel = this.messageSessionMapper.selectById(sessionId);
         if(sessionModel == null){
             return ResultUtil.getWarn("会话不存在，请刷新页面重试！");
         }
 
-        List<MessageVO> messageVos = this.messageDAO.selectUserMessages(current.getUserId(), sessionId);
+        List<MessageVO> messageVos = this.messageMapper.selectUserMessages(current.getUserId(), sessionId);
 
         // 将该会话的所有消息都置为已读
         this.messageService.updateReadStatus(Objects.equals(current.getUserId(), sessionModel.getUserOne()) ? sessionModel.getUserTwo(): sessionModel.getUserOne() , sessionId);
@@ -152,10 +153,10 @@ public class MessageServiceImpl implements MessageService {
     public void updateReadStatus(Long targetUserId, Long sessionId) {
 
         // 将当前用户的当前会话未读数变成0
-        this.messageSessionRelationDAO.updateReadCountZero(Objects.requireNonNull(AuthUtil.getCurrent()).getUserId(), sessionId);
+        this.messageSessionRelationMapper.updateReadCountZero(Objects.requireNonNull(AuthUtil.getCurrent()).getUserId(), sessionId);
 
         // 将对方发给我的消息标记未已读 TODO
-        this.messageRelationDAO.updateReadStatus(targetUserId, sessionId);
+        this.messageRelationMapper.updateReadStatus(targetUserId, sessionId);
     }
 
     @Override
@@ -166,7 +167,7 @@ public class MessageServiceImpl implements MessageService {
 
             return ResultUtil.getWarn("用户未登录！");
         }
-        List<MessageSessionVO> sessionVos = this.messageSessionDAO.selectSessionList(current.getUserId());
+        List<MessageSessionVO> sessionVos = this.messageSessionMapper.selectSessionList(current.getUserId());
 
         List<Long> userIds = sessionVos.stream()
                 .map(e -> {
@@ -203,7 +204,7 @@ public class MessageServiceImpl implements MessageService {
             return ResultUtil.getWarn("参数错误！");
         }
 
-        this.messageSessionRelationDAO.updateDeleteFlag(current.getUserId(), sessionId);
+        this.messageSessionRelationMapper.updateDeleteFlag(current.getUserId(), sessionId);
         return ResultUtil.getSuccess();
     }
 
@@ -216,7 +217,7 @@ public class MessageServiceImpl implements MessageService {
         messageModel.setSenderId(userId);
         messageModel.setUserId(receiverId);
         messageModel.setSessionId(sessionId);
-        this.messageDAO.insertSelectiveReturnKey(messageModel);
+        this.messageMapper.insertSelectiveReturnKey(messageModel);
         return messageModel;
     }
 
@@ -228,9 +229,9 @@ public class MessageServiceImpl implements MessageService {
         //会话是否存在，否创建会话
         MessageSessionModel sessionModel;
         if (isSmall) {
-            sessionModel = this.messageSessionDAO.selectSessionByUser(userId, receiverId);
+            sessionModel = this.messageSessionMapper.selectSessionByUser(userId, receiverId);
         } else {
-            sessionModel = this.messageSessionDAO.selectSessionByUser(receiverId, userId);
+            sessionModel = this.messageSessionMapper.selectSessionByUser(receiverId, userId);
         }
 
         // 新增
@@ -246,7 +247,7 @@ public class MessageServiceImpl implements MessageService {
             messageSessionModel.setLastMessageTime(new Date());
             messageSessionModel.setLastMessage(content);
             messageSessionModel.setLastUserId(userId);
-            this.messageSessionDAO.insertSelectiveReturnKey(messageSessionModel);
+            this.messageSessionMapper.insertSelectiveReturnKey(messageSessionModel);
             return messageSessionModel.getSessionId();
         } else {
 
@@ -256,7 +257,7 @@ public class MessageServiceImpl implements MessageService {
             update.setLastUserId(userId);
             update.setLastMessageTime(new Date());
             update.setLastMessage(content);
-            this.messageSessionDAO.updateByPrimaryKeySelective(update);
+            this.messageSessionMapper.updateById(update);
             return sessionModel.getSessionId();
         }
     }

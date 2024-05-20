@@ -1,8 +1,8 @@
 package com.coderman.club.service.user.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.user.UserFollowingConst;
-import com.coderman.club.dao.user.UserFollowingDAO;
-import com.coderman.club.model.user.UserFollowingExample;
+import com.coderman.club.mapper.user.UserFollowingMapper;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.service.user.UserFollowingService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -19,7 +19,7 @@ import java.util.List;
 public class UserFollowingServiceImpl implements UserFollowingService {
 
     @Resource
-    private UserFollowingDAO userFollowingDAO;
+    private UserFollowingMapper userFollowingDAO;
 
     @Override
     public UserFollowingModel selectByUserIdAndFollowed(Long followerId, Long followedId) {
@@ -28,10 +28,9 @@ public class UserFollowingServiceImpl implements UserFollowingService {
             return null;
         }
 
-        UserFollowingExample example = new UserFollowingExample();
-        example.createCriteria().andFollowerIdEqualTo(followerId)
-                .andFollowedIdEqualTo(followedId);
-        List<UserFollowingModel> userFollowingModels = this.userFollowingDAO.selectByExample(example);
+        List<UserFollowingModel> userFollowingModels = this.userFollowingDAO.selectList(Wrappers.<UserFollowingModel>lambdaQuery()
+        .eq(UserFollowingModel::getFollowerId, followerId)
+        .eq(UserFollowingModel::getFollowedId, followedId));
         if(CollectionUtils.isNotEmpty(userFollowingModels)){
 
             return userFollowingModels.get(0);
@@ -45,7 +44,7 @@ public class UserFollowingServiceImpl implements UserFollowingService {
         if(record == null){
             return;
         }
-        this.userFollowingDAO.insertSelective(record);
+        this.userFollowingDAO.insert(record);
     }
 
     @Override
@@ -53,7 +52,7 @@ public class UserFollowingServiceImpl implements UserFollowingService {
         if(update == null){
             return;
         }
-        this.userFollowingDAO.updateByPrimaryKey(update);
+        this.userFollowingDAO.updateById(update);
     }
 
     @Override
@@ -61,7 +60,7 @@ public class UserFollowingServiceImpl implements UserFollowingService {
         if(update == null){
             return;
         }
-        this.userFollowingDAO.updateByPrimaryKeySelective(update);
+        this.userFollowingDAO.updateById(update);
     }
 
     @Override
@@ -71,10 +70,12 @@ public class UserFollowingServiceImpl implements UserFollowingService {
             return false;
         }
 
-        UserFollowingExample example = new UserFollowingExample();
-        example.createCriteria().andFollowerIdEqualTo(userId).andFollowedIdEqualTo(targetUserId).andStatusEqualTo(UserFollowingConst.FOLLOWING_STATUS_NORMAL);
-        Long aLong = this.userFollowingDAO.countByExample(example);
 
-        return aLong > 0;
+        Integer integer = this.userFollowingDAO.selectCount(Wrappers.<UserFollowingModel>lambdaQuery()
+                .eq(UserFollowingModel::getFollowerId, userId)
+                .eq(UserFollowingModel::getFollowedId, targetUserId)
+                .eq(UserFollowingModel::getStatus, UserFollowingConst.FOLLOWING_STATUS_NORMAL));
+
+        return integer > 0;
     }
 }

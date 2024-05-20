@@ -1,6 +1,6 @@
 package com.coderman.club.service.user.impl;
 
-import com.coderman.club.dao.user.UserLoginLogDAO;
+import com.coderman.club.mapper.user.UserLoginLogMapper;
 import com.coderman.club.model.user.UserLoginLogModel;
 import com.coderman.club.service.user.UserLoginLogService;
 import com.coderman.club.utils.HttpContextUtil;
@@ -19,7 +19,7 @@ import java.util.Date;
 public class UserLoginLogServiceImpl implements UserLoginLogService {
 
     @Resource
-    private UserLoginLogDAO userLoginLogDAO;
+    private UserLoginLogMapper userLoginLogMapper;
 
     @Override
     public void insertLoginLog(AuthUserVO authUserVO, Date loginTime) {
@@ -35,7 +35,7 @@ public class UserLoginLogServiceImpl implements UserLoginLogService {
         insertModel.setIpAddress(IpUtil.getIp(HttpContextUtil.getHttpServletRequest()));
         insertModel.setDeviceInfo(IpUtil.getClientDeviceInfo(HttpContextUtil.getHttpServletRequest()));
         insertModel.setLocation(IpUtil.getCityInfo(insertModel.getIpAddress()));
-        this.userLoginLogDAO.insertSelective(insertModel);
+        this.userLoginLogMapper.insert(insertModel);
     }
 
 

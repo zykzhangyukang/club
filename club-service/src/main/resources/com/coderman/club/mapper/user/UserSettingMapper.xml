@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.user.UserSettingMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.user.UserSettingModel">
+    <id column="setting_id" jdbcType="BIGINT" property="settingId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="setting_key" jdbcType="VARCHAR" property="settingKey" />
+    <result column="setting_value" jdbcType="VARCHAR" property="settingValue" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    setting_id, user_id, setting_key, setting_value
+  </sql>
+</mapper>

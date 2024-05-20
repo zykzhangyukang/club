@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coderman.club.mapper.message.MessageSessionMapper">
+  <resultMap id="BaseResultMap" type="com.coderman.club.model.message.MessageSessionModel">
+    <id column="session_id" jdbcType="BIGINT" property="sessionId" />
+    <result column="user_one" jdbcType="BIGINT" property="userOne" />
+    <result column="user_two" jdbcType="BIGINT" property="userTwo" />
+    <result column="last_message" jdbcType="VARCHAR" property="lastMessage" />
+    <result column="last_user_id" jdbcType="BIGINT" property="lastUserId" />
+    <result column="last_message_time" jdbcType="TIMESTAMP" property="lastMessageTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    session_id, user_one, user_two, last_message, last_user_id, last_message_time
+  </sql>
+  <select id="selectSessionByUser" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from club_message_session where user_one = #{userOne} and user_two =#{userTwo}
+  </select>
+  <insert id="insertSelectiveReturnKey" useGeneratedKeys="true" keyProperty="sessionId" parameterType="com.coderman.club.model.message.MessageSessionModel">
+    insert into club_message_session
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sessionId != null">
+        session_id,
+      </if>
+      <if test="userOne != null">
+        user_one,
+      </if>
+      <if test="userTwo != null">
+        user_two,
+      </if>
+      <if test="lastMessage != null">
+        last_message,
+      </if>
+      <if test="lastUserId != null">
+        last_user_id,
+      </if>
+      <if test="lastMessageTime != null">
+        last_message_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sessionId != null">
+        #{sessionId,jdbcType=BIGINT},
+      </if>
+      <if test="userOne != null">
+        #{userOne,jdbcType=BIGINT},
+      </if>
+      <if test="userTwo != null">
+        #{userTwo,jdbcType=BIGINT},
+      </if>
+      <if test="lastMessage != null">
+        #{lastMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="lastUserId != null">
+        #{lastUserId,jdbcType=BIGINT},
+      </if>
+      <if test="lastMessageTime != null">
+        #{lastMessageTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="selectSessionList" resultType="com.coderman.club.vo.message.MessageSessionVO">
+    SELECT
+      t2.*
+    FROM
+      `club_message_session_relation` t1
+        INNER JOIN club_message_session t2 ON t1.session_id = t2.session_id
+    WHERE
+      t1.user_id = #{userId}
+      AND t1.is_delete = 0
+    ORDER BY
+      t2.last_message_time DESC
+  </select>
+</mapper>
