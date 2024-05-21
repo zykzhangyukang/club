@@ -3,10 +3,10 @@ package com.coderman.club.service.notification;
 import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Administrator
@@ -24,7 +24,7 @@ public interface NotificationService {
      * 获取未读消息数
      * @return
      */
-    ResultVO<Map<String,Object>> getUnReadCount();
+    ResultVO<NotificationCountVO> getUnReadCount();
 
     /**
      * 获取消息列表

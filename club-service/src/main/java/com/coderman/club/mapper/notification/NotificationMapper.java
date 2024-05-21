@@ -20,7 +20,7 @@ public interface NotificationMapper extends BaseMapper<NotificationModel> {
      * @param userId
      * @return
      */
-    List<NotificationCountVO> getUnReadCount(@Param(value = "userId") Long userId);
+    NotificationCountVO getUnReadCount(@Param(value = "userId") Long userId);
 
     /**
      * 获取消息列表

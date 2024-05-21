@@ -12,9 +12,21 @@ import lombok.EqualsAndHashCode;
 @Data
 public class NotificationCountVO extends BaseModel {
 
-    @ApiModelProperty(value = "消息类型")
-    private String type;
+    @ApiModelProperty(value = "全部消息")
+    private Integer totalCount;
 
-    @ApiModelProperty(value = "未读消息数量")
-    private Long unReadCount;
+    @ApiModelProperty(value = "系统消息")
+    private Integer sysCount;
+
+    @ApiModelProperty(value = "点赞我的")
+    private Integer zanCount;
+
+    @ApiModelProperty(value = "@我的")
+    private Integer atCount;
+
+    @ApiModelProperty(value = "回复我的")
+    private Integer replyCount;
+
+    @ApiModelProperty(value = "我的私信")
+    private Integer chatCount;
 }

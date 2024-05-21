@@ -17,10 +17,16 @@
   </sql>
 
   <select id="getUnReadCount" resultType="com.coderman.club.vo.notification.NotificationCountVO">
-    select `type`, count(1) as un_read_count
-    from club_notification
-    where user_id = #{userId} and is_read = 0
-    group by `type`
+    SELECT
+      COUNT(1) AS totalCount,
+      COUNT( CASE WHEN `type` = 'following_user' THEN 1 WHEN `type` = 'register_welcome' THEN 1 WHEN `type` = 'register_init_pwd' THEN 1 END ) AS sysCount,
+      COUNT( CASE WHEN `type` = 'like_post' THEN 1 END ) AS zanCount,
+      COUNT( CASE WHEN `type` = 'at_user' THEN 1 END ) AS atCount,
+      COUNT( CASE WHEN `type` = 'reply_post' THEN 1 END ) AS replyCount
+    FROM
+      club_notification
+    WHERE
+      user_id = #{userId} and is_read = 0
   </select>
   <select id="getPage" resultType="com.coderman.club.vo.notification.NotificationVO">
     SELECT

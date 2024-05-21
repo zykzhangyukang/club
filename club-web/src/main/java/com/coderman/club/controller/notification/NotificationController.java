@@ -3,6 +3,7 @@ package com.coderman.club.controller.notification;
 import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Administrator
@@ -25,7 +25,7 @@ public class NotificationController {
 
     @ApiOperation(value = "获取未读消息数")
     @GetMapping(value = "/count")
-    public ResultVO<Map<String,Object>> getUnReadCount(){
+    public ResultVO<NotificationCountVO> getUnReadCount(){
 
         return this.notificationService.getUnReadCount();
     }

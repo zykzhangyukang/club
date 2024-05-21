@@ -80,59 +80,16 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public ResultVO<Map<String, Object>> getUnReadCount() {
+    public ResultVO<NotificationCountVO> getUnReadCount() {
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
             return ResultUtil.getWarn("用户未登录！");
         }
 
-        List<NotificationCountVO> notificationCountVos = this.notificationMapper.getUnReadCount(current.getUserId());
-        long totalCount = 0L;
-        long sysCount = 0L;
-        long replyCount = 0L;
-        long zanCount = 0L;
-        long atCount = 0L;
-        long chatCount = 0L;
-        long followCount = 0L;
-        for (NotificationCountVO notificationCountVo : notificationCountVos) {
-            Long count = Optional.ofNullable(notificationCountVo.getUnReadCount()).orElse(0L);
-            totalCount += count;
-
-            // 系统通知
-            if (NotificationTypeEnum.FOLLOWING_USER.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType())) ||
-                    NotificationTypeEnum.REGISTER_WELCOME.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType())) ||
-                    NotificationTypeEnum.REGISTER_INIT_PWD.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType()))
-            ) {
-                sysCount += notificationCountVo.getUnReadCount();
-            }
-
-            // 点赞我的
-            if(NotificationTypeEnum.LIKE_POST.equals(NotificationTypeEnum.getByMsgType(notificationCountVo.getType()))){
-                zanCount +=notificationCountVo.getUnReadCount();
-            }
-        }
-
-        Map<String, Object> resultMap = new HashMap<>();
-        // 全部未读数
-        resultMap.put("totalCount", totalCount);
-        // @我的
-        resultMap.put("atCount", atCount);
-        // 回复我的
-        resultMap.put("replyCount", replyCount);
-        // 收到的赞
-        resultMap.put("zanCount", zanCount);
-        // 系统消息
-        resultMap.put("sysCount", sysCount);
-        // 关注信息
-        resultMap.put("followCount", followCount);
-        // 我的消息
-        resultMap.put("chatCount", chatCount);
-
-        ResultVO<Map<String, Object>> resultVO = new ResultVO<>();
-        resultVO.setCode(ResultConstant.RESULT_CODE_200);
-        resultVO.setResult(resultMap);
-        return resultVO;
+        NotificationCountVO notificationCountVO = this.notificationMapper.getUnReadCount(current.getUserId());
+        notificationCountVO.setChatCount(0);
+        return ResultUtil.getSuccess(NotificationCountVO.class, notificationCountVO);
     }
 
     @Override
