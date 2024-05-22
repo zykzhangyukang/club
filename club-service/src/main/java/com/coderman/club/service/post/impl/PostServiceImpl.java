@@ -249,7 +249,11 @@ public class PostServiceImpl implements PostService {
     @Override
     public ResultVO<PageVO<List<PostListItemVO>>> postPage(PostPageDTO postPageDTO) {
         long currentPage = postPageDTO.getCurrentPage() != null && postPageDTO.getCurrentPage() > 0 ? postPageDTO.getCurrentPage() : 1L;
-        long pageSize = postPageDTO.getPageSize() != null && postPageDTO.getPageSize() > 0 ? postPageDTO.getPageSize() : 20L;
+        long pageSize = postPageDTO.getPageSize() != null && postPageDTO.getPageSize() > 0 ? postPageDTO.getPageSize() : 30L;
+
+        if(pageSize > 30L){
+            pageSize = 30L;
+        }
 
         Map<String, Object> conditionMap = new HashMap<>();
         conditionMap.put("limit", pageSize);

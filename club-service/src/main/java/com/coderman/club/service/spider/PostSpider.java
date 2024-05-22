@@ -80,7 +80,7 @@ public class PostSpider {
     }
 
 
-    @PostConstruct
+//    @PostConstruct
     @SuppressWarnings("all")
     public void fetch() {
 
@@ -97,30 +97,30 @@ public class PostSpider {
         userIdList = this.userMapper.selectList(null).stream().map(UserModel::getUserId).collect(Collectors.toList());
 
         // 爬虫线程1
-//        String lastBeforeId = this.stringRedisTemplate.opsForValue().get(BEFORE_POST_ID);
-//        Thread thread1 = new Thread(() -> {
-//
-//            String initialBeforeId = lastBeforeId == null ? "1830209586" : lastBeforeId;
-//            try {
-//
-//                while (StringUtils.isNotBlank(initialBeforeId)) {
-//                    initialBeforeId = makeRequest1(initialBeforeId);
-//                    this.stringRedisTemplate.opsForValue().set(BEFORE_POST_ID, initialBeforeId);
-//                    TimeUnit.SECONDS.sleep(1);
-//                }
-//
-//            } catch (InterruptedException e) {
-//                log.error("脉脉帖子爬虫出错了 :{}", e.getMessage(), e);
-//            }
-//        });
-//        thread1.setDaemon(true);
-//        thread1.setName("脉脉帖子爬虫线程");
-//        thread1.setUncaughtExceptionHandler((t, e) -> {
-//            if (StringUtils.equals(t.getName(), "脉脉帖子爬虫线程")) {
-//                fetch();
-//            }
-//        });
-//        thread1.start();
+        String lastBeforeId = this.stringRedisTemplate.opsForValue().get(BEFORE_POST_ID);
+        Thread thread1 = new Thread(() -> {
+
+            String initialBeforeId = lastBeforeId == null ? "1830209586" : lastBeforeId;
+            try {
+
+                while (StringUtils.isNotBlank(initialBeforeId)) {
+                    initialBeforeId = makeRequest1(initialBeforeId);
+                    this.stringRedisTemplate.opsForValue().set(BEFORE_POST_ID, initialBeforeId);
+                    TimeUnit.SECONDS.sleep(1);
+                }
+
+            } catch (InterruptedException e) {
+                log.error("脉脉帖子爬虫出错了 :{}", e.getMessage(), e);
+            }
+        });
+        thread1.setDaemon(true);
+        thread1.setName("脉脉帖子爬虫线程");
+        thread1.setUncaughtExceptionHandler((t, e) -> {
+            if (StringUtils.equals(t.getName(), "脉脉帖子爬虫线程")) {
+                fetch();
+            }
+        });
+        thread1.start();
 
         // 爬虫线程2
         Thread thread2 = new Thread(() -> {
@@ -185,6 +185,7 @@ public class PostSpider {
 
 
                         String content = getDetail(postId);
+                        TimeUnit.MILLISECONDS.sleep(500);
                         if(StringUtils.isNotBlank(content)){
                             log.info("爬取文章 postId:{}, title:{}", postId, title);
                             this.insertToDb(20L, title, content);
@@ -218,7 +219,7 @@ public class PostSpider {
         httpGet.setHeader("Accept-Language", "zh-CN,zh;q=0.9");
         httpGet.setHeader("Cache-Control", "max-age=0");
         httpGet.setHeader("Connection", "keep-alive");
-        httpGet.setHeader("Cookie", "_ga=GA1.1.775689204.1685506044; _ga_D9Y9QQWNVD=GS1.1.1687918469.1.0.1687918480.0.0.0; __gads=ID=ae2470900d942630-22876d3277e20059:T=1688346433:RT=1696755632:S=ALNI_MZWCt7L0IbT3r5GpxMzsfBezfvfTw; __gpi=UID=00000c906e78f890:T=1688346433:RT=1696755632:S=ALNI_Mb8HJ4FyYMLfU11dm22-xPHt5IL9Q; PHPSESSID=4377f955c72735f6d501e0869f46f58b; Hm_lvt_e23800c454aa573c0ccb16b52665ac26=1715933784,1716354244; acw_tc=2760775817163633424474838e0df4ab6a75070440b51fb77a6dca15f2d33c; acw_sc__v2=664da04ed076a72e418fd71f45a03593cb6d8376; Hm_lpvt_e23800c454aa573c0ccb16b52665ac26=1716363356; _ga_MJYFRXB3ZX=GS1.1.1716361378.51.1.1716363356.0.0.0; ssxmod_itna=iqmh7KDKAIeRgDUxBPxBb4Nx2eyDkt4NF/btKIKCBDBkkO4iNDnD8x7YDvIj5D0orpee8j7rLK5BBGi+Ho4/fguIt8ZWBbDHxY=DU1GGfoD4b5GwD0eG+DD4DWDmnHDnxAQDjxGPyn2v5CDYPDEBKDYxDrUhKDRxi7DD5=1x07DQvkhmiCoDDzoe3qtjxxKI7H=zHpc1i+kjhkD7ypDlc4cROm9+k4ZpAL0b7dAx0kPq0Og1vssaEP2ZvzeF2D6ii34r0NTGnK5j2NtQ0osmRK=Z=rsv+qegDlrlx5TYnKcqDWqQV7yq+iKdOdLONk4CLYX0oXB5XDda01r01qY4qiDD; ssxmod_itna2=iqmh7KDKAIeRgDUxBPxBb4Nx2eyDkt4NF/btKIKCD8wPDvqD/9bY+DFh7MDNFKidk0oCDtNx54QyLYxojGB5Cq/en2WGe0ZO2T4o0=WbRtB4s7K0av2ptBhhA5eQylvw1LtbXBSq/2FPl5iT6rWAiTWkZIOgQ0KooIGf=7tXxWNhZha5BikoUxWeOF+Gpa8V2wIfb0dGbHq+ZyDhOnkelo+nrGrdrdrKlH78=K1//gkteFXsFqsN=itLxI7sl+H8PhrsmC4NZ+rdMKxD/OUFV4CTHZxpXKMHfKS8cHm4rQSUq70w1NNm83MTYkrYYS1TdOXddX8GZDY=lDjDDw2q4nE0WwHQP0ePd9EhArtRD20DDjKDedx4D==");
+        httpGet.setHeader("Cookie", "_ga=GA1.1.520281208.1698552300; acw_tc=2760775217163828226487054e89ce0bf40b22c121c21f088006b66705f8b6; _c_WBKFRo=7Zc2ZBBVDkuF2phFol4arrk7M85yY3pHmGBlQIBd; _nb_ioWEgULi=; acw_sc__v3=664dec6d9714601c869f4fa9351233c2a24bce6c; PHPSESSID=d1b2d63ad9cd0df1ca950b58d21268bf; Hm_lvt_e23800c454aa573c0ccb16b52665ac26=1716382833; _ga_MJYFRXB3ZX=GS1.1.1716382833.5.1.1716382866.0.0.0; Hm_lpvt_e23800c454aa573c0ccb16b52665ac26=1716382867; ssxmod_itna=QqUxgDnD0D97i=N40dGQDHWgoYK4vODDv3rKIKwo+htD/BzIDnqD=GFDK40EEker3jAARqPrCOjP5qaWDTri7=s8GELv4LQx0aDbqGkq9ROdGG9xBYDQxAYDGDDp1Dj4ibDYRUODjlUzzMZF8DWKDKx0kDY5DwrBGDickCA0D3Yv4DGv4CfD5BgoDElKzzEYhQ4D1qG55ClKD9x0CDlcqnzoD0aM63B5zjS8AUmK+Y40OD09w9xKwHY5GSOFAFGGdaG0e8oReNDuDCYb4aRG9xh0YqQK5T7DrKeNxQnrZ6LDDirGF9wRePwjpZIIZjon6+DqiDwL2xj7hy1DPGD4GDxD; ssxmod_itna2=QqUxgDnD0D97i=N40dGQDHWgoYK4vODDv3rKIKwo+xG98p7DBwpD7PrM7gbPkwCPmhDh=tqj6iINtK=QiKGFt8W5nEC8tAohOTr/0I0EPuhGwWtKjaoE4Eq7lu18kTcobKv9rqNBhQRPak32hNrhmbPParNGGz92aPEP91wppNyCo46guObhip88DCr+uwroHF+gPaY7K8Q8wqncvr8rfvKaxfKjIYxc3oKZiT3h77Nrv8S7lkEIn=5TaCctGve/CPoSgu/p6WL=ir5Nbaz7DYlim1KAOzQDbmNjFhHkHPRaAEOxPbrPmzO5KDUAAQjY67axqcUSZQtYxMQD2r3ecmMAmVcmji3KWoK/E5CY0cEkhKtWe==qzaPp0vIBApeoEZIrKKpCY53qspm4CLBoTO14ZmwEDt4tibKNlahU2wb0Wvx5rArI65PCpVmqsjPBerUtEx6=o3ILAf1p5K1qjWFElxlEPPn4DQ94VumU5xndkeoktRq0dH9kPSklD08DiQPYD===");
         httpGet.setHeader("Referer", "https://segmentfault.com/q/1010000044901048");
         httpGet.setHeader("Sec-Fetch-Dest", "document");
         httpGet.setHeader("Sec-Fetch-Mode", "navigate");
