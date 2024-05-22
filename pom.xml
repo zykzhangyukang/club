@@ -36,6 +36,7 @@
         <captcha.version>2.3.2</captcha.version>
         <fastjson.version>1.2.71</fastjson.version>
         <aliyun.oss.version>3.17.1</aliyun.oss.version>
+        <jsoup.version>1.14.3</jsoup.version>
     </properties>
 
     <repositories>
@@ -141,6 +142,12 @@
                 <groupId>com.github.xiaoymin</groupId>
                 <artifactId>knife4j-spring-boot-starter</artifactId>
                 <version>${knife4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
             </dependency>
 
             <dependency>
