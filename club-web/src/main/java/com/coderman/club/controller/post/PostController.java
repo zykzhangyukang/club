@@ -40,16 +40,14 @@ public class PostController {
 
     @ApiOperation(value = "点赞帖子")
     @PostMapping(value = "/like/{postId}")
-    @RateLimit
-    public ResultVO<Void> postLike(@PathVariable(value = "postId") Long postId){
+    public ResultVO<Void> postLike(@PathVariable(value = "postId") Long postId) {
 
         return this.postService.postLike(postId);
     }
 
     @ApiOperation(value = "取消点赞")
     @PostMapping(value = "/unlike/{postId}")
-    @RateLimit
-    public ResultVO<Void> postUnLike(@PathVariable(value = "postId") Long postId){
+    public ResultVO<Void> postUnLike(@PathVariable(value = "postId") Long postId) {
 
         return this.postService.postUnLike(postId);
     }
@@ -58,14 +56,14 @@ public class PostController {
     @ApiOperation(value = "修改帖子")
     @PutMapping(value = "/update")
     @RateLimit
-    public ResultVO<Void> postUpdate(@RequestBody PostUpdateDTO postUpdateDTO){
+    public ResultVO<Void> postUpdate(@RequestBody PostUpdateDTO postUpdateDTO) {
         return this.postService.postUpdate(postUpdateDTO);
     }
 
 
     @ApiOperation(value = "帖子详情")
     @GetMapping(value = "/detail")
-    public ResultVO<PostDetailVO> getPostDetail(String id){
+    public ResultVO<PostDetailVO> getPostDetail(String id) {
 
         return this.postService.getPostDetail(id);
     }
@@ -74,7 +72,7 @@ public class PostController {
     @ApiOperation(value = "删除帖子")
     @DeleteMapping(value = "/detail/{id}")
     @RateLimit
-    public ResultVO<Void> postDelete(@PathVariable(value = "id") Long id){
+    public ResultVO<Void> postDelete(@PathVariable(value = "id") Long id) {
 
         return this.postService.postDelete(id);
     }
@@ -86,7 +84,6 @@ public class PostController {
 
         return this.postService.postPage(postPageDTO);
     }
-
 
 
     @ApiOperation(value = "上传图片")

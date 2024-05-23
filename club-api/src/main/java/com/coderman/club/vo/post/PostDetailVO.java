@@ -65,4 +65,7 @@ public class PostDetailVO extends BaseModel {
 
     @ApiModelProperty(value = "是否关注")
     private Boolean isFollowed;
+
+    @ApiModelProperty(value = "是否点赞")
+    private Boolean isLiked;
 }

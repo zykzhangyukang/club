@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
@@ -251,7 +252,7 @@ public class PostServiceImpl implements PostService {
         long currentPage = postPageDTO.getCurrentPage() != null && postPageDTO.getCurrentPage() > 0 ? postPageDTO.getCurrentPage() : 1L;
         long pageSize = postPageDTO.getPageSize() != null && postPageDTO.getPageSize() > 0 ? postPageDTO.getPageSize() : 30L;
 
-        if(pageSize > 30L){
+        if (pageSize > 30L) {
             pageSize = 30L;
         }
 
@@ -306,13 +307,20 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("抱歉，该帖子不存在！");
         }
 
-        //是否已关注当前发帖用户
-        Boolean isFollowed = false;
+        //是否关注用户
+        boolean isFollowed = false;
         AuthUserVO current = AuthUtil.getCurrent();
         if (current != null) {
             isFollowed = this.userFollowingService.isFollowedUser(current.getUserId(), postDetailVO.getUserId());
         }
         postDetailVO.setIsFollowed(isFollowed);
+
+        // 是否点赞帖子
+        boolean isLiked = false;
+        if (current != null) {
+            isLiked = this.isLikedPost(current.getUserId(), id);
+        }
+        postDetailVO.setIsLiked(isLiked);
 
         // 查询一级栏目数据
         Long pSectionId = postDetailVO.getParentSectionId();
@@ -334,6 +342,14 @@ public class PostServiceImpl implements PostService {
         }
 
         return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
+    }
+
+    private boolean isLikedPost(Long userId, long postId) {
+        return this.postLikeMapper.selectCount(Wrappers.<PostLikeModel>lambdaQuery()
+                .eq(PostLikeModel::getUserId, userId)
+                .eq(PostLikeModel::getStatus, PostConst.LIKE_STATUS_NORMAL)
+                .eq(PostLikeModel::getPostId, postId)
+        ) > 0;
     }
 
     @Override
@@ -444,11 +460,13 @@ public class PostServiceImpl implements PostService {
         try {
 
             // 判断之前是否有点赞过
-            List<PostLikeModel> postLikeModels = this.postLikeMapper.selectList(Wrappers.<PostLikeModel>lambdaQuery()
+            PostLikeModel postLikeModel = this.postLikeMapper.selectOne(Wrappers.<PostLikeModel>lambdaQuery()
                     .eq(PostLikeModel::getPostId, postId)
-                    .eq(PostLikeModel::getUserId, current.getUserId()));
+                    .eq(PostLikeModel::getUserId, current.getUserId())
+                    .last("limit 1")
+            );
 
-            if (CollectionUtils.isEmpty(postLikeModels)) {
+            if (postLikeModel == null) {
 
                 PostLikeModel insertModel = new PostLikeModel();
                 insertModel.setUserId(current.getUserId());
@@ -460,14 +478,12 @@ public class PostServiceImpl implements PostService {
 
             } else {
 
-                PostLikeModel postLikeModel = postLikeModels.get(0);
                 if (StringUtils.equals(postLikeModel.getStatus(), PostConst.LIKE_STATUS_NORMAL)) {
-
-                    return ResultUtil.getWarn("请勿重复点赞！");
+                    return ResultUtil.getWarn("操作失败。");
                 }
 
                 PostLikeModel updateModel = new PostLikeModel();
-                updateModel.setPostLikeId(postLikeModel.getPostId());
+                updateModel.setPostLikeId(postLikeModel.getPostLikeId());
                 updateModel.setStatus(PostConst.LIKE_STATUS_NORMAL);
                 rowCount = this.postLikeMapper.updateById(updateModel);
             }
@@ -522,15 +538,16 @@ public class PostServiceImpl implements PostService {
 
         try {
             // 查询用户是否已点赞该帖子
-            List<PostLikeModel> postLikeModels = this.postLikeMapper.selectList(Wrappers.<PostLikeModel>lambdaQuery()
+            PostLikeModel postLikeModel = this.postLikeMapper.selectOne(Wrappers.<PostLikeModel>lambdaQuery()
                     .eq(PostLikeModel::getPostId, postId)
-                    .eq(PostLikeModel::getUserId, current.getUserId()));
+                    .eq(PostLikeModel::getUserId, current.getUserId())
+                    .last("limit 1")
+            );
 
-            if (CollectionUtils.isNotEmpty(postLikeModels)) {
-                PostLikeModel postLikeModel = postLikeModels.get(0);
+            if (postLikeModel != null) {
                 // 检查点赞状态
                 if (StringUtils.equals(postLikeModel.getStatus(), PostConst.LIKE_STATUS_CANCEL)) {
-                    return ResultUtil.getWarn("您已经取消过点赞了。");
+                    return ResultUtil.getWarn("操作失败。");
                 }
 
                 // 更新点赞状态为取消
