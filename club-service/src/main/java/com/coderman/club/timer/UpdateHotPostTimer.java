@@ -113,6 +113,8 @@ public class UpdateHotPostTimer implements CommandLineRunner {
 
     private void addTaskToDelayQueue(PostHotTaskVO postHotTaskVO) {
 
+        log.error("刷新帖子热度任务，加入重试队列：{}", JSON.toJSONString(postHotTaskVO));
+
         int retryTimes = postHotTaskVO.getRetry().getAndIncrement();
 
         if (retryTimes == 0) {
