@@ -2,12 +2,11 @@ package com.coderman.club.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.lionsoul.ip2region.DataBlock;
 import org.lionsoul.ip2region.DbConfig;
 import org.lionsoul.ip2region.DbSearcher;
 import org.lionsoul.ip2region.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -24,9 +23,8 @@ import java.util.Objects;
 @Slf4j
 public class IpUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(IpUtil.class);
     private final static String LOCAL_IP = "127.0.0.1";
-
+    public final static String DEFAULT_ADDRESS = "未知";
 
     public static String getCityInfo(String ip) {
         DbSearcher searcher = null;
@@ -43,12 +41,14 @@ public class IpUtil {
             searcher = new DbSearcher(config, file.getPath());
             Method method = searcher.getClass().getMethod("btreeSearch", String.class);
             if (!Util.isIpAddress(ip)) {
-                log.error("Error: Invalid ip address");
+                log.error("Error: Invalid ip address:{}", ip);
+                return DEFAULT_ADDRESS;
             }
+            // 格式为：国家|区域|省份|城市|运营商
             DataBlock dataBlock = (DataBlock) method.invoke(searcher, ip);
-            return dataBlock.getRegion();
+            return parseCityInfo(dataBlock.getRegion());
         } catch (Exception e) {
-            log.error("获取地址信息异常", e);
+            log.error("获取地址信息异常:{}", e.getMessage());
         } finally {
             if (searcher != null) {
                 try {
@@ -58,12 +58,37 @@ public class IpUtil {
                 }
             }
         }
-        return "";
+        return DEFAULT_ADDRESS;
     }
 
 
+    private static String parseCityInfo(String region) {
+        String result = DEFAULT_ADDRESS;
+        if (StringUtils.isNotBlank(region)) {
+            String[] parts = region.split("\\|");
+            if (parts.length >= 4) {
+                String city = parts[3];
+                String province = parts[2];
+                String country = parts[1];
+
+                if (StringUtils.isNotBlank(province) && !StringUtils.equals("0", province)) {
+                    result =  removeKeywords(province);
+                } else if (StringUtils.isNotBlank(country) && !StringUtils.equals("0", country)) {
+                    result =  removeKeywords(country);
+                } else if (StringUtils.isNotBlank(city) && !StringUtils.equals("0", city)) {
+                    result =  removeKeywords(city);
+                }
+            }
+        }
+        log.info("解析IP地址开始:{}, 解析结果:{}", region, result);
+        return result;
+    }
+
+    private static String removeKeywords(String input) {
+        return input.replaceAll("自治州|地区|行政单位|盟|市辖区|市|县|区|旗|海域|岛|自治区|特别行政区|省|壮族自治区|回族自治区|维吾尔自治区", StringUtils.EMPTY);
+    }
+
     /**
-     *
      * @param request
      * @return
      */
@@ -103,7 +128,7 @@ public class IpUtil {
                         inet = InetAddress.getLocalHost();
                         ipAddress = inet.getHostAddress();
                     } catch (UnknownHostException e) {
-                        e.printStackTrace();
+                        log.error("error:{}",e.getMessage(), e);
                     }
                 }
             }
@@ -115,7 +140,7 @@ public class IpUtil {
                 }
             }
         } catch (Exception e) {
-            logger.error("解析请求IP失败", e);
+            log.error("解析请求IP失败", e);
             ipAddress = "";
         }
         return "0:0:0:0:0:0:0:1".equals(ipAddress) ? LOCAL_IP : ipAddress;
@@ -123,7 +148,7 @@ public class IpUtil {
 
 
     @SuppressWarnings("all")
-    public static  String getClientDeviceInfo(HttpServletRequest request) {
+    public static String getClientDeviceInfo(HttpServletRequest request) {
         String userAgent = request.getHeader("User-Agent");
         String os = "Unknown";
         if (userAgent.toLowerCase().contains("windows")) {
@@ -139,7 +164,6 @@ public class IpUtil {
         }
         return os;
     }
-
 
 
 }
