@@ -268,7 +268,7 @@ public class UserServiceImpl implements UserService {
         registerModel.setPassword(MD5Utils.md5HexWithSalt(password, salt));
         registerModel.setEmail(email);
         registerModel.setUsername(username);
-        registerModel.setNickname(SerialNumberUtil.get(SerialTypeEnum.NICK_CODE));
+        registerModel.setNickname(NameUtil.getName());
         registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
