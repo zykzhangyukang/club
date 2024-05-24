@@ -16,7 +16,7 @@ import lombok.Data;
  */
 @Data
 @ApiModel(value="PostModel", description = "club_post 实体类")
-@TableName(value = "club_post")
+@TableName(value="club_post")
 public class PostModel implements Serializable {
 
     @TableId(value = "post_id",type = IdType.AUTO)
@@ -42,7 +42,7 @@ public class PostModel implements Serializable {
     private Integer commentsCount;
 
     @ApiModelProperty(value = "收藏量")
-    private Integer favoritesCount;
+    private Integer collectsCount;
 
     @ApiModelProperty(value = "创建时间")
     private Date createdAt;

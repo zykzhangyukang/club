@@ -32,7 +32,7 @@ public class PostHotVO extends BaseModel {
     private Integer commentsCount;
 
     @ApiModelProperty(value = "收藏量")
-    private Integer favoritesCount;
+    private Integer collectsCount;
 
     @ApiModelProperty(value = "创建时间")
     private Date createdAt;

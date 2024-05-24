@@ -320,6 +320,13 @@ public class PostServiceImpl implements PostService {
         }
         postDetailVO.setIsLiked(isLiked);
 
+        // 是否收藏帖子
+        boolean isCollected = false;
+        if (current != null) {
+            isCollected = this.isCollectedPost(current.getUserId(), id);
+        }
+        postDetailVO.setIsCollected(isCollected);
+
         // 查询一级栏目数据
         Long pSectionId = postDetailVO.getParentSectionId();
         if (pSectionId != null) {
@@ -340,6 +347,14 @@ public class PostServiceImpl implements PostService {
         }
 
         return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
+    }
+
+    private boolean isCollectedPost(Long userId, long postId) {
+        return this.postCollectMapper.selectCount(Wrappers.<PostCollectModel>lambdaQuery()
+                .eq(PostCollectModel::getUserId, userId)
+                .eq(PostCollectModel::getStatus, CommonConst.STATUS_NORMAL)
+                .eq(PostCollectModel::getPostId, postId)
+        ) > 0;
     }
 
     private boolean isLikedPost(Long userId, long postId) {
@@ -554,6 +569,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResultVO<Void> postDelete(Long postId) {
 
         AuthUserVO current = AuthUtil.getCurrent();
@@ -599,6 +615,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResultVO<Void> postCollect(Long postId) {
 
         ResultVO<PostDetailVO> check = this.commonCheck(postId);
@@ -649,7 +666,7 @@ public class PostServiceImpl implements PostService {
                 rowCount = this.postCollectMapper.updateById(updateModel);
             }
 
-            // 首次点赞消息通知 (点赞自己的帖子不通知)
+            // 首次收藏消息通知 (点赞自己的帖子不通知)
             if (isFirstCollect && rowCount > 0 && !Objects.equals(current.getUserId(), postDetailVO.getUserId())) {
 
                 NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
@@ -663,6 +680,7 @@ public class PostServiceImpl implements PostService {
 
             // 维护帖子收藏数
             if (rowCount > 0) {
+                this.postMapper.addCollectsCount(postId, 1);
             }
 
         } finally {
@@ -674,8 +692,53 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResultVO<Void> postUnCollect(Long postId) {
-        return null;
+
+        ResultVO<PostDetailVO> check = this.commonCheck(postId);
+        if (!ResultConstant.RESULT_CODE_200.equals(check.getCode())) {
+
+            return ResultUtil.getFail(check.getMsg());
+        }
+
+        AuthUserVO current = AuthUtil.getCurrent();
+
+        final String lockName = RedisKeyConstant.REDIS_POST_UNCOLLECT_LOCK_PREFIX + current.getUserId() + ":" + postId;
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(4));
+        if (!tryLock) {
+
+            return ResultUtil.getWarn("操作频繁，请稍后重试。");
+        }
+
+        try {
+            // 查询用户是否已收藏该帖子
+            PostCollectModel postCollectModel = this.postCollectMapper.selectOne(Wrappers.<PostCollectModel>lambdaQuery()
+                    .eq(PostCollectModel::getPostId, postId)
+                    .eq(PostCollectModel::getUserId, current.getUserId())
+                    .last("limit 1")
+            );
+
+            if (postCollectModel != null) {
+                // 检查收藏状态
+                if (StringUtils.equals(postCollectModel.getStatus(), CommonConst.STATUS_CANCEL)) {
+                    return ResultUtil.getWarn("操作失败。");
+                }
+
+                // 更新点赞状态为取消
+                PostCollectModel updateModel = new PostCollectModel();
+                updateModel.setPostCollectId(postCollectModel.getPostCollectId());
+                updateModel.setStatus(CommonConst.STATUS_CANCEL);
+                this.postCollectMapper.updateById(updateModel);
+
+                // 更新帖子的收藏数量
+                this.postMapper.addCollectsCount(postId, -1);
+            }
+        } finally {
+            // 释放锁
+            this.redisLockService.unlock(lockName);
+        }
+
+        return ResultUtil.getSuccess("取消收藏成功");
     }
 
 

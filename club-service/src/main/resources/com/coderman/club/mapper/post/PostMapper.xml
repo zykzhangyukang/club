@@ -9,7 +9,7 @@
     <result column="views_count" jdbcType="INTEGER" property="viewsCount" />
     <result column="likes_count" jdbcType="INTEGER" property="likesCount" />
     <result column="comments_count" jdbcType="INTEGER" property="commentsCount" />
-    <result column="favorites_count" jdbcType="INTEGER" property="favoritesCount" />
+    <result column="collects_count" jdbcType="INTEGER" property="collectsCount" />
     <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
     <result column="last_updated_at" jdbcType="TIMESTAMP" property="lastUpdatedAt" />
     <result column="is_active" jdbcType="BIT" property="isActive" />
@@ -19,7 +19,7 @@
     <result column="content" jdbcType="LONGVARCHAR" property="content" />
   </resultMap>
   <sql id="Base_Column_List">
-    post_id, user_id, section_id, title, views_count, likes_count, comments_count, favorites_count, 
+    post_id, user_id, section_id, title, views_count, likes_count, comments_count, collects_count, 
     created_at, last_updated_at, is_active, is_draft
   </sql>
   <sql id="Blob_Column_List">
@@ -44,7 +44,7 @@
     t1.views_count,
     t1.likes_count,
     t1.comments_count,
-    t1.favorites_count,
+    t1.collects_count,
     t1.created_at,
     t1.last_updated_at,
     t2.nickname,
@@ -82,7 +82,7 @@
             t1.views_count,
             t1.likes_count,
             t1.comments_count,
-            t1.favorites_count,
+            t1.collects_count,
             t1.content,
             t1.created_at,
             t1.last_updated_at,
@@ -116,6 +116,9 @@
   </update>
   <update id="addLikesCount">
     update club_post set likes_count = likes_count + #{count}  where post_id = #{postId}
+  </update>
+  <update id="addCollectsCount">
+    update club_post set collects_count = collects_count + #{count}  where post_id = #{postId}
   </update>
   <select id="getPostTaskList" resultType="com.coderman.club.vo.post.PostHotTaskVO">
     SELECT
@@ -153,7 +156,7 @@
       t1.views_count,
       t1.likes_count,
       t1.comments_count,
-      t1.favorites_count,
+      t1.collects_count,
       t1.created_at,
       t1.last_updated_at
     FROM club_post t1
