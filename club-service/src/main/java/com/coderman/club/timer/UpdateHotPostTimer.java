@@ -9,6 +9,7 @@ import com.coderman.club.vo.post.PostHotVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
 
 /**
  * 计算帖子热度
@@ -32,107 +32,101 @@ import java.util.function.Supplier;
  */
 @Component
 @Slf4j
-public class UpdateHotPostTimer {
+public class UpdateHotPostTimer implements CommandLineRunner {
 
     @Resource
     private PostHotService postHotService;
+
+    @Resource
+    private RedisService redisService;
 
     private static final double TIME_DECAY_FACTOR = 0.8;
     private static final double VIEWS_WEIGHT = 3;
     private static final double LIKES_WEIGHT = 5;
     private static final double COMMENTS_WEIGHT = 2;
+    private static final double COLLECTS_WEIGHT = 8;
 
-    private static final ExecutorService THREAD_POOL = new ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(1024),
+    private static final int MAX_HOT_POSTS = 15;
+
+    private static final int THREAD_POOL_SIZE = 2;
+    private static final int TASK_QUEUE_CAPACITY = 1024;
+
+    private static final ExecutorService THREAD_POOL = new ThreadPoolExecutor(
+            THREAD_POOL_SIZE, THREAD_POOL_SIZE,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(TASK_QUEUE_CAPACITY),
             new ThreadFactoryBuilder().setNameFormat("post_thread_%d").build(),
-            new ThreadPoolExecutor.CallerRunsPolicy());
+            new ThreadPoolExecutor.CallerRunsPolicy()
+    );
 
-    @Resource
-    private RedisService redisService;
-
-//    @Scheduled(cron = "*/10 * * * * *")
-    @Scheduled(cron = "0 */30 * * * ?")
+     @Scheduled(cron = "0 */30 * * * ?")
     public void refreshHotPosts() {
-
-        List<PostHotTaskVO> taskVoList = this.postHotService.getPostTaskList(100);
-        log.info(JSON.toJSONString(taskVoList));
+        List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(200);
+        log.info("Retrieved post tasks: {}", JSON.toJSONString(taskVoList));
 
         List<CompletableFuture<String>> futures = new ArrayList<>();
         for (PostHotTaskVO postHotTaskVO : taskVoList) {
-
-            CompletableFuture<String> future = CompletableFuture.supplyAsync(new Supplier<String>() {
-                @Override
-                public String get() {
-                    try {
-                        return deal(postHotTaskVO);
-                    } catch (Exception e) {
-
-                        log.error("refreshHotPosts error:{}", ExceptionUtils.getRootCauseMessage(e));
-                        return String.format("刷新帖子热度失败: [beginId: %s, endId: %s] ", postHotTaskVO.getBeginId(), postHotTaskVO.getEndId());
-                    }
+            CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return deal(postHotTaskVO);
+                } catch (Exception e) {
+                    log.error("refreshHotPosts error: {}", ExceptionUtils.getRootCauseMessage(e));
+                    return String.format("刷新帖子热度失败: [beginId: %s, endId: %s]", postHotTaskVO.getBeginId(), postHotTaskVO.getEndId());
                 }
             }, THREAD_POOL);
             futures.add(future);
         }
 
-        // 等待所有 CompletableFuture 完成
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        allFutures.thenRun(() -> {
-            log.info("刷新帖子热度完成");
-        });
+        allFutures.thenRun(() -> log.info("刷新帖子热度完成"));
     }
 
     @SuppressWarnings("unchecked")
     private String deal(PostHotTaskVO postHotTaskVO) {
-
         Long beginId = postHotTaskVO.getBeginId();
         Long endId = postHotTaskVO.getEndId();
-
-        List<PostHotVO> postHotVoList = this.postHotService.getPostFormIndex(beginId, endId);
+        List<PostHotVO> postHotVoList = postHotService.getPostFormIndex(beginId, endId);
 
         Set<ZSetOperations.TypedTuple<Object>> typedTuples = new HashSet<>();
         for (PostHotVO postHotVO : postHotVoList) {
-
-            // 计算热度
-            BigDecimal score = this.getHotScore(postHotVO);
-
-            // 保存到热贴redis
+            BigDecimal score = calculateHotScore(postHotVO);
             if (score.compareTo(BigDecimal.ZERO) > 0) {
                 ZSetOperations.TypedTuple<Object> typedTuple = new DefaultTypedTuple<>(postHotVO.getPostId() + "@" + postHotVO.getTitle(), score.doubleValue());
                 typedTuples.add(typedTuple);
             }
         }
 
-        // 批量添加到 zSet
         if (!typedTuples.isEmpty()) {
+            redisService.getRedisTemplate().opsForZSet().add(RedisKeyConstant.REDIS_HOT_POST_CACHE, typedTuples);
 
-            this.redisService.getRedisTemplate().opsForZSet().add(RedisKeyConstant.REDIS_HOT_POST_CACHE, typedTuples);
+            // 限制 zset 的大小
+            redisService.getRedisTemplate().opsForZSet().removeRange(RedisKeyConstant.REDIS_HOT_POST_CACHE, 0, -MAX_HOT_POSTS-1);
         }
 
-        return String.format("刷新帖子热度成功: [beginId: %s, endId: %s] ", beginId, endId);
+        String msg = String.format("刷新帖子热度成功: [beginId: %s, endId: %s]", beginId, endId);
+        log.info(msg);
+        return msg;
     }
 
-    private BigDecimal getHotScore(PostHotVO post) {
-
-        // 基础热度值计算（根据相关指标计算）
+    private BigDecimal calculateHotScore(PostHotVO post) {
         double viewsScore = post.getViewsCount() * VIEWS_WEIGHT;
         double likesScore = post.getLikesCount() * LIKES_WEIGHT;
         double commentsScore = post.getCommentsCount() * COMMENTS_WEIGHT;
+        double collectsScore = post.getCollectsCount() * COLLECTS_WEIGHT;
+        double basicHotness = viewsScore + likesScore + commentsScore + collectsScore;
 
-        // 将指标分数相加得到基础热度值
-        double basicHotness = viewsScore + likesScore + commentsScore;
-
-        BigDecimal value = BigDecimal.valueOf(basicHotness);
-        return this.applyTimeDecay(post, value);
+        BigDecimal hotness = BigDecimal.valueOf(basicHotness);
+        return applyTimeDecay(post, hotness);
     }
 
     private BigDecimal applyTimeDecay(PostHotVO post, BigDecimal hotness) {
-
         long postAgeInDays = (System.currentTimeMillis() - post.getCreatedAt().getTime()) / (1000 * 60 * 60 * 24);
         double timeDecay = Math.exp(-TIME_DECAY_FACTOR * postAgeInDays);
-        // 应用时间衰减
         return hotness.multiply(BigDecimal.valueOf(timeDecay)).setScale(6, RoundingMode.HALF_UP);
     }
 
-
+    @Override
+    public void run(String... args) {
+        this.refreshHotPosts();
+    }
 }
