@@ -53,6 +53,20 @@ public class PostController {
     }
 
 
+    @ApiOperation(value = "收藏帖子")
+    @PostMapping(value = "/collect/{postId}")
+    public ResultVO<Void> postCollect(@PathVariable(value = "postId") Long postId) {
+
+        return this.postService.postCollect(postId);
+    }
+
+    @ApiOperation(value = "取消收藏")
+    @PostMapping(value = "/uncollect/{postId}")
+    public ResultVO<Void> postUnCollect(@PathVariable(value = "postId") Long postId) {
+
+        return this.postService.postUnCollect(postId);
+    }
+
     @ApiOperation(value = "修改帖子")
     @PutMapping(value = "/update")
     @RateLimit

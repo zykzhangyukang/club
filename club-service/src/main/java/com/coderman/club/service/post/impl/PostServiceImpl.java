@@ -2,9 +2,10 @@ package com.coderman.club.service.post.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
+import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
-import com.coderman.club.constant.user.PostConst;
+import com.coderman.club.constant.user.CommonConst;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
@@ -12,9 +13,11 @@ import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.exception.BusinessException;
+import com.coderman.club.mapper.post.PostCollectMapper;
 import com.coderman.club.mapper.post.PostLikeMapper;
 import com.coderman.club.mapper.post.PostMapper;
 import com.coderman.club.mapper.post.PostTagMapper;
+import com.coderman.club.model.post.PostCollectModel;
 import com.coderman.club.model.post.PostLikeModel;
 import com.coderman.club.model.post.PostModel;
 import com.coderman.club.model.post.PostTagModel;
@@ -41,7 +44,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
@@ -57,28 +59,22 @@ public class PostServiceImpl implements PostService {
 
     @Resource
     private SectionService sectionService;
-
     @Resource
     private PostMapper postMapper;
-
     @Resource
     private PostLikeMapper postLikeMapper;
-
     @Resource
     private PostTagMapper postTagMapper;
-
+    @Resource
+    private PostCollectMapper postCollectMapper;
     @Resource
     private RedisLockService redisLockService;
-
     @Resource
     private UserFollowingService userFollowingService;
-
     @Resource
     private AliYunOssUtil aliYunOssUtil;
-
     @Resource
     private RedisService redisService;
-
     @Resource
     private NotificationService notificationService;
 
@@ -205,7 +201,9 @@ public class PostServiceImpl implements PostService {
             this.postTagMapper.delete(Wrappers.<PostTagModel>lambdaQuery().eq(PostTagModel::getPostId, postId));
         }
 
-        this.postTagMapper.insertBatch(postId, tagList);
+        if(CollectionUtils.isNotEmpty(tagList)){
+            this.postTagMapper.insertBatch(postId, tagList);
+        }
     }
 
     @Override
@@ -347,7 +345,7 @@ public class PostServiceImpl implements PostService {
     private boolean isLikedPost(Long userId, long postId) {
         return this.postLikeMapper.selectCount(Wrappers.<PostLikeModel>lambdaQuery()
                 .eq(PostLikeModel::getUserId, userId)
-                .eq(PostLikeModel::getStatus, PostConst.LIKE_STATUS_NORMAL)
+                .eq(PostLikeModel::getStatus, CommonConst.STATUS_NORMAL)
                 .eq(PostLikeModel::getPostId, postId)
         ) > 0;
     }
@@ -434,19 +432,13 @@ public class PostServiceImpl implements PostService {
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> postLike(Long postId) {
 
+        ResultVO<PostDetailVO> check = this.commonCheck(postId);
+        if(!ResultConstant.RESULT_CODE_200.equals(check.getCode())){
+            return ResultUtil.getFail(check.getMsg());
+        }
+
+        PostDetailVO postDetailVO = check.getResult();
         AuthUserVO current = AuthUtil.getCurrent();
-        if (current == null) {
-            return ResultUtil.getWarn("用户未登录！");
-        }
-
-        if (postId == null || postId < 0) {
-            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
-        }
-
-        PostDetailVO postDetailVO = this.postMapper.selectPostDetailVoById(postId);
-        if (postDetailVO == null) {
-            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
-        }
 
         int rowCount;
         boolean isFirstLike = false;
@@ -472,19 +464,19 @@ public class PostServiceImpl implements PostService {
                 insertModel.setUserId(current.getUserId());
                 insertModel.setPostId(postId);
                 insertModel.setCreateTime(new Date());
-                insertModel.setStatus(PostConst.LIKE_STATUS_NORMAL);
+                insertModel.setStatus(CommonConst.STATUS_NORMAL);
                 rowCount = this.postLikeMapper.insert(insertModel);
                 isFirstLike = true;
 
             } else {
 
-                if (StringUtils.equals(postLikeModel.getStatus(), PostConst.LIKE_STATUS_NORMAL)) {
+                if (StringUtils.equals(postLikeModel.getStatus(), CommonConst.STATUS_NORMAL)) {
                     return ResultUtil.getWarn("操作失败。");
                 }
 
                 PostLikeModel updateModel = new PostLikeModel();
                 updateModel.setPostLikeId(postLikeModel.getPostLikeId());
-                updateModel.setStatus(PostConst.LIKE_STATUS_NORMAL);
+                updateModel.setStatus(CommonConst.STATUS_NORMAL);
                 rowCount = this.postLikeMapper.updateById(updateModel);
             }
 
@@ -516,19 +508,13 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(rollbackFor = Throwable.class)
     public ResultVO<Void> postUnLike(Long postId) {
+
+        ResultVO<PostDetailVO> check = this.commonCheck(postId);
+        if(!ResultConstant.RESULT_CODE_200.equals(check.getCode())){
+            return ResultUtil.getFail(check.getMsg());
+        }
+
         AuthUserVO current = AuthUtil.getCurrent();
-        if (current == null) {
-            return ResultUtil.getWarn("您尚未登录，请先登录。");
-        }
-
-        if (postId == null || postId < 0) {
-            return ResultUtil.getWarn("帖子不存在，请刷新页面后重试。");
-        }
-
-        PostDetailVO postDetailVO = this.postMapper.selectPostDetailVoById(postId);
-        if (postDetailVO == null) {
-            return ResultUtil.getWarn("帖子不存在，请刷新页面后重试。");
-        }
 
         final String lockName = RedisKeyConstant.REDIS_POST_UNLIKE_LOCK_PREFIX + current.getUserId() + ":" + postId;
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
@@ -546,14 +532,14 @@ public class PostServiceImpl implements PostService {
 
             if (postLikeModel != null) {
                 // 检查点赞状态
-                if (StringUtils.equals(postLikeModel.getStatus(), PostConst.LIKE_STATUS_CANCEL)) {
+                if (StringUtils.equals(postLikeModel.getStatus(), CommonConst.STATUS_CANCEL)) {
                     return ResultUtil.getWarn("操作失败。");
                 }
 
                 // 更新点赞状态为取消
                 PostLikeModel updateModel = new PostLikeModel();
                 updateModel.setPostLikeId(postLikeModel.getPostLikeId());
-                updateModel.setStatus(PostConst.LIKE_STATUS_CANCEL);
+                updateModel.setStatus(CommonConst.STATUS_CANCEL);
                 this.postLikeMapper.updateById(updateModel);
 
                 // 更新帖子的点赞数量
@@ -593,6 +579,103 @@ public class PostServiceImpl implements PostService {
         this.postMapper.updateById(updateModel);
 
         return ResultUtil.getSuccess();
+    }
+
+    private ResultVO<PostDetailVO> commonCheck(Long postId){
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        if (current == null) {
+            return ResultUtil.getWarn("用户未登录！");
+        }
+
+        if (postId == null || postId < 0) {
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
+        }
+        PostDetailVO postDetailVO = this.postMapper.selectPostDetailVoById(postId);
+        if (postDetailVO == null) {
+            return ResultUtil.getWarn("帖子不存在，请刷新重试！");
+        }
+        return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
+    }
+
+    @Override
+    public ResultVO<Void> postCollect(Long postId) {
+
+        ResultVO<PostDetailVO> check = this.commonCheck(postId);
+        if (!ResultConstant.RESULT_CODE_200.equals(check.getCode())) {
+            return ResultUtil.getFail(check.getMsg());
+        }
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        PostDetailVO postDetailVO = check.getResult();
+
+        int rowCount;
+        boolean isFirstCollect = false;
+
+        final String lockName = RedisKeyConstant.REDIS_POST_COLLECT_LOCK_PREFIX + current.getUserId() + ":" + postId;
+        boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
+        if (!tryLock) {
+            return ResultUtil.getWarn("请勿重复操作！");
+        }
+
+        try {
+
+            // 判断之前是否有收藏过
+            PostCollectModel postCollectModel = this.postCollectMapper.selectOne(Wrappers.<PostCollectModel>lambdaQuery()
+                    .eq(PostCollectModel::getPostId, postId)
+                    .eq(PostCollectModel::getUserId, current.getUserId())
+                    .last("limit 1")
+            );
+
+            if (postCollectModel == null) {
+
+                PostCollectModel insertModel = new PostCollectModel();
+                insertModel.setUserId(current.getUserId());
+                insertModel.setPostId(postId);
+                insertModel.setCreateTime(new Date());
+                insertModel.setStatus(CommonConst.STATUS_NORMAL);
+                rowCount = this.postCollectMapper.insert(insertModel);
+                isFirstCollect = true;
+
+            } else {
+
+                if (StringUtils.equals(postCollectModel.getStatus(), CommonConst.STATUS_NORMAL)) {
+                    return ResultUtil.getWarn("操作失败。");
+                }
+
+                PostCollectModel updateModel = new PostCollectModel();
+                updateModel.setPostCollectId(postCollectModel.getPostCollectId());
+                updateModel.setStatus(CommonConst.STATUS_NORMAL);
+                rowCount = this.postCollectMapper.updateById(updateModel);
+            }
+
+            // 首次点赞消息通知 (点赞自己的帖子不通知)
+            if (isFirstCollect && rowCount > 0 && !Objects.equals(current.getUserId(), postDetailVO.getUserId())) {
+
+                NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                        .senderId(0L)
+                        .userIdList(Collections.singletonList(postDetailVO.getUserId()))
+                        .typeEnum(NotificationTypeEnum.COLLECT_POST)
+                        .content(String.format(NotificationTypeEnum.COLLECT_POST.getTemplate(), current.getNickname(), postDetailVO.getTitle()))
+                        .build();
+                this.notificationService.saveAndNotify(notifyMsgDTO);
+            }
+
+            // 维护帖子收藏数
+            if (rowCount > 0) {
+            }
+
+        } finally {
+
+            this.redisLockService.unlock(lockName);
+        }
+
+        return ResultUtil.getSuccess();
+    }
+
+    @Override
+    public ResultVO<Void> postUnCollect(Long postId) {
+        return null;
     }
 
 

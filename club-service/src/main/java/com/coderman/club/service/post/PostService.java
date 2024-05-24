@@ -81,4 +81,18 @@ public interface PostService {
      * @return
      */
     ResultVO<Void> postDelete(Long postId);
+
+    /**
+     * 取消帖子
+     * @param postId
+     * @return
+     */
+    ResultVO<Void> postCollect(Long postId);
+
+    /**
+     * 取消收藏
+     * @param postId
+     * @return
+     */
+    ResultVO<Void> postUnCollect(Long postId);
 }
