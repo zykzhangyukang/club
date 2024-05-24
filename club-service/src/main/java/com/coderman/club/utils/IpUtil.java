@@ -69,14 +69,24 @@ public class IpUtil {
             if (parts.length >= 4) {
                 String city = parts[3];
                 String province = parts[2];
-                String country = parts[1];
+                String country = parts[0];
 
-                if (StringUtils.isNotBlank(province) && !StringUtils.equals("0", province)) {
-                    result =  removeKeywords(province);
-                } else if (StringUtils.isNotBlank(country) && !StringUtils.equals("0", country)) {
-                    result =  removeKeywords(country);
-                } else if (StringUtils.isNotBlank(city) && !StringUtils.equals("0", city)) {
-                    result =  removeKeywords(city);
+                if(StringUtils.equals(country , "中国") ||
+                        StringUtils.equals(country , "香港") ||
+                        StringUtils.equals(country , "澳门") ||
+                        StringUtils.equals(country , "台湾")
+                ){
+                    // 国内地址
+                    if (StringUtils.isNotBlank(province) && !StringUtils.equals("0", province)) {
+                        result =  removeKeywords(province);
+                    } else if (StringUtils.isNotBlank(country) && !StringUtils.equals("0", country)) {
+                        result =  removeKeywords(country);
+                    } else if (StringUtils.isNotBlank(city) && !StringUtils.equals("0", city)) {
+                        result =  removeKeywords(city);
+                    }
+                }else {
+                    // 国外地址
+                    result = removeKeywords(country);
                 }
             }
         }
@@ -164,6 +174,4 @@ public class IpUtil {
         }
         return os;
     }
-
-
 }
