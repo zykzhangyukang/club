@@ -137,8 +137,6 @@ public class UpdateHotPostTimer implements CommandLineRunner {
 
     private String deal(PostHotTaskVO postHotTaskVO) {
 
-        int a = 10 / 0;
-
         Long beginId = postHotTaskVO.getBeginId();
         Long endId = postHotTaskVO.getEndId();
         List<PostHotVO> postHotVoList = postHotService.getPostFormIndex(beginId, endId);
