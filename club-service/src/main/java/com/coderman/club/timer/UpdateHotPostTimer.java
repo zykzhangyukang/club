@@ -16,6 +16,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,6 +42,8 @@ public class UpdateHotPostTimer implements CommandLineRunner {
     @Resource
     private RedisService redisService;
 
+    private final DelayQueue<PostHotTaskVO> delayQueue = new DelayQueue<>();
+
     private static final double TIME_DECAY_FACTOR = 0.8;
     private static final double VIEWS_WEIGHT = 3;
     private static final double LIKES_WEIGHT = 5;
@@ -49,7 +52,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
 
     private static final int MAX_HOT_POSTS = 15;
 
-    private static final int THREAD_POOL_SIZE = 2;
+    private static final int THREAD_POOL_SIZE = 3;
     private static final int TASK_QUEUE_CAPACITY = 1024;
 
     private static final ExecutorService THREAD_POOL = new ThreadPoolExecutor(
@@ -60,21 +63,32 @@ public class UpdateHotPostTimer implements CommandLineRunner {
             new ThreadPoolExecutor.CallerRunsPolicy()
     );
 
-     @Scheduled(cron = "0 */30 * * * ?")
+    @PostConstruct
+    public void initRetryThread() {
+        THREAD_POOL.execute(() -> {
+
+            while (true) {
+
+                try {
+                    PostHotTaskVO postHotTaskVO = delayQueue.take();
+                    log.warn("重试线程开始处理任务:{}", JSON.toJSONString(postHotTaskVO));
+                    thread0(postHotTaskVO);
+                } catch (InterruptedException e) {
+
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    @Scheduled(cron = "0 */30 * * * ?")
     public void refreshHotPosts() {
         List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(200);
         log.info("Retrieved post tasks: {}", JSON.toJSONString(taskVoList));
 
         List<CompletableFuture<String>> futures = new ArrayList<>();
         for (PostHotTaskVO postHotTaskVO : taskVoList) {
-            CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
-                try {
-                    return deal(postHotTaskVO);
-                } catch (Exception e) {
-                    log.error("refreshHotPosts error: {}", ExceptionUtils.getRootCauseMessage(e));
-                    return String.format("刷新帖子热度失败: [beginId: %s, endId: %s]", postHotTaskVO.getBeginId(), postHotTaskVO.getEndId());
-                }
-            }, THREAD_POOL);
+            CompletableFuture<String> future = thread0(postHotTaskVO);
             futures.add(future);
         }
 
@@ -82,7 +96,49 @@ public class UpdateHotPostTimer implements CommandLineRunner {
         allFutures.thenRun(() -> log.info("刷新帖子热度完成"));
     }
 
+    private CompletableFuture<String> thread0(PostHotTaskVO postHotTaskVO) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+
+                return deal(postHotTaskVO);
+            } catch (Exception e) {
+
+                // 重试队列
+                addTaskToDelayQueue(postHotTaskVO);
+
+                return String.format("刷新帖子热度失败: [beginId: %s, endId: %s]", postHotTaskVO.getBeginId(), postHotTaskVO.getEndId());
+            }
+        }, THREAD_POOL);
+    }
+
+    private void addTaskToDelayQueue(PostHotTaskVO postHotTaskVO) {
+
+        int retryTimes = postHotTaskVO.getRetry().getAndIncrement();
+
+        if (retryTimes == 0) {
+
+            postHotTaskVO.setDelayTime(10);
+
+        } else if (retryTimes == 1) {
+
+            postHotTaskVO.setDelayTime(30);
+
+        } else if (retryTimes == 2) {
+
+            postHotTaskVO.setDelayTime(60);
+
+        } else {
+
+            log.error("超过重试次数 3 次,禁止重试，callbackTask:{}", JSON.toJSONString(postHotTaskVO));
+            return;
+        }
+        delayQueue.add(postHotTaskVO);
+    }
+
     private String deal(PostHotTaskVO postHotTaskVO) {
+
+        int a = 10 / 0;
+
         Long beginId = postHotTaskVO.getBeginId();
         Long endId = postHotTaskVO.getEndId();
         List<PostHotVO> postHotVoList = postHotService.getPostFormIndex(beginId, endId);
@@ -98,7 +154,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
         }
 
         if (!tuples.isEmpty()) {
-            this.redisService.addZSetWithMaxSize(RedisKeyConstant.REDIS_HOT_POST_CACHE, tuples, RedisDbConstant.REDIS_BIZ_CACHE ,  MAX_HOT_POSTS);
+            this.redisService.addZSetWithMaxSize(RedisKeyConstant.REDIS_HOT_POST_CACHE, tuples, RedisDbConstant.REDIS_BIZ_CACHE, MAX_HOT_POSTS);
         }
 
         String msg = String.format("刷新帖子热度成功: [beginId: %s, endId: %s]", beginId, endId);
