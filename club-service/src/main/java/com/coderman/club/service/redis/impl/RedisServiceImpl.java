@@ -6,11 +6,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
@@ -1123,4 +1121,15 @@ public class RedisServiceImpl implements RedisService {
             }
         }, true);
     }
+
+    @Override
+    public void addZSetWithMaxSize(String key, Set<RedisZSetCommands.Tuple> tuples, int db, long maxSize) {
+        redisTemplate.execute((RedisCallback<Object>) connection -> {
+            connection.select(db);
+            connection.zAdd(serializeKey(key), tuples);
+            connection.zRemRange(serializeKey(key), 0, -maxSize - 1);
+            return null;
+        });
+    }
+
 }

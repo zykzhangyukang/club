@@ -1,5 +1,6 @@
 package com.coderman.club.service.redis;
 
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 
@@ -471,4 +472,11 @@ public interface RedisService {
      */
     void sendMessage(String topic , Object msgObj);
 
+    /**
+     * 加入zset
+     * @param key
+     * @param tuples
+     * @param maxSize
+     */
+    public void addZSetWithMaxSize(String key, Set<RedisZSetCommands.Tuple> tuples, int db, long maxSize);
 }

@@ -1,6 +1,7 @@
 package com.coderman.club.timer;
 
 import com.alibaba.fastjson.JSON;
+import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.service.post.PostHotService;
 import com.coderman.club.service.redis.RedisService;
@@ -10,8 +11,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.data.redis.core.DefaultTypedTuple;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -81,26 +82,23 @@ public class UpdateHotPostTimer implements CommandLineRunner {
         allFutures.thenRun(() -> log.info("刷新帖子热度完成"));
     }
 
-    @SuppressWarnings("unchecked")
     private String deal(PostHotTaskVO postHotTaskVO) {
         Long beginId = postHotTaskVO.getBeginId();
         Long endId = postHotTaskVO.getEndId();
         List<PostHotVO> postHotVoList = postHotService.getPostFormIndex(beginId, endId);
 
-        Set<ZSetOperations.TypedTuple<Object>> typedTuples = new HashSet<>();
+        Set<RedisZSetCommands.Tuple> tuples = new HashSet<>();
         for (PostHotVO postHotVO : postHotVoList) {
             BigDecimal score = calculateHotScore(postHotVO);
             if (score.compareTo(BigDecimal.ZERO) > 0) {
-                ZSetOperations.TypedTuple<Object> typedTuple = new DefaultTypedTuple<>(postHotVO.getPostId() + "@" + postHotVO.getTitle(), score.doubleValue());
-                typedTuples.add(typedTuple);
+
+                RedisZSetCommands.Tuple t = new DefaultTuple((postHotVO.getPostId() + "@" + postHotVO.getTitle()).getBytes(), score.doubleValue());
+                tuples.add(t);
             }
         }
 
-        if (!typedTuples.isEmpty()) {
-            redisService.getRedisTemplate().opsForZSet().add(RedisKeyConstant.REDIS_HOT_POST_CACHE, typedTuples);
-
-            // 限制 zset 的大小
-            redisService.getRedisTemplate().opsForZSet().removeRange(RedisKeyConstant.REDIS_HOT_POST_CACHE, 0, -MAX_HOT_POSTS-1);
+        if (!tuples.isEmpty()) {
+            this.redisService.addZSetWithMaxSize(RedisKeyConstant.REDIS_HOT_POST_CACHE, tuples, RedisDbConstant.REDIS_BIZ_CACHE ,  MAX_HOT_POSTS);
         }
 
         String msg = String.format("刷新帖子热度成功: [beginId: %s, endId: %s]", beginId, endId);
