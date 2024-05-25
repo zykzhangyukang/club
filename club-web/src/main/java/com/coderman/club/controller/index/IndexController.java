@@ -32,8 +32,8 @@ public class IndexController {
     private CarouseService carouseService;
 
     @ApiOperation(value = "首页资源")
-    @GetMapping(value = "/resource")
-    public ResultVO<ResourceVO> resource() {
+    @GetMapping(value = "")
+    public ResultVO<ResourceVO> index() {
 
         ResourceVO resourceVO = new ResourceVO();
         // 分类数据
