@@ -157,7 +157,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
             BigDecimal score = calculateHotScore(postHotVO);
             if (score.compareTo(BigDecimal.ZERO) > 0) {
 
-                RedisZSetCommands.Tuple t = new DefaultTuple((postHotVO.getPostId() + "@" + postHotVO.getTitle()).getBytes(), score.doubleValue());
+                RedisZSetCommands.Tuple t = new DefaultTuple(String.valueOf(postHotVO.getPostId()).getBytes(), score.doubleValue());
                 tuples.add(t);
             }
         }

@@ -2,22 +2,18 @@ package com.coderman.club.controller.index;
 
 import com.coderman.club.service.carouse.CarouseService;
 import com.coderman.club.service.section.SectionService;
-import com.coderman.club.service.user.UserService;
+import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.vo.carouse.CarouseVO;
+import com.coderman.club.vo.common.ResourceVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.section.SectionVO;
-import com.coderman.club.vo.user.UserIndexVO;
-import com.coderman.club.vo.user.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -35,6 +31,18 @@ public class IndexController {
     @Resource
     private CarouseService carouseService;
 
+    @ApiOperation(value = "首页资源")
+    @GetMapping(value = "/resource")
+    public ResultVO<ResourceVO> resource() {
+
+        ResourceVO resourceVO = new ResourceVO();
+        // 分类数据
+        resourceVO.setSectionList(this.sectionService.getSectionVoCacheList().getResult());
+        // 轮播图数据
+        resourceVO.setCarouseList(this.carouseService.getCarouselVoCacheList().getResult());
+
+        return ResultUtil.getSuccess(ResourceVO.class, resourceVO);
+    }
 
     @ApiOperation(value = "板块列表获取")
     @GetMapping(value = "/sections")

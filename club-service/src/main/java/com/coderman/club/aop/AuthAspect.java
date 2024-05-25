@@ -90,6 +90,7 @@ public class AuthAspect {
         // 首页列表
         WHITE_LIST.add("/api/index/sections");
         WHITE_LIST.add("/api/index/carousels");
+        WHITE_LIST.add("/api/index/resource");
         WHITE_LIST.add("/api/post/page");
         WHITE_LIST.add("/api/post/detail");
     }

@@ -66,7 +66,7 @@ public class UpdateIndexCacheTimer implements CommandLineRunner {
     private void initCarouseCache() {
 
         final String tempKey = RedisKeyConstant.REDIS_CAROUSE_CACHE + "_" + System.currentTimeMillis();
-        List<CarouseVO> carouselVoList = this.carouseService.getCarouselVoList();
+        List<CarouseVO> carouselVoList = this.carouseService. getCarouselVoList();
         this.redisService.setListData(tempKey, carouselVoList, RedisDbConstant.REDIS_BIZ_CACHE);
         // 重命名key
         this.redisService.rename(tempKey, RedisKeyConstant.REDIS_CAROUSE_CACHE, RedisDbConstant.REDIS_BIZ_CACHE);
