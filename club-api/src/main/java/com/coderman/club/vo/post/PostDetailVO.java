@@ -61,7 +61,7 @@ public class PostDetailVO extends BaseModel {
     private Integer commentsCount;
 
     @ApiModelProperty(value = "收藏量")
-    private Integer favoritesCount;
+    private Integer collectsCount;
 
     @ApiModelProperty(value = "是否关注")
     private Boolean isFollowed;

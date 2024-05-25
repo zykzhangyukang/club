@@ -58,5 +58,5 @@ public class PostListItemVO extends BaseModel {
     private Integer commentsCount;
 
     @ApiModelProperty(value = "收藏量")
-    private Integer favoritesCount;
+    private Integer collectsCount;
 }

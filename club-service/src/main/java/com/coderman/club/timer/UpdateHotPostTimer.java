@@ -52,7 +52,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
 
     private static final int MAX_HOT_POSTS = 15;
 
-    private static final int THREAD_POOL_SIZE = 3;
+    private static final int THREAD_POOL_SIZE = 1;
     private static final int TASK_QUEUE_CAPACITY = 1024;
 
     private static final ExecutorService THREAD_POOL = new ThreadPoolExecutor(
@@ -63,9 +63,17 @@ public class UpdateHotPostTimer implements CommandLineRunner {
             new ThreadPoolExecutor.CallerRunsPolicy()
     );
 
+    private static final ExecutorService RETRY_THREAD_POOL = new ThreadPoolExecutor(
+            THREAD_POOL_SIZE, THREAD_POOL_SIZE,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(TASK_QUEUE_CAPACITY),
+            new ThreadFactoryBuilder().setNameFormat("retry_thread_%d").build(),
+            new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+
     @PostConstruct
     public void initRetryThread() {
-        THREAD_POOL.execute(() -> {
+        RETRY_THREAD_POOL.execute(() -> {
 
             while (true) {
 
@@ -103,6 +111,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
                 return deal(postHotTaskVO);
             } catch (Exception e) {
 
+                log.error("处理帖子热度计算失败ERROR:{}",e.getMessage());
                 // 重试队列
                 addTaskToDelayQueue(postHotTaskVO);
 
@@ -113,7 +122,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
 
     private void addTaskToDelayQueue(PostHotTaskVO postHotTaskVO) {
 
-        log.error("刷新帖子热度任务，加入重试队列：{}", JSON.toJSONString(postHotTaskVO));
+        log.warn("刷新帖子热度任务，加入重试队列：{}", JSON.toJSONString(postHotTaskVO));
 
         int retryTimes = postHotTaskVO.getRetry().getAndIncrement();
 
