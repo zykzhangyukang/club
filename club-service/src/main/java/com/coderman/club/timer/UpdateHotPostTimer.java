@@ -9,7 +9,6 @@ import com.coderman.club.vo.post.PostHotTaskVO;
 import com.coderman.club.vo.post.PostHotVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands;

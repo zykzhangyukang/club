@@ -38,4 +38,7 @@ public class UserLoginVO extends BaseModel {
 
     @ApiModelProperty(value = "收藏数量")
     private Integer collectCount;
+
+    @ApiModelProperty(value = "粉丝数量")
+    private Integer fanCount;
 }
