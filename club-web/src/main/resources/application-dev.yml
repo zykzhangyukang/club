@@ -25,5 +25,5 @@ aliyun:
 logging:
     level:
       root: info
-      com.coderman.club.mapper: debug
+      com.coderman.club.mapper: info
       com.coderman.club: info

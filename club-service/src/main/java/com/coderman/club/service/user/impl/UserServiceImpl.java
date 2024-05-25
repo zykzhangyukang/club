@@ -5,8 +5,8 @@ import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
+import com.coderman.club.constant.user.CommonConst;
 import com.coderman.club.constant.user.UserConstant;
-import com.coderman.club.constant.user.UserFollowingConst;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
@@ -451,6 +451,8 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(userModel, "用户不存在！");
         Assert.notNull(userInfoModel, "用户不存在！");
 
+        // 关注的人数
+        Integer followCount = this.userFollowingService.getFollowCountByUserId(current.getUserId());
 
         UserLoginVO userLoginVO = new UserLoginVO();
         userLoginVO.setUserId(current.getUserId());
@@ -460,6 +462,7 @@ public class UserServiceImpl implements UserService {
         userLoginVO.setUserCode(userInfoModel.getUserCode());
         userLoginVO.setRefreshToken(current.getRefreshToken());
         userLoginVO.setToken(current.getToken());
+        userLoginVO.setFollowCount(followCount);
         return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
     }
 
@@ -572,7 +575,7 @@ public class UserServiceImpl implements UserService {
                 record.setFollowDate(new Date());
                 record.setFollowerId(current.getUserId());
                 record.setFollowedId(followedId);
-                record.setStatus(UserFollowingConst.FOLLOWING_STATUS_NORMAL);
+                record.setStatus(CommonConst.STATUS_NORMAL);
                 this.userFollowingService.insertSelective(record);
 
                 // 关注好友提醒
@@ -584,16 +587,16 @@ public class UserServiceImpl implements UserService {
                         .build();
                 this.notificationService.saveAndNotify(notifyMsgDTO);
 
-            } else if (StringUtils.equals(userFollowingModel.getStatus(), UserFollowingConst.FOLLOWING_STATUS_CANCEL)) {
+            } else if (StringUtils.equals(userFollowingModel.getStatus(), CommonConst.STATUS_CANCEL)) {
 
                 // 取消关注后再次关注 - 更新
                 UserFollowingModel update = new UserFollowingModel();
                 update.setFollowId(userFollowingModel.getFollowId());
-                update.setStatus(UserFollowingConst.FOLLOWING_STATUS_NORMAL);
+                update.setStatus(CommonConst.STATUS_NORMAL);
                 update.setFollowDate(new Date());
                 this.userFollowingService.updateByPrimaryKeySelective(update);
 
-            } else if (StringUtils.equals(userFollowingModel.getStatus(), UserFollowingConst.FOLLOWING_STATUS_NORMAL)) {
+            } else if (StringUtils.equals(userFollowingModel.getStatus(), CommonConst.STATUS_NORMAL)) {
 
                 return ResultUtil.getWarn("已关注用户，请勿重复操作！");
             }
@@ -633,14 +636,14 @@ public class UserServiceImpl implements UserService {
                 return ResultUtil.getWarn("参数错误！");
             }
 
-            if (StringUtils.equals(userFollowingModel.getStatus(), UserFollowingConst.FOLLOWING_STATUS_CANCEL)) {
+            if (StringUtils.equals(userFollowingModel.getStatus(), CommonConst.STATUS_CANCEL)) {
                 return ResultUtil.getWarn("已取消关注用户，请勿重复操作！");
             }
 
             // 取消关注后再次关注 - 更新
             UserFollowingModel update = new UserFollowingModel();
             update.setFollowId(userFollowingModel.getFollowId());
-            update.setStatus(UserFollowingConst.FOLLOWING_STATUS_CANCEL);
+            update.setStatus(CommonConst.STATUS_CANCEL);
             this.userFollowingService.updateByPrimaryKeySelective(update);
         } finally {
             this.redisLockService.unlock(lockName);

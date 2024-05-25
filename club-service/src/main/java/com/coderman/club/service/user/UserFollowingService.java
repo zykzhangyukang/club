@@ -44,4 +44,12 @@ public interface UserFollowingService  {
      * @return
      */
     Boolean isFollowedUser(Long userId, Long targetUserId);
+
+    /**
+     * 查询用户关注的人数
+     *
+     * @param userId
+     * @return
+     */
+    Integer getFollowCountByUserId(Long userId);
 }

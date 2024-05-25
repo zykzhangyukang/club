@@ -32,4 +32,7 @@ public class UserLoginVO extends BaseModel {
 
     @ApiModelProperty(value = "刷新令牌")
     private String refreshToken;
+
+    @ApiModelProperty(value = "关注的人数")
+    private Integer followCount;
 }

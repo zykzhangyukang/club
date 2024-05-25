@@ -161,6 +161,7 @@
       t1.last_updated_at
     FROM club_post t1
     WHERE t1.is_active = 1 and t1.is_draft = 0
+    and t1.views_count > 0 and t1.likes_count > 0 and  t1.comments_count > 0 and t1.collects_count > 0
     and t1.post_id between #{beginId} and #{endId}
     ORDER BY t1.created_at DESC
   </select>

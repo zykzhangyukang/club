@@ -479,4 +479,11 @@ public interface RedisService {
      * @param maxSize
      */
     public void addZSetWithMaxSize(String key, Set<RedisZSetCommands.Tuple> tuples, int db, long maxSize);
+
+    /**
+     * 获取zset
+     * @param key
+     * @param db
+     */
+    public Set<RedisZSetCommands.Tuple> zRangeWithScores(String key,  int db, int start, int end);
 }

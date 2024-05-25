@@ -1,7 +1,7 @@
 package com.coderman.club.service.user.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.coderman.club.constant.user.UserFollowingConst;
+import com.coderman.club.constant.user.CommonConst;
 import com.coderman.club.mapper.user.UserFollowingMapper;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.service.user.UserFollowingService;
@@ -74,8 +74,18 @@ public class UserFollowingServiceImpl implements UserFollowingService {
         Integer integer = this.userFollowingDAO.selectCount(Wrappers.<UserFollowingModel>lambdaQuery()
                 .eq(UserFollowingModel::getFollowerId, userId)
                 .eq(UserFollowingModel::getFollowedId, targetUserId)
-                .eq(UserFollowingModel::getStatus, UserFollowingConst.FOLLOWING_STATUS_NORMAL));
+                .eq(UserFollowingModel::getStatus, CommonConst.STATUS_NORMAL));
 
         return integer > 0;
+    }
+
+    @Override
+    public Integer getFollowCountByUserId(Long userId) {
+        if (userId == null) {
+            return 0;
+        }
+        return this.userFollowingDAO.selectCount(Wrappers.<UserFollowingModel>lambdaQuery()
+                .eq(UserFollowingModel::getFollowerId, userId)
+                .eq(UserFollowingModel::getStatus, CommonConst.STATUS_NORMAL));
     }
 }

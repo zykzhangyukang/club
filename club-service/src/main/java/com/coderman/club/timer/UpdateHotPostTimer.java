@@ -50,7 +50,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
     private static final double COMMENTS_WEIGHT = 2;
     private static final double COLLECTS_WEIGHT = 8;
 
-    private static final int MAX_HOT_POSTS = 15;
+    private static final int MAX_HOT_POSTS = 10;
 
     private static final int THREAD_POOL_SIZE = 1;
     private static final int TASK_QUEUE_CAPACITY = 1024;
@@ -91,7 +91,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
 
     @Scheduled(cron = "0 */30 * * * ?")
     public void refreshHotPosts() {
-        List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(200);
+        List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(500);
         log.info("Retrieved post tasks: {}", JSON.toJSONString(taskVoList));
 
         List<CompletableFuture<String>> futures = new ArrayList<>();

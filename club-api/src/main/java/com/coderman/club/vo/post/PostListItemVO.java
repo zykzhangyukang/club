@@ -54,6 +54,9 @@ public class PostListItemVO extends BaseModel {
     @ApiModelProperty(value = "点赞量")
     private Integer likesCount;
 
+    @ApiModelProperty(value = "是否热帖")
+    private Boolean isHot;
+
     @ApiModelProperty(value = "评论量")
     private Integer commentsCount;
 

@@ -1,6 +1,7 @@
 package com.coderman.club.service.redis.impl;
 
 import com.coderman.club.service.redis.RedisService;
+import com.google.common.collect.Sets;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1130,6 +1131,20 @@ public class RedisServiceImpl implements RedisService {
             connection.zRemRange(serializeKey(key), 0, -maxSize - 1);
             return null;
         });
+    }
+
+    @Override
+    @SuppressWarnings("all")
+    public Set<RedisZSetCommands.Tuple> zRangeWithScores(String key,  int db, int start, int end) {
+        Object obj = redisTemplate.execute((RedisCallback<Object>) connection -> {
+            connection.select(db);
+            Set<RedisZSetCommands.Tuple> tuples = connection.zRangeWithScores(serializeKey(key), start, end);
+            return tuples;
+        });
+        if(obj!=null){
+            return (Set<RedisZSetCommands.Tuple>) obj;
+        }
+        return Sets.newHashSet();
     }
 
 }

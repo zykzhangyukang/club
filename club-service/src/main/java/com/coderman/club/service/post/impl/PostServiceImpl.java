@@ -40,6 +40,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -791,6 +792,10 @@ public class PostServiceImpl implements PostService {
                 .in(PostTagModel::getPostId, postIdList)).stream()
                 .collect(Collectors.groupingBy(PostTagModel::getPostId));
 
+        // 获取热帖
+        Set<RedisZSetCommands.Tuple> tuples = this.redisService.zRangeWithScores(RedisKeyConstant.REDIS_HOT_POST_CACHE, RedisDbConstant.REDIS_BIZ_CACHE, 0, -1);
+        List<Long> hotPostIdList = tuples.stream().map(e -> new String(e.getValue())).filter(StringUtils::isNotBlank).map(Long::parseLong).collect(Collectors.toList());
+
         for (PostListItemVO postListItemVo : postListItemVos) {
 
             List<PostTagModel> postTagModels = tagMap.get(postListItemVo.getPostId());
@@ -800,6 +805,9 @@ public class PostServiceImpl implements PostService {
                 List<String> tagNames = postTagModels.stream().distinct().map(PostTagModel::getTagName).collect(Collectors.toList());
                 postListItemVo.setTags(tagNames);
             }
+
+            // 热帖标识
+            postListItemVo.setIsHot(hotPostIdList.contains(postListItemVo.getPostId()));
         }
     }
 }
