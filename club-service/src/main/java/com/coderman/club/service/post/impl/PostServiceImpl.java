@@ -742,6 +742,18 @@ public class PostServiceImpl implements PostService {
         return ResultUtil.getSuccess("取消收藏成功");
     }
 
+    @Override
+    public Integer getCollectCountByUserId(Long userId) {
+
+        if(userId == null){
+            return 0;
+        }
+
+        return this.postCollectMapper.selectCount(Wrappers.<PostCollectModel>lambdaQuery()
+                .eq(PostCollectModel::getUserId, userId)
+                .eq(PostCollectModel::getStatus, CommonConst.STATUS_NORMAL));
+    }
+
 
     private void updatePostTag(PostUpdateDTO postUpdateDTO, List<String> tags) {
 

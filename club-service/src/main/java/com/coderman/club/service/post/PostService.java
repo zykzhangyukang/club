@@ -95,4 +95,11 @@ public interface PostService {
      * @return
      */
     ResultVO<Void> postUnCollect(Long postId);
+
+    /**
+     * 获取用户收藏的帖子数量
+     * @param userId
+     * @return
+     */
+    Integer getCollectCountByUserId(Long userId);
 }

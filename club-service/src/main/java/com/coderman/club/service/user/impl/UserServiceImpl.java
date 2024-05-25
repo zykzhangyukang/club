@@ -21,6 +21,7 @@ import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.point.PointAccountService;
+import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.user.UserFollowingService;
@@ -63,31 +64,24 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private UserMapper userMapper;
-
     @Resource
     private UserFollowingService userFollowingService;
-
     @Resource
     private NotificationService notificationService;
-
     @Resource
     private PointAccountService pointAccountService;
-
+    @Resource
+    private PostService postService;
     @Resource
     private RedisService redisService;
-
     @Resource
     private RedisLockService redisLockService;
-
     @Resource
     private UserInfoService userInfoService;
-
     @Resource
     private UserLoginLogService userLoginLogService;
-
     @Resource
     private AliYunOssUtil aliYunOssUtil;
-
     @Resource
     private Producer producer;
 
@@ -453,6 +447,8 @@ public class UserServiceImpl implements UserService {
 
         // 关注的人数
         Integer followCount = this.userFollowingService.getFollowCountByUserId(current.getUserId());
+        // 收藏的帖子数
+        Integer collectCount = this.postService.getCollectCountByUserId(current.getUserId());
 
         UserLoginVO userLoginVO = new UserLoginVO();
         userLoginVO.setUserId(current.getUserId());
@@ -463,6 +459,7 @@ public class UserServiceImpl implements UserService {
         userLoginVO.setRefreshToken(current.getRefreshToken());
         userLoginVO.setToken(current.getToken());
         userLoginVO.setFollowCount(followCount);
+        userLoginVO.setCollectCount(collectCount);
         return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
     }
 
