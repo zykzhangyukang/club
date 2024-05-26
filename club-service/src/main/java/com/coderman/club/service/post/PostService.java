@@ -111,4 +111,11 @@ public interface PostService {
      * @return
      */
     ResultVO<PostCommentVO> postComment(PostCommentDTO postCommentDTO);
+
+    /**
+     * 删除帖子评论
+     * @param commentId
+     * @return
+     */
+    ResultVO<Void> postCommentDel(Long commentId);
 }

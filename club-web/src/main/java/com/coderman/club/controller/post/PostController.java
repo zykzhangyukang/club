@@ -48,6 +48,14 @@ public class PostController {
         return this.postService.postComment(postCommentDTO);
     }
 
+    @ApiOperation(value = "删除帖子评论")
+    @DeleteMapping(value = "/comment/delete/{commentId}")
+    @RateLimit
+    public ResultVO<Void> postCommentDel(@PathVariable(value = "commentId") Long commentId) {
+
+        return this.postService.postCommentDel(commentId);
+    }
+
     @ApiOperation(value = "点赞帖子")
     @PostMapping(value = "/like/{postId}")
     public ResultVO<Void> postLike(@PathVariable(value = "postId") Long postId) {

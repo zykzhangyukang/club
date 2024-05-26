@@ -22,4 +22,35 @@
   <sql id="Blob_Column_List">
     content
   </sql>
+
+  <!-- 获取每个根评论的最新三条子评论 -->
+  <select id="getTopRepliesForComments" parameterType="java.util.List" resultType="com.coderman.club.model.post.PostCommentModel">
+    SELECT parent_id, comment_id, post_id, user_id, to_user_id, content, location, create_time, is_hide,reply_id
+    FROM (
+    SELECT
+    comment_id,
+    post_id,
+    parent_id,
+    reply_id,
+    user_id,
+    to_user_id,
+    content,
+    location,
+    create_time,
+    is_hide,
+    @row_number := IF(@parent_id = parent_id, @row_number + 1, 1) AS row_number,
+    @parent_id := parent_id
+    FROM club_post_comment
+    CROSS JOIN (SELECT @row_number := 0, @parent_id := NULL) AS vars
+    WHERE parent_id IN
+    <foreach item="item" index="index" collection="parentIds" open="(" separator="," close=")">
+      #{item}
+    </foreach>
+    AND is_hide = FALSE
+    ORDER BY parent_id, create_time DESC
+    ) AS subquery
+    WHERE row_number &lt; 3
+  </select>
+
+
 </mapper>

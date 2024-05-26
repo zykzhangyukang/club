@@ -2,6 +2,9 @@ package com.coderman.club.mapper.post;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coderman.club.model.post.PostCommentModel;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * This is the base Mapper class for table: club_post_comment
@@ -9,4 +12,11 @@ import com.coderman.club.model.post.PostCommentModel;
  * @author coderman - MyBatis Generator
  */
 public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
+
+    /**
+     * 获取每个根评论的最新三条子评论
+     * @param parentIds
+     * @return
+     */
+    List<PostCommentModel> getTopRepliesForComments(@Param(value = "parentIds") List<Long> parentIds);
 }
