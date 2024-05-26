@@ -1,10 +1,12 @@
 package com.coderman.club.service.post;
 
+import com.coderman.club.dto.post.PostCommentDTO;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.post.PostCommentVO;
 import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
 import org.springframework.web.multipart.MultipartFile;
@@ -102,4 +104,11 @@ public interface PostService {
      * @return
      */
     Integer getCollectCountByUserId(Long userId);
+
+    /**
+     * 评论帖子
+     * @param postCommentDTO
+     * @return
+     */
+    ResultVO<PostCommentVO> postComment(PostCommentDTO postCommentDTO);
 }

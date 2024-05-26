@@ -34,7 +34,7 @@ public class UserLoginLogServiceImpl implements UserLoginLogService {
         insertModel.setLoginTime(loginTime);
         insertModel.setIpAddress(IpUtil.getIp(HttpContextUtil.getHttpServletRequest()));
         insertModel.setDeviceInfo(IpUtil.getClientDeviceInfo(HttpContextUtil.getHttpServletRequest()));
-        insertModel.setLocation(IpUtil.getCityInfo(insertModel.getIpAddress()));
+        insertModel.setLocation(IpUtil.getCityInfo());
         this.userLoginLogMapper.insert(insertModel);
     }
 

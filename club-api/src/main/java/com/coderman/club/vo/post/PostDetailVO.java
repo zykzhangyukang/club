@@ -1,8 +1,6 @@
 package com.coderman.club.vo.post;
 
 import com.coderman.club.model.common.BaseModel;
-import com.coderman.club.model.section.SectionModel;
-import com.coderman.club.vo.section.SectionVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -71,4 +69,7 @@ public class PostDetailVO extends BaseModel {
 
     @ApiModelProperty(value = "是否收藏")
     private Boolean isCollected;
+
+    @ApiModelProperty(value = "帖子评论")
+    private List<PostCommentVO> comments;
 }

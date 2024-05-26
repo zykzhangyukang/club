@@ -5,9 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * This is the base record class for table: club_post_comment
@@ -16,9 +17,9 @@ import lombok.Data;
  */
 @Data
 @ApiModel(value="PostCommentModel", description = "club_post_comment 实体类")
-@TableName(value = "club_post_comment")
+@TableName(value="club_post_comment")
 public class PostCommentModel implements Serializable {
-
+    
     @TableId(value = "comment_id",type = IdType.AUTO)
     @ApiModelProperty(value = "主键id")
     private Long commentId;
@@ -26,15 +27,24 @@ public class PostCommentModel implements Serializable {
     @ApiModelProperty(value = "帖子id")
     private Long postId;
 
+    @ApiModelProperty(value = "父级评论id")
+    private Long parentId;
+
     @ApiModelProperty(value = "用户id")
     private Long userId;
+
+    @ApiModelProperty(value = "被评论人id")
+    private Long toUserId;
 
     @ApiModelProperty(value = "评论内容")
     private String content;
 
-    @ApiModelProperty(value = "创建时间")
-    private Date createdAt;
+    @ApiModelProperty(value = "地址")
+    private String location;
 
-    @ApiModelProperty(value = "是否启动")
-    private Boolean isActive;
+    @ApiModelProperty(value = "创建时间")
+    private Date createTime;
+
+    @ApiModelProperty(value = "是否隐藏")
+    private Boolean isHide;
 }

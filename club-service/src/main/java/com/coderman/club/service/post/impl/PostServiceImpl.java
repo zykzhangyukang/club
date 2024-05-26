@@ -7,39 +7,41 @@ import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.constant.user.CommonConst;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
+import com.coderman.club.dto.post.PostCommentDTO;
 import com.coderman.club.dto.post.PostPageDTO;
 import com.coderman.club.dto.post.PostPublishDTO;
 import com.coderman.club.dto.post.PostUpdateDTO;
 import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.exception.BusinessException;
-import com.coderman.club.mapper.post.PostCollectMapper;
-import com.coderman.club.mapper.post.PostLikeMapper;
-import com.coderman.club.mapper.post.PostMapper;
-import com.coderman.club.mapper.post.PostTagMapper;
-import com.coderman.club.model.post.PostCollectModel;
-import com.coderman.club.model.post.PostLikeModel;
-import com.coderman.club.model.post.PostModel;
-import com.coderman.club.model.post.PostTagModel;
+import com.coderman.club.mapper.post.*;
+import com.coderman.club.model.post.*;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.service.section.SectionService;
 import com.coderman.club.service.user.UserFollowingService;
+import com.coderman.club.service.user.UserService;
 import com.coderman.club.utils.*;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.post.PostCommentVO;
 import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
+import com.coderman.club.vo.post.PostReplyVO;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
+import com.coderman.club.vo.user.UserInfoVO;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +64,10 @@ public class PostServiceImpl implements PostService {
     private SectionService sectionService;
     @Resource
     private PostMapper postMapper;
+    @Resource
+    private PostCommentMapper postCommentMapper;
+    @Resource
+    private UserService userService;
     @Resource
     private PostLikeMapper postLikeMapper;
     @Resource
@@ -202,7 +208,7 @@ public class PostServiceImpl implements PostService {
             this.postTagMapper.delete(Wrappers.<PostTagModel>lambdaQuery().eq(PostTagModel::getPostId, postId));
         }
 
-        if(CollectionUtils.isNotEmpty(tagList)){
+        if (CollectionUtils.isNotEmpty(tagList)) {
             this.postTagMapper.insertBatch(postId, tagList);
         }
     }
@@ -347,7 +353,76 @@ public class PostServiceImpl implements PostService {
             postDetailVO.setViewsCount(postDetailVO.getViewsCount() + 1);
         }
 
+        // 获取评论信息
+        List<PostCommentVO> commentList = this.getCommentList(postDetailVO.getPostId());
+        postDetailVO.setComments(commentList);
+
         return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
+    }
+
+    /**
+     * 获取帖子评论
+     * @param postId
+     * @return
+     */
+    private List<PostCommentVO> getCommentList(Long postId) {
+
+        // 获取帖子下所有的评论信息
+        List<PostCommentModel> commentModelList = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
+                .eq(PostCommentModel::getPostId, postId)
+                .eq(PostCommentModel::getIsHide, Boolean.FALSE)
+                .orderByDesc(PostCommentModel::getCreateTime)
+        );
+
+        // 用户信息获取
+        Set<Long> userIdSet = Sets.newHashSet();
+        for (PostCommentModel commentModel : commentModelList) {
+            userIdSet.add(commentModel.getUserId());
+            userIdSet.add(commentModel.getToUserId());
+        }
+        List<UserInfoVO> userInfoVOS  = this.userService.getUserInfoByIdList(new ArrayList<>(userIdSet));
+        Map<Long, UserInfoVO> userInfoVOMap = userInfoVOS.stream().collect(Collectors.toMap(UserInfoVO::getUserId, e -> e, (k1, k2) -> k2));
+
+
+        List<PostCommentVO> list = commentModelList.stream().filter(e -> Objects.equals(e.getParentId(), 0L)).map(e -> {
+            PostCommentVO root = new PostCommentVO();
+            BeanUtils.copyProperties(e, root);
+            root.setReplies(Lists.newArrayList());
+
+            UserInfoVO userInfoVO = userInfoVOMap.get(e.getUserId());
+            if(userInfoVO!=null){
+                root.setAvatar(userInfoVO.getAvatar());
+                root.setNickname(userInfoVO.getNickname());
+            }
+
+            return root;
+        }).collect(Collectors.toList());
+
+        // 封装回复信息
+        for (PostCommentModel postCommentModel : commentModelList) {
+
+            if (!Objects.equals(postCommentModel.getParentId(), 0L)) {
+
+                for (PostCommentVO root : list) {
+
+                    if (Objects.equals(postCommentModel.getParentId(), root.getCommentId())) {
+
+                        PostReplyVO postReplyVO = new PostReplyVO();
+                        BeanUtils.copyProperties(postCommentModel, postReplyVO);
+
+                        UserInfoVO userInfoVO = userInfoVOMap.get(postCommentModel.getUserId());
+                        if(userInfoVO!=null){
+                            postReplyVO.setAvatar(userInfoVO.getAvatar());
+                            postReplyVO.setNickname(userInfoVO.getNickname());
+                        }
+
+                        root.getReplies().add(postReplyVO);
+                    }
+                }
+
+            }
+        }
+        return list;
     }
 
     private boolean isCollectedPost(Long userId, long postId) {
@@ -449,7 +524,7 @@ public class PostServiceImpl implements PostService {
     public ResultVO<Void> postLike(Long postId) {
 
         ResultVO<PostDetailVO> check = this.commonCheck(postId);
-        if(!ResultConstant.RESULT_CODE_200.equals(check.getCode())){
+        if (!ResultConstant.RESULT_CODE_200.equals(check.getCode())) {
             return ResultUtil.getFail(check.getMsg());
         }
 
@@ -526,7 +601,7 @@ public class PostServiceImpl implements PostService {
     public ResultVO<Void> postUnLike(Long postId) {
 
         ResultVO<PostDetailVO> check = this.commonCheck(postId);
-        if(!ResultConstant.RESULT_CODE_200.equals(check.getCode())){
+        if (!ResultConstant.RESULT_CODE_200.equals(check.getCode())) {
             return ResultUtil.getFail(check.getMsg());
         }
 
@@ -598,7 +673,7 @@ public class PostServiceImpl implements PostService {
         return ResultUtil.getSuccess();
     }
 
-    private ResultVO<PostDetailVO> commonCheck(Long postId){
+    private ResultVO<PostDetailVO> commonCheck(Long postId) {
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
@@ -745,13 +820,71 @@ public class PostServiceImpl implements PostService {
     @Override
     public Integer getCollectCountByUserId(Long userId) {
 
-        if(userId == null){
+        if (userId == null) {
             return 0;
         }
 
         return this.postCollectMapper.selectCount(Wrappers.<PostCollectModel>lambdaQuery()
                 .eq(PostCollectModel::getUserId, userId)
                 .eq(PostCollectModel::getStatus, CommonConst.STATUS_NORMAL));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ResultVO<PostCommentVO> postComment(PostCommentDTO postCommentDTO) {
+
+        String content = postCommentDTO.getContent();
+        Long postId = postCommentDTO.getPostId();
+        Long parentId = Optional.ofNullable(postCommentDTO.getParentId()).orElse(0L);
+
+        if (StringUtils.isBlank(content)) {
+            return ResultUtil.getWarn("内容不能为空！");
+        }
+        if (StringUtils.length(content) > 1024) {
+            return ResultUtil.getWarn("内容不超过1024个字符！");
+        }
+
+        PostModel postModel = this.postMapper.selectById(postId);
+        if (postModel == null) {
+            throw new BusinessException("评论的帖子不存在！");
+        }
+
+        PostCommentModel insertModel = new PostCommentModel();
+        insertModel.setCreateTime(new Date());
+        insertModel.setPostId(postId);
+        insertModel.setParentId(parentId);
+        insertModel.setUserId(AuthUtil.getCurrent().getUserId());
+        insertModel.setIsHide(Boolean.FALSE);
+        insertModel.setContent(content);
+        insertModel.setLocation(IpUtil.getCityInfo());
+
+        if (parentId == 0) {
+            // 根评论
+            insertModel.setToUserId(postModel.getUserId());
+        } else {
+            // 回复评论
+            PostCommentModel targetComment = this.postCommentMapper.selectById(parentId);
+            if (targetComment == null) {
+                throw new BusinessException("回复的评论不存在！");
+            }
+            insertModel.setToUserId(targetComment.getUserId());
+        }
+
+        this.postCommentMapper.insert(insertModel);
+
+        // 返回给前台
+        List<UserInfoVO> userInfoByIdList = this.userService.getUserInfoByIdList(Collections.singletonList(insertModel.getUserId()));
+
+        PostCommentVO commentVO = new PostCommentVO();
+        BeanUtils.copyProperties(insertModel, commentVO);
+        commentVO.setReplies(Lists.newArrayList());
+        if(CollectionUtils.isNotEmpty(userInfoByIdList)){
+            UserInfoVO vo = userInfoByIdList.get(0);
+            commentVO.setNickname(vo.getNickname());
+            commentVO.setAvatar(vo.getAvatar());
+        }
+
+        return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }
 
 

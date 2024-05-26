@@ -1,23 +1,24 @@
 package com.coderman.club.service.user;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.coderman.club.dto.user.UserInfoDTO;
 import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.user.UserRegisterDTO;
+import com.coderman.club.model.user.UserModel;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.user.UserIndexVO;
 import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Administrator
  */
-public interface UserService {
+public interface UserService extends IService<UserModel> {
 
     /**
      * 用户登录
@@ -118,4 +119,11 @@ public interface UserService {
      */
     ResultVO<UserLoginVO> loginByMp(String openId);
 
+    /**
+     * 获取用户信息
+     *
+     * @param idList
+     * @return
+     */
+    List<UserInfoVO> getUserInfoByIdList(List<Long> idList);
 }

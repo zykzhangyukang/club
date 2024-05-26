@@ -4,12 +4,16 @@
   <resultMap id="BaseResultMap" type="com.coderman.club.model.post.PostCommentModel">
     <id column="comment_id" jdbcType="BIGINT" property="commentId" />
     <result column="post_id" jdbcType="BIGINT" property="postId" />
+    <result column="parent_id" jdbcType="BIGINT" property="parentId" />
     <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="to_user_id" jdbcType="BIGINT" property="toUserId" />
     <result column="content" jdbcType="VARCHAR" property="content" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="is_active" jdbcType="BIT" property="isActive" />
+    <result column="location" jdbcType="VARCHAR" property="location" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="is_hide" jdbcType="BIT" property="isHide" />
   </resultMap>
   <sql id="Base_Column_List">
-    comment_id, post_id, user_id, content, created_at, is_active
+    comment_id, post_id, parent_id, user_id, to_user_id, content, location, create_time, 
+    is_hide
   </sql>
 </mapper>

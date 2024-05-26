@@ -26,6 +26,11 @@ public class IpUtil {
     private final static String LOCAL_IP = "127.0.0.1";
     public final static String DEFAULT_ADDRESS = "未知";
 
+    public static String getCityInfo() {
+        String ip = IpUtil.getIp(HttpContextUtil.getHttpServletRequest());
+        return getCityInfo(ip);
+    }
+
     public static String getCityInfo(String ip) {
         DbSearcher searcher = null;
         try {

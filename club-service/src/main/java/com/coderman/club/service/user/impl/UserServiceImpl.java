@@ -1,6 +1,8 @@
 package com.coderman.club.service.user.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
@@ -35,7 +37,9 @@ import com.coderman.club.vo.user.UserInfoVO;
 import com.coderman.club.vo.user.UserLoginRefreshVO;
 import com.coderman.club.vo.user.UserLoginVO;
 import com.google.code.kaptcha.Producer;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -60,7 +64,7 @@ import java.util.regex.Pattern;
  */
 @Service
 @Slf4j
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implements UserService {
 
     @Resource
     private UserMapper userMapper;
@@ -748,6 +752,15 @@ public class UserServiceImpl implements UserService {
         UserLoginVO userLoginVO = createSession(userModel);
 
         return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
+    }
+
+    @Override
+    public List<UserInfoVO> getUserInfoByIdList(List<Long> idList) {
+
+        if(CollectionUtils.isEmpty(idList)){
+            return Lists.newArrayList();
+        }
+        return this.userMapper.getUserInfoByIdList(idList);
     }
 
     private UserLoginVO createSession(UserModel userModel) {

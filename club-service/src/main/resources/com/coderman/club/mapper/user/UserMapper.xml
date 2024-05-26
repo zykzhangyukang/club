@@ -27,5 +27,16 @@
     where username = #{username}
   </select>
 
+  <select id="getUserInfoByIdList" resultType="com.coderman.club.vo.user.UserInfoVO">
+    select
+    t1.user_id, t1.user_code, t1.nickname,t2.avatar
+    from club_user t1
+    left join club_user_info t2 on t1.user_id = t2.user_id
+    where t1.user_id in
+    <foreach collection="idList" item="item" open="(" close=")" separator=",">
+      #{item}
+    </foreach>
+  </select>
+
 
 </mapper>
