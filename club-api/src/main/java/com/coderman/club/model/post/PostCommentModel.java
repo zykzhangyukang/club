@@ -5,10 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * This is the base record class for table: club_post_comment
@@ -30,14 +29,14 @@ public class PostCommentModel implements Serializable {
     @ApiModelProperty(value = "父级评论id")
     private Long parentId;
 
+    @ApiModelProperty(value = "被回复的评论id")
+    private Long replyId;
+
     @ApiModelProperty(value = "用户id")
     private Long userId;
 
     @ApiModelProperty(value = "被评论人id")
     private Long toUserId;
-
-    @ApiModelProperty(value = "评论内容")
-    private String content;
 
     @ApiModelProperty(value = "地址")
     private String location;
@@ -47,4 +46,7 @@ public class PostCommentModel implements Serializable {
 
     @ApiModelProperty(value = "是否隐藏")
     private Boolean isHide;
+
+    @ApiModelProperty(value = "评论内容")
+    private String content;
 }

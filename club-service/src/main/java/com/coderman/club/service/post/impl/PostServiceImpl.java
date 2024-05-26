@@ -362,6 +362,7 @@ public class PostServiceImpl implements PostService {
 
     /**
      * 获取帖子评论
+     *
      * @param postId
      * @return
      */
@@ -380,7 +381,7 @@ public class PostServiceImpl implements PostService {
             userIdSet.add(commentModel.getUserId());
             userIdSet.add(commentModel.getToUserId());
         }
-        List<UserInfoVO> userInfoVOS  = this.userService.getUserInfoByIdList(new ArrayList<>(userIdSet));
+        List<UserInfoVO> userInfoVOS = this.userService.getUserInfoByIdList(new ArrayList<>(userIdSet));
         Map<Long, UserInfoVO> userInfoVOMap = userInfoVOS.stream().collect(Collectors.toMap(UserInfoVO::getUserId, e -> e, (k1, k2) -> k2));
 
 
@@ -390,7 +391,7 @@ public class PostServiceImpl implements PostService {
             root.setReplies(Lists.newArrayList());
 
             UserInfoVO userInfoVO = userInfoVOMap.get(e.getUserId());
-            if(userInfoVO!=null){
+            if (userInfoVO != null) {
                 root.setAvatar(userInfoVO.getAvatar());
                 root.setNickname(userInfoVO.getNickname());
             }
@@ -410,14 +411,25 @@ public class PostServiceImpl implements PostService {
                         PostReplyVO postReplyVO = new PostReplyVO();
                         BeanUtils.copyProperties(postCommentModel, postReplyVO);
 
+                        // 当前评论人
                         UserInfoVO userInfoVO = userInfoVOMap.get(postCommentModel.getUserId());
-                        if(userInfoVO!=null){
+                        if (userInfoVO != null) {
                             postReplyVO.setAvatar(userInfoVO.getAvatar());
                             postReplyVO.setNickname(userInfoVO.getNickname());
                         }
 
+                        // 被评论人
+                        UserInfoVO replyUserVO = userInfoVOMap.get(postCommentModel.getToUserId());
+                        if (postCommentModel.getReplyId() > 0 && replyUserVO != null) {
+                            postReplyVO.setToUserNickName(replyUserVO.getNickname());
+                            postReplyVO.setToUserAvatar(replyUserVO.getAvatar());
+                        }
+
                         root.getReplies().add(postReplyVO);
                     }
+
+                    // 回复时间倒叙排序
+                    root.getReplies().sort(Comparator.comparing(PostReplyVO::getCreateTime));
                 }
 
             }
@@ -836,6 +848,7 @@ public class PostServiceImpl implements PostService {
         String content = postCommentDTO.getContent();
         Long postId = postCommentDTO.getPostId();
         Long parentId = Optional.ofNullable(postCommentDTO.getParentId()).orElse(0L);
+        Long replyId = Optional.ofNullable(postCommentDTO.getReplyId()).orElse(0L);
 
         if (StringUtils.isBlank(content)) {
             return ResultUtil.getWarn("内容不能为空！");
@@ -857,15 +870,23 @@ public class PostServiceImpl implements PostService {
         insertModel.setIsHide(Boolean.FALSE);
         insertModel.setContent(content);
         insertModel.setLocation(IpUtil.getCityInfo());
+        insertModel.setReplyId(replyId);
 
         if (parentId == 0) {
             // 根评论
             insertModel.setToUserId(postModel.getUserId());
         } else {
-            // 回复评论
+            // 父级评论
             PostCommentModel targetComment = this.postCommentMapper.selectById(parentId);
             if (targetComment == null) {
-                throw new BusinessException("回复的评论不存在！");
+                throw new BusinessException("父级评论不存在！");
+            }
+            // 被回复的评论
+            if (insertModel.getReplyId() > 0) {
+                PostCommentModel replyModel = this.postCommentMapper.selectById(replyId);
+                if (replyModel == null) {
+                    throw new BusinessException("被回复的评论不存在！");
+                }
             }
             insertModel.setToUserId(targetComment.getUserId());
         }
@@ -878,11 +899,14 @@ public class PostServiceImpl implements PostService {
         PostCommentVO commentVO = new PostCommentVO();
         BeanUtils.copyProperties(insertModel, commentVO);
         commentVO.setReplies(Lists.newArrayList());
-        if(CollectionUtils.isNotEmpty(userInfoByIdList)){
+        if (CollectionUtils.isNotEmpty(userInfoByIdList)) {
             UserInfoVO vo = userInfoByIdList.get(0);
             commentVO.setNickname(vo.getNickname());
             commentVO.setAvatar(vo.getAvatar());
         }
+
+        // 增加帖子评论数
+        this.postMapper.commentsCount(postId, 1);
 
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }

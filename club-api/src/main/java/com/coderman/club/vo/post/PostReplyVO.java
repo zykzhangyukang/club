@@ -21,11 +21,20 @@ public class PostReplyVO extends BaseModel {
     @ApiModelProperty(value = "父级评论id")
     private Long parentId;
 
-    @ApiModelProperty(value = "用户id")
-    private Long userId;
+    @ApiModelProperty(value = "被回复的评论id")
+    private Long replyId;
+
+    @ApiModelProperty(value = "被评论昵称")
+    private String toUserNickName;
+
+    @ApiModelProperty(value = "被评论人头像")
+    private String toUserAvatar;
 
     @ApiModelProperty(value = "被评论人id")
     private Long toUserId;
+
+    @ApiModelProperty(value = "用户id")
+    private Long userId;
 
     @ApiModelProperty(value = "评论内容")
     private String content;

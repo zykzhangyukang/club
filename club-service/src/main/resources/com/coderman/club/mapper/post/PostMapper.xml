@@ -104,6 +104,9 @@
   <update id="addViewsCount">
     update club_post set views_count = views_count +#{count} where post_id = #{postId}
   </update>
+  <update id="commentsCount">
+    update club_post set comments_count = comments_count +#{count} where post_id = #{postId}
+  </update>
   <update id="updatePostWithContentById">
     update club_post
     set

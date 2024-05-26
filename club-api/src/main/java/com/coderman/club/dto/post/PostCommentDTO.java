@@ -18,4 +18,7 @@ public class PostCommentDTO extends BaseModel {
     @ApiModelProperty(value = "评论内容")
     private String content;
 
+    @ApiModelProperty(value = "被回复的评论id")
+    private Long replyId;
+
 }

@@ -47,6 +47,13 @@ public interface PostMapper extends BaseMapper<PostModel> {
     void addViewsCount(@Param(value = "postId") Long postId,@Param(value = "count") Integer count);
 
     /**
+     * 增加帖子评论数
+     *
+     * @param postId
+     */
+    void commentsCount(@Param(value = "postId") Long postId, @Param(value = "count") Integer count);
+
+    /**
      * 查询用户帖子
      * @param userId
      * @param postId
