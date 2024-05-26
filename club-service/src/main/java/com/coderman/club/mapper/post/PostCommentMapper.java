@@ -2,6 +2,7 @@ package com.coderman.club.mapper.post;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coderman.club.model.post.PostCommentModel;
+import com.coderman.club.vo.post.PostReplyVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -19,4 +20,21 @@ public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
      * @return
      */
     List<PostCommentModel> getTopRepliesForComments(@Param(value = "parentIds") List<Long> parentIds);
+
+
+    /**
+     * 增加评论回复数
+     *
+     * @param commentId
+     */
+    void addReplyCount(@Param(value = "commentId") Long commentId,@Param(value = "count") Integer count);
+
+    /**
+     * 回复分页
+     * @param pageSize
+     * @param offsetId
+     * @param commentId
+     * @return
+     */
+    List<PostReplyVO> getPostReplyPage(@Param(value = "pageSize") Long pageSize,@Param(value = "offsetId") Long offsetId,@Param(value = "commentId") Long commentId);
 }

@@ -1,14 +1,12 @@
 package com.coderman.club.service.post;
 
-import com.coderman.club.dto.post.PostCommentDTO;
-import com.coderman.club.dto.post.PostPageDTO;
-import com.coderman.club.dto.post.PostPublishDTO;
-import com.coderman.club.dto.post.PostUpdateDTO;
+import com.coderman.club.dto.post.*;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.post.PostCommentVO;
 import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
+import com.coderman.club.vo.post.PostReplyVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -118,4 +116,11 @@ public interface PostService {
      * @return
      */
     ResultVO<Void> postCommentDel(Long commentId);
+
+    /**
+     * 获取回复分页
+     * @param postReplyDTO
+     * @return
+     */
+    ResultVO<List<PostReplyVO>> postReplyPage(PostReplyDTO postReplyDTO);
 }

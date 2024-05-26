@@ -32,6 +32,9 @@ public class PostCommentModel implements Serializable {
     @ApiModelProperty(value = "被回复的评论id")
     private Long replyId;
 
+    @ApiModelProperty(value = "子评论的数量")
+    private Integer replyCount;
+
     @ApiModelProperty(value = "用户id")
     private Long userId;
 
@@ -46,6 +49,9 @@ public class PostCommentModel implements Serializable {
 
     @ApiModelProperty(value = "是否隐藏")
     private Boolean isHide;
+
+    @ApiModelProperty(value = "类型（评论：comment, 回复：reply）")
+    private String type;
 
     @ApiModelProperty(value = "评论内容")
     private String content;

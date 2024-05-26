@@ -6,24 +6,30 @@
     <result column="post_id" jdbcType="BIGINT" property="postId" />
     <result column="parent_id" jdbcType="BIGINT" property="parentId" />
     <result column="reply_id" jdbcType="BIGINT" property="replyId" />
+    <result column="reply_count" jdbcType="INTEGER" property="replyCount" />
     <result column="user_id" jdbcType="BIGINT" property="userId" />
     <result column="to_user_id" jdbcType="BIGINT" property="toUserId" />
     <result column="location" jdbcType="VARCHAR" property="location" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="is_hide" jdbcType="BIT" property="isHide" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.coderman.club.model.post.PostCommentModel">
     <result column="content" jdbcType="LONGVARCHAR" property="content" />
   </resultMap>
   <sql id="Base_Column_List">
-    comment_id, post_id, parent_id, reply_id, user_id, to_user_id, location, create_time, 
-    is_hide
+    comment_id, post_id, parent_id, reply_id, reply_count, user_id, to_user_id, location, 
+    create_time, is_hide, type
   </sql>
   <sql id="Blob_Column_List">
     content
   </sql>
 
-  <!-- 获取每个根评论的最新三条子评论 -->
+  <update id="addReplyCount">
+    update club_post_comment set reply_count = reply_count + #{count} where comment_id = #{commentId}
+  </update>
+
+  <!-- 获取每个根评论的最新三条子回复 -->
   <select id="getTopRepliesForComments" parameterType="java.util.List" resultType="com.coderman.club.model.post.PostCommentModel">
     SELECT parent_id, comment_id, post_id, user_id, to_user_id, content, location, create_time, is_hide,reply_id
     FROM (
@@ -46,11 +52,20 @@
     <foreach item="item" index="index" collection="parentIds" open="(" separator="," close=")">
       #{item}
     </foreach>
-    AND is_hide = FALSE
-    ORDER BY parent_id, create_time DESC
+    AND is_hide = 0 AND `type` = 'reply'
+    ORDER BY comment_id ASC
     ) AS subquery
-    WHERE row_number &lt; 3
+    WHERE row_number &lt;= 3
   </select>
 
+  <select id="getPostReplyPage" resultType="com.coderman.club.vo.post.PostReplyVO">
+    SELECT *
+    FROM club_post_comment
+    WHERE  parent_id = #{commentId}
+                      AND comment_id > #{offsetId}
+                      AND is_hide = 0 AND  `type` = 'reply'
+                     ORDER BY comment_id ASC
+                     LIMIT #{pageSize}
 
+  </select>
 </mapper>

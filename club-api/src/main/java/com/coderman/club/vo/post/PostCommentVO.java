@@ -45,6 +45,9 @@ public class PostCommentVO extends BaseModel {
     @ApiModelProperty(value = "点赞数")
     private Integer likes = 0;
 
+    @ApiModelProperty(value = "回复数")
+    private Integer replyCount;
+
     @ApiModelProperty(value = "回复列表")
     private List<PostReplyVO> replies;
 }

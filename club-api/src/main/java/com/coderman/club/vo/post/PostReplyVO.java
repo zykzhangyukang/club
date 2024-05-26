@@ -51,6 +51,9 @@ public class PostReplyVO extends BaseModel {
     @ApiModelProperty(value = "点赞数")
     private Integer likes = 0;
 
+    @ApiModelProperty(value = "回复数")
+    private Integer replyCount;
+
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
 

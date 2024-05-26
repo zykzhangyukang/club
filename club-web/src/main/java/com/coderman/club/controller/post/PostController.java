@@ -1,16 +1,14 @@
 package com.coderman.club.controller.post;
 
 import com.coderman.club.annotation.RateLimit;
-import com.coderman.club.dto.post.PostCommentDTO;
-import com.coderman.club.dto.post.PostPageDTO;
-import com.coderman.club.dto.post.PostPublishDTO;
-import com.coderman.club.dto.post.PostUpdateDTO;
+import com.coderman.club.dto.post.*;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.post.PostCommentVO;
 import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostListItemVO;
+import com.coderman.club.vo.post.PostReplyVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +44,14 @@ public class PostController {
     public ResultVO<PostCommentVO> postComment(@RequestBody PostCommentDTO postCommentDTO) {
 
         return this.postService.postComment(postCommentDTO);
+    }
+
+    @ApiOperation(value = "回复分页加载")
+    @PostMapping(value = "/reply/page")
+    @RateLimit
+    public ResultVO<List<PostReplyVO>> postReplyPage(@RequestBody PostReplyDTO postReplyDTO) {
+
+        return this.postService.postReplyPage(postReplyDTO);
     }
 
     @ApiOperation(value = "删除帖子评论")
