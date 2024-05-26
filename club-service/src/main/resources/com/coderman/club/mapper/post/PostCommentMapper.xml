@@ -53,9 +53,9 @@
       #{item}
     </foreach>
     AND is_hide = 0 AND `type` = 'reply'
-    ORDER BY comment_id ASC
+    ORDER BY parent_id , comment_id ASC
     ) AS subquery
-    WHERE row_number &lt;= 3
+    WHERE row_number &lt;= 2
   </select>
 
   <select id="getPostReplyPage" resultType="com.coderman.club.vo.post.PostReplyVO">
