@@ -76,6 +76,7 @@ public class AuthAspect {
     @PostConstruct
     public void init() {
         // 公众号相关
+        WHITE_LIST.add("/api/sse/chatgpt");
         WHITE_LIST.add("/api/wechat/message");
         WHITE_LIST.add("/api/wechat/code");
         WHITE_LIST.add("/api/wechat/subscribe");

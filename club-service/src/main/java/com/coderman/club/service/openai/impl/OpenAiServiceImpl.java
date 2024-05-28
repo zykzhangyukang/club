@@ -13,7 +13,6 @@ import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSourceListener;
 import okhttp3.sse.EventSources;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -37,10 +36,10 @@ public class OpenAiServiceImpl implements OpenAiService {
         // 构建POST参数
         JSONArray messages = new JSONArray();
 
-        JSONObject tips = new JSONObject();
-        tips.put("role", "user");
-        tips.put("content", "ChatGPT你每个回复的内容字符数，必须帮我控制在10个字符以内！");
-        messages.add(tips);
+        //JSONObject tips = new JSONObject();
+        //tips.put("role", "user");
+        //tips.put("content", "ChatGPT你每个回复的内容字符数，必须帮我控制在10个字符以内！");
+        //messages.add(tips);
 
         for (String value : contents) {
             JSONObject message = new JSONObject();
@@ -83,6 +82,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                     this.parseContent(data);
 
                     sseEmitter.send(data);
+                    log.info("onEvent==> {}", data);
 
                 } catch (IOException e) {
                     log.error("onEvent  sseEmitter#send error:{}", e.getMessage(), e);
