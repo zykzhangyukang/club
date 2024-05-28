@@ -730,10 +730,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         UserModel userModel = this.userMapper.selectOne(Wrappers.<UserModel>lambdaQuery().eq(UserModel::getMpOpenId, openId).last("limit 1"));
         if (userModel == null) {
 
+            String realPwd = RandomStringUtils.randomAlphanumeric(8);
+            String randomUserName = RandomStringUtils.randomAlphanumeric(8);
+
             UserRegisterDTO userRegisterDTO = new UserRegisterDTO();
-            userRegisterDTO.setUsername(RandomStringUtils.randomAlphabetic(11));
-            userRegisterDTO.setPassword(RandomStringUtils.randomAlphabetic(11));
-            userRegisterDTO.setEmail(userRegisterDTO.getUsername() + "@club.com");
+            userRegisterDTO.setUsername(randomUserName);
+            userRegisterDTO.setPassword(realPwd);
+            userRegisterDTO.setEmail(randomUserName + "@club.com");
             userRegisterDTO.setMpOpenId(openId);
 
             // 公众号自动注册逻辑
@@ -744,7 +747,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
                     .senderId(0L)
                     .userIdList(Collections.singletonList(userModel.getUserId()))
                     .typeEnum(NotificationTypeEnum.REGISTER_INIT_PWD)
-                    .content(String.format(NotificationTypeEnum.REGISTER_INIT_PWD.getTemplate(), userModel.getNickname(), userModel.getPassword()))
+                    .content(String.format(NotificationTypeEnum.REGISTER_INIT_PWD.getTemplate(), userModel.getNickname(), realPwd))
                     .build();
             notificationService.saveAndNotify(notifyMsgDTO);
         }
@@ -786,6 +789,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         userLoginVO.setToken(token);
         userLoginVO.setRefreshToken(refreshToken);
         userLoginVO.setAvatar(authUserVO.getAvatar());
+
+        // 关注的人数
+        Integer followCount = this.userFollowingService.getFollowCountByUserId(userModel.getUserId());
+        userLoginVO.setFollowCount(followCount);
+        // 收藏的帖子数
+        Integer collectCount = this.postService.getCollectCountByUserId(userModel.getUserId());
+        userLoginVO.setCollectCount(collectCount);
+
         return userLoginVO;
     }
 
