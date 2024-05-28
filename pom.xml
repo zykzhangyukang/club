@@ -37,6 +37,7 @@
         <fastjson.version>1.2.71</fastjson.version>
         <aliyun.oss.version>3.17.1</aliyun.oss.version>
         <jsoup.version>1.14.3</jsoup.version>
+        <okhttp3.version>4.3.1</okhttp3.version>
     </properties>
 
     <repositories>

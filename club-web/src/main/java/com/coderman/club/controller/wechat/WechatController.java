@@ -1,7 +1,6 @@
 package com.coderman.club.controller.wechat;
 
 import com.alibaba.fastjson.JSON;
-import com.coderman.club.dto.user.UserLoginDTO;
 import com.coderman.club.dto.wechat.WxBaseMessageDTO;
 import com.coderman.club.exception.BusinessException;
 import com.coderman.club.service.wechat.WechatService;

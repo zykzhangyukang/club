@@ -1,5 +1,6 @@
 package com.coderman.club.aop;
 
+import com.alibaba.fastjson.JSON;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
@@ -7,6 +8,7 @@ import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.HttpContextUtil;
 import com.coderman.club.utils.ResultUtil;
+import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -73,6 +75,8 @@ public class AuthAspect {
 
     @PostConstruct
     public void init() {
+        // SSE相关接口
+        WHITE_LIST.add("/api/sse/chatgpt");
         // 公众号相关
         WHITE_LIST.add("/api/wechat/message");
         WHITE_LIST.add("/api/wechat/code");
@@ -124,8 +128,14 @@ public class AuthAspect {
         }
 
         if (authUserVO == null) {
+
+            ResultVO<String> resultVO = ResultUtil.getResult(String.class, ResultConstant.RESULT_CODE_401, "用户未登录", null);
+
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            return ResultUtil.getResult(String.class, ResultConstant.RESULT_CODE_401, "用户未登录", null);
+            response.setHeader("Content-type", "application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().println(JSON.toJSONString(resultVO));
+            return null;
         }
 
         // 将h会话保存到请求中

@@ -22,6 +22,10 @@ aliyun:
     access-key-secret: DES@C198710CB2463E594B6599BE0ABE138AAC0735B5ABBD632655095EBE8F436582
     end-point: oss-cn-shenzhen.aliyuncs.com
     bucket-name: ioss-bucket
+ai:
+  chatgpt:
+      open-ai-url: https://api.coderman.love/v1/chat/completions
+      open-ai-key: DES@99F9DA3E437EB81ADAE1438B0B5C0C20547C5ECC771191A8BD10A4A9C092CD60F3A2585852E324E0A082578D816984B36FC1FABB7B78E961
 logging:
     level:
       root: info
