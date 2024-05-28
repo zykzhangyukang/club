@@ -75,8 +75,6 @@ public class AuthAspect {
 
     @PostConstruct
     public void init() {
-        // SSE相关接口
-        WHITE_LIST.add("/api/sse/chatgpt");
         // 公众号相关
         WHITE_LIST.add("/api/wechat/message");
         WHITE_LIST.add("/api/wechat/code");
@@ -93,9 +91,13 @@ public class AuthAspect {
         WHITE_LIST.add("/api/user/captcha");
         // 首页列表
         WHITE_LIST.add("/api/index/sections");
+        // 轮播图数据
         WHITE_LIST.add("/api/index/carousels");
+        // 首页
         WHITE_LIST.add("/api/index");
+        // 帖子分页
         WHITE_LIST.add("/api/post/page");
+        // 帖子详情
         WHITE_LIST.add("/api/post/detail");
     }
 

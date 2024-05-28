@@ -2,7 +2,9 @@ package com.coderman.club.service.wechat;
 
 import com.coderman.club.dto.wechat.WxBaseMessageDTO;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.user.UserLoginVO;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
 
 /**
  * @author zhangyukang
@@ -22,7 +24,7 @@ public interface WechatService {
      * @param wxBaseMessageDTO
      * @return
      */
-    String replyMessage(WxBaseMessageDTO wxBaseMessageDTO);
+    String replyMessage(WxBaseMessageDTO wxBaseMessageDTO) throws IOException;
 
     /**
      * 监听微信事件码输入
@@ -30,5 +32,5 @@ public interface WechatService {
      * @param deviceId
      * @return
      */
-    ResultVO<UserLoginVO> subscribe(String deviceId);
+    SseEmitter subscribe(String deviceId);
 }

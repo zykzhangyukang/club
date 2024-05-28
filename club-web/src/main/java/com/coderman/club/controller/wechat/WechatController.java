@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -47,8 +48,8 @@ public class WechatController {
     }
 
     @ApiOperation(value = "获取微信公众令牌")
-    @GetMapping(value = "/subscribe")
-    public ResultVO<UserLoginVO> subscribe(String deviceId) {
+    @GetMapping(value = "/subscribe",produces = "text/event-stream;charset=UTF-8")
+    public SseEmitter subscribe(String deviceId) {
 
         return this.wechatService.subscribe(deviceId);
     }

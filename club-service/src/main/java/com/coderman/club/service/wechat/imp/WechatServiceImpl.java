@@ -14,9 +14,13 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
@@ -28,17 +32,24 @@ public class WechatServiceImpl implements WechatService {
     @Resource
     private UserService userService;
 
+    /**
+     * 设备id -> sse客户端的关系
+     */
+    private final Map<String, SseEmitter> DEVICE_SSE_CACHE = new ConcurrentHashMap<>();
+
+
     @Override
     public ResultVO<String> getEventCode(String deviceId) {
 
         if (StringUtils.isBlank(deviceId)) {
+
             return ResultUtil.getFail("参数错误！");
         }
 
         // 生成设备id绑定验证码
         String randomNumber = RandomStringUtils.randomNumeric(4);
-        this.redisService.setString(RedisKeyConstant.USER_LOGIN_DEVICE_PREFIX + deviceId, randomNumber, 60, RedisDbConstant.REDIS_DB_DEFAULT);
-        this.redisService.setString(RedisKeyConstant.USER_LOGIN_DEVICE_WECHAT__PREFIX + randomNumber, deviceId, 60, RedisDbConstant.REDIS_DB_DEFAULT);
+        this.redisService.setString(RedisKeyConstant.USER_LOGIN_DEVICE_EVENT_PREFIX + deviceId, randomNumber, 60, RedisDbConstant.REDIS_DB_DEFAULT);
+        this.redisService.setString(RedisKeyConstant.USER_LOGIN_EVENT_DEVICE_PREFIX + randomNumber, deviceId, 60, RedisDbConstant.REDIS_DB_DEFAULT);
 
         return ResultUtil.getSuccess(String.class, randomNumber);
     }
@@ -91,15 +102,33 @@ public class WechatServiceImpl implements WechatService {
         }
 
         // 判断是否存在事件码绑定了设备号
-        String deviceId = this.redisService.getString(RedisKeyConstant.USER_LOGIN_DEVICE_WECHAT__PREFIX + number, RedisDbConstant.REDIS_DB_DEFAULT);
+        String deviceId = this.redisService.getString(RedisKeyConstant.USER_LOGIN_EVENT_DEVICE_PREFIX + number, RedisDbConstant.REDIS_DB_DEFAULT);
         if (StringUtils.isBlank(deviceId)) {
             return getTextMessage(wxBaseMessageDTO, "验证码错误或已过期！");
         }
 
-        // 事件码与用户openId绑定
-        String openId = wxBaseMessageDTO.getFromUserName();
-        this.redisService.setString(RedisKeyConstant.USER_LOGIN_WECHAT_PREFIX + number, openId, 60, RedisDbConstant.REDIS_DB_DEFAULT);
+        // 告诉客户端已经扫码了
+        SseEmitter sseEmitter = DEVICE_SSE_CACHE.get(deviceId);
+        if (sseEmitter != null) {
 
+            ResultVO<UserLoginVO> resultVO;
+            try {
+
+                // 自动登录/注册逻辑
+                String openId = wxBaseMessageDTO.getFromUserName();
+                resultVO = this.userService.loginByMp(openId);
+
+            } catch (Exception e) {
+
+                log.error("扫码登录错误了:{}", e.getMessage(), e);
+                resultVO = ResultUtil.getFail("系统繁忙，请稍后再试！");
+            }
+            try {
+                sseEmitter.send(resultVO);
+            } catch (IOException e) {
+                log.error("sseEmitter send error :{}", e.getMessage(), e);
+            }
+        }
         return getTextMessage(wxBaseMessageDTO, "登录成功！");
     }
 
@@ -114,29 +143,27 @@ public class WechatServiceImpl implements WechatService {
     }
 
     @Override
-    public ResultVO<UserLoginVO> subscribe(String deviceId) {
+    public SseEmitter subscribe(String deviceId) {
 
-        if (StringUtils.isBlank(deviceId)) {
-            return ResultUtil.getFail("参数错误！");
-        }
-        String eventCode = this.redisService.getString(RedisKeyConstant.USER_LOGIN_DEVICE_PREFIX + deviceId, RedisDbConstant.REDIS_DB_DEFAULT);
-        if (StringUtils.isBlank(eventCode)) {
-            return ResultUtil.getFail("验证码过期！");
-        }
+        // 设置五分钟的超时时间
+        SseEmitter sseEmitter = new SseEmitter(5 * 60 * 1000L);
 
-        // 获取openId
-        String openId = this.redisService.getString(RedisKeyConstant.USER_LOGIN_WECHAT_PREFIX + eventCode, RedisDbConstant.REDIS_DB_DEFAULT);
-        if (StringUtils.isBlank(openId)) {
+        DEVICE_SSE_CACHE.put(deviceId, sseEmitter);
+        sseEmitter.onTimeout(() -> {
+            log.info("sse onTimeout");
+            DEVICE_SSE_CACHE.remove(deviceId);
+        });
+        sseEmitter.onError((e) -> {
+            log.info("sse onError");
+            DEVICE_SSE_CACHE.remove(deviceId);
+        });
+        sseEmitter.onCompletion(() -> {
+            log.info("sse onCompletion");
+            DEVICE_SSE_CACHE.remove(deviceId);
+        });
 
-            return ResultUtil.getWarn(UserLoginVO.class, null, "");
-        }
 
-        ResultVO<UserLoginVO> resultVO = this.userService.loginByMp(openId);
-        // 删除
-        this.redisService.del(RedisKeyConstant.USER_LOGIN_WECHAT_PREFIX + eventCode, RedisDbConstant.REDIS_DB_DEFAULT);
-        this.redisService.del(RedisKeyConstant.USER_LOGIN_DEVICE_PREFIX + deviceId, RedisDbConstant.REDIS_DB_DEFAULT);
-        this.redisService.del(RedisKeyConstant.USER_LOGIN_DEVICE_WECHAT__PREFIX + eventCode, RedisDbConstant.REDIS_DB_DEFAULT);
-        return resultVO;
+        return sseEmitter;
     }
 
 
