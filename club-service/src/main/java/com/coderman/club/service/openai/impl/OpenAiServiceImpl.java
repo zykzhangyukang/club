@@ -3,6 +3,7 @@ package com.coderman.club.service.openai.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.coderman.club.exception.BusinessException;
 import com.coderman.club.properties.ChatGptProperties;
 import com.coderman.club.service.openai.OpenAiService;
 import com.coderman.club.utils.OkHttpUtil;
@@ -82,7 +83,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                     this.parseContent(data);
 
                     sseEmitter.send(data);
-                    log.info("onEvent==> {}", data);
+                    log.debug("onEvent==> {}", data);
 
                 } catch (IOException e) {
                     log.error("onEvent  sseEmitter#send error:{}", e.getMessage(), e);
@@ -118,7 +119,7 @@ public class OpenAiServiceImpl implements OpenAiService {
 
             @Override
             public void onFailure(@NonNull EventSource eventSource, Throwable t, Response response) {
-                log.error("连接OpenAI平台时出现错误，请检查OpenAI key 是否可用！error:{}, response:{}", t,JSON.toJSONString(response) ,t);
+                log.error("连接OpenAI平台时出现错误，error:{}，response:{}", t,JSON.toJSONString(response) ,t);
                 sseEmitter.completeWithError(t);
             }
         });

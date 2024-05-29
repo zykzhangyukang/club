@@ -22,11 +22,11 @@ public class OkHttpUtil {
                             .proxy(Proxy.NO_PROXY)
                             .connectionPool(connectionPool)
                             //连接超时
-                            .connectTimeout(600, TimeUnit.SECONDS)
+                            .connectTimeout(30, TimeUnit.SECONDS)
                             //写入超时
-                            .writeTimeout(600, TimeUnit.SECONDS)
+                            .writeTimeout(60, TimeUnit.SECONDS)
                             //读取超时
-                            .readTimeout(600, TimeUnit.SECONDS)
+                            .readTimeout(60, TimeUnit.SECONDS)
                             .build();
                     okHttpClient.dispatcher().setMaxRequestsPerHost(200);
                     okHttpClient.dispatcher().setMaxRequests(200);

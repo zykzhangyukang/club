@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import java.util.Collections;
+import java.util.Arrays;
 
 @Slf4j
 @Api(value = "社区SSE模块", tags = {"社区SSE模块"})
@@ -25,7 +25,12 @@ public class SseController {
     @GetMapping(value = "/chatgpt", produces = "text/event-stream;charset=UTF-8")
     public SseEmitter subscript(String content) {
         SseEmitter sseEmitter = new SseEmitter(-1L);
-        openAiService.chatGptSse(sseEmitter, Collections.singletonList(content));
+
+        openAiService.chatGptSse(sseEmitter, Arrays.asList(
+                "你的回答控制在100个字符之内",
+                "你现在是一个社区网站的AI助手"
+                , content));
+
         return sseEmitter;
     }
 }
