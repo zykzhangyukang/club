@@ -24,7 +24,7 @@ aliyun:
     bucket-name: ioss-bucket
 ai:
   chatgpt:
-      open-ai-url: https://api.coderman.love/v1/chat/completions
+      open-ai-url: https://chatgpt.coderman.love/v1/chat/completions
       open-ai-key: DES@ABA18499E3E3870279BD3C568207EB82970DE972A4EB0F5AA92996D1DDAAB94BCFE2B28044D7DAD81232D376BCB18F54565467DB8A4C314F5F2EC4A83FE5B5FD
 logging:
     level:
