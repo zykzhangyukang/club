@@ -123,4 +123,10 @@ public interface PostService {
      * @return
      */
     ResultVO<List<PostReplyVO>> postReplyPage(PostReplyDTO postReplyDTO);
+
+    /**
+     * 评论分页
+     * @return
+     */
+    ResultVO<PageVO<List<PostCommentVO>>> getCommentPage( PostCommentPageDTO pageDTO);
 }

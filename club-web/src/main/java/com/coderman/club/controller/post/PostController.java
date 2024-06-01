@@ -107,6 +107,15 @@ public class PostController {
     }
 
 
+    @ApiOperation(value = "评论列表")
+    @PostMapping(value = "/comment/page")
+    public ResultVO<PageVO<List<PostCommentVO>>> getCommentPage(@RequestBody PostCommentPageDTO pageDTO) {
+
+        return this.postService.getCommentPage(pageDTO);
+    }
+
+
+
     @ApiOperation(value = "删除帖子")
     @DeleteMapping(value = "/detail/{id}")
     @RateLimit

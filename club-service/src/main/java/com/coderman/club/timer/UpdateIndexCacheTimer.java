@@ -9,6 +9,7 @@ import com.coderman.club.vo.carouse.CarouseVO;
 import com.coderman.club.vo.section.SectionVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

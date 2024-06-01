@@ -1,6 +1,5 @@
 package com.coderman.club.service.post.impl;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
@@ -14,7 +13,6 @@ import com.coderman.club.enums.FileModuleEnum;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.exception.BusinessException;
 import com.coderman.club.mapper.post.*;
-import com.coderman.club.model.common.BaseModel;
 import com.coderman.club.model.post.*;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.post.PostService;
@@ -33,10 +31,9 @@ import com.coderman.club.vo.post.PostReplyVO;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.coderman.club.vo.user.UserInfoVO;
-import com.github.pagehelper.ISelect;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -356,36 +353,40 @@ public class PostServiceImpl implements PostService {
             postDetailVO.setViewsCount(postDetailVO.getViewsCount() + 1);
         }
 
-        // 获取评论信息
-        List<PostCommentVO> commentList = this.getCommentList(postDetailVO.getPostId());
-        postDetailVO.setComments(commentList);
-
         return ResultUtil.getSuccess(PostDetailVO.class, postDetailVO);
     }
 
     /**
      * 获取帖子评论
      *
-     * @param postId
      * @return
      */
-    private List<PostCommentVO> getCommentList(Long postId) {
+    @Override
+    public ResultVO<PageVO<List<PostCommentVO>>> getCommentPage(PostCommentPageDTO pageDTO) {
+
+        Integer pageSize = pageDTO.getPageSize();
+        Integer currentPage = pageDTO.getCurrentPage();
+        Long postId = pageDTO.getPostId();
 
         // 获取帖子下所有的根评论信息
-        List<PostCommentVO> rootComments = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
+        PageHelper.startPage(currentPage, pageSize);
+        List<PostCommentModel> list = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
                 .eq(PostCommentModel::getPostId, postId)
                 .eq(PostCommentModel::getIsHide, Boolean.FALSE)
                 .eq(PostCommentModel::getParentId, 0)
                 .eq(PostCommentModel::getType, PostConstant.COMMENT_TYPE)
                 .orderByDesc(PostCommentModel::getCreateTime)
-        ).stream()
-                .filter(e -> Objects.equals(e.getParentId(), 0L))
-                .map(e -> {
-                    PostCommentVO root = new PostCommentVO();
-                    BeanUtils.copyProperties(e, root);
-                    root.setReplies(Lists.newArrayList());
-                    return root;
-                }).collect(Collectors.toList());
+        );
+
+        PageInfo<PostCommentModel> pageInfo = new PageInfo<>(list);
+
+        List<PostCommentVO> rootComments = pageInfo.getList().stream().map(e -> {
+            PostCommentVO root = new PostCommentVO();
+            BeanUtils.copyProperties(e, root);
+            root.setReplies(Lists.newArrayList());
+            return root;
+        }).collect(Collectors.toList());;
+
 
         // 获取每个根评论的前三条子评论
         List<Long> parentIds = rootComments.stream().map(PostCommentVO::getCommentId).collect(Collectors.toList());
@@ -446,7 +447,7 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        return rootComments;
+        return ResultUtil.getSuccessPage(PostCommentVO.class , new PageVO<>(pageInfo.getTotal(), rootComments, currentPage, pageSize));
     }
 
 
@@ -987,7 +988,7 @@ public class PostServiceImpl implements PostService {
         Long offsetId = postReplyDTO.getOffsetId();
         Long commentId = postReplyDTO.getCommentId();
 
-        if(pageSize == null || pageSize <=0 || pageSize >=5){
+        if (pageSize == null || pageSize <= 0 || pageSize >= 5) {
             pageSize = 5L;
         }
 

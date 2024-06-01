@@ -69,7 +69,4 @@ public class PostDetailVO extends BaseModel {
 
     @ApiModelProperty(value = "是否收藏")
     private Boolean isCollected;
-
-    @ApiModelProperty(value = "帖子评论")
-    private List<PostCommentVO> comments;
 }
