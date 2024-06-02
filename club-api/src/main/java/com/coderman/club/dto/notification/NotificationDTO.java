@@ -10,10 +10,10 @@ import lombok.EqualsAndHashCode;
 public class NotificationDTO extends BaseModel {
 
     @ApiModelProperty(value = "当前分页")
-    private Long currentPage;
+    private Integer currentPage;
 
     @ApiModelProperty(value = "每页显示条数")
-    private Long pageSize;
+    private Integer pageSize;
 
     @ApiModelProperty(value = "是否已读")
     private Boolean isRead;

@@ -2,6 +2,7 @@ package com.coderman.club.controller.notification;
 
 import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.service.notification.NotificationService;
+import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
@@ -32,7 +33,7 @@ public class NotificationController {
 
     @ApiOperation(value = "获取消息通知列表")
     @PostMapping(value = "/page")
-    public ResultVO<List<NotificationVO>> getPage(@RequestBody NotificationDTO notificationDTO){
+    public ResultVO<PageVO<List<NotificationVO>>> getPage(@RequestBody NotificationDTO notificationDTO){
 
         return this.notificationService.getPage(notificationDTO);
     }

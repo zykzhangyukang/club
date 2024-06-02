@@ -21,9 +21,6 @@ public class NotificationCountVO extends BaseModel {
     @ApiModelProperty(value = "点赞我的")
     private Integer zanCount;
 
-    @ApiModelProperty(value = "@我的")
-    private Integer atCount;
-
     @ApiModelProperty(value = "回复我的")
     private Integer replyCount;
 

@@ -12,10 +12,13 @@ import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.utils.WebsocketUtil;
+import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
 import com.coderman.club.vo.user.AuthUserVO;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -93,10 +96,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public ResultVO<List<NotificationVO>> getPage(NotificationDTO notificationDTO) {
+    public ResultVO<PageVO<List<NotificationVO>>> getPage(NotificationDTO notificationDTO) {
 
         String type = notificationDTO.getType();
         Boolean isRead = notificationDTO.getIsRead();
+        int currentPage = Optional.ofNullable(notificationDTO.getCurrentPage()).orElse(1);
+        int pageSize = Optional.ofNullable(notificationDTO.getPageSize()).orElse(10);
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (current == null) {
@@ -106,15 +111,19 @@ public class NotificationServiceImpl implements NotificationService {
             return ResultUtil.getWarn("消息类型不能为空！");
         }
 
+        PageHelper.startPage(currentPage, pageSize);
         List<NotificationVO> notificationVos = this.notificationMapper.getPage(current.getUserId(), isRead, type);
-        for (NotificationVO notificationVo : notificationVos) {
+        PageInfo<NotificationVO> pageInfo = new PageInfo<>(notificationVos);
+
+        for (NotificationVO notificationVo : pageInfo.getList()) {
             if (Objects.equals(notificationVo.getSenderId(), 0L)) {
                 notificationVo.setSenderName("系统");
                 notificationVo.setSenderAvatar(UserConstant.USER_DEFAULT_AVATAR);
             }
         }
 
-        return ResultUtil.getSuccessList(NotificationVO.class, notificationVos);
+        long total = pageInfo.getTotal();
+        return ResultUtil.getSuccessPage(NotificationVO.class, new PageVO<>(total, notificationVos, currentPage, pageSize));
     }
 
     @Override

@@ -385,7 +385,8 @@ public class PostServiceImpl implements PostService {
             BeanUtils.copyProperties(e, root);
             root.setReplies(Lists.newArrayList());
             return root;
-        }).collect(Collectors.toList());;
+        }).collect(Collectors.toList());
+        ;
 
 
         // 获取每个根评论的前三条子评论
@@ -447,7 +448,7 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        return ResultUtil.getSuccessPage(PostCommentVO.class , new PageVO<>(pageInfo.getTotal(), rootComments, currentPage, pageSize));
+        return ResultUtil.getSuccessPage(PostCommentVO.class, new PageVO<>(pageInfo.getTotal(), rootComments, currentPage, pageSize));
     }
 
 
@@ -890,9 +891,20 @@ public class PostServiceImpl implements PostService {
         insertModel.setReplyCount(0);
 
         if (parentId == 0) {
-            // 根评论
+
+            // 根评论 (回复帖子)
             insertModel.setToUserId(postModel.getUserId());
             insertModel.setType(PostConstant.COMMENT_TYPE);
+
+            // 发送消息通知
+            NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                    .senderId(current.getUserId())
+                    .userIdList(Collections.singletonList(postModel.getUserId()))
+                    .typeEnum(NotificationTypeEnum.COMMENT_POST)
+                    .content(String.format(NotificationTypeEnum.COMMENT_POST.getTemplate(), current.getNickname(), postModel.getTitle(), content))
+                    .build();
+            this.notificationService.send(notifyMsgDTO);
+
         } else {
 
             // 父级评论
@@ -908,7 +920,27 @@ public class PostServiceImpl implements PostService {
                 }
                 // 更新目标评论的回复数
                 this.postCommentMapper.addReplyCount(insertModel.getReplyId(), 1);
+
+                // 发送消息通知 (回复@某人)
+                NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                        .senderId(current.getUserId())
+                        .userIdList(Collections.singletonList(postModel.getUserId()))
+                        .typeEnum(NotificationTypeEnum.REPLY_COMMENT)
+                        .content(String.format(NotificationTypeEnum.REPLY_COMMENT.getTemplate(), current.getNickname(), replyModel.getContent(), content))
+                        .build();
+                this.notificationService.send(notifyMsgDTO);
+            }else {
+
+                // 发送消息通知 (回复评论)
+                NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                        .senderId(current.getUserId())
+                        .userIdList(Collections.singletonList(postModel.getUserId()))
+                        .typeEnum(NotificationTypeEnum.REPLY_AT_COMMENT)
+                        .content(String.format(NotificationTypeEnum.REPLY_AT_COMMENT.getTemplate(), current.getNickname(), targetComment.getContent(), content))
+                        .build();
+                this.notificationService.send(notifyMsgDTO);
             }
+
             insertModel.setToUserId(targetComment.getUserId());
             insertModel.setType(PostConstant.REPLY_TYPE);
 
@@ -932,15 +964,6 @@ public class PostServiceImpl implements PostService {
 
         // 增加帖子评论数
         this.postMapper.addCommentsCount(postId, 1);
-
-        // 发送消息通知
-        NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                .senderId(current.getUserId())
-                .userIdList(Collections.singletonList(postModel.getUserId()))
-                .typeEnum(NotificationTypeEnum.COMMENT_POST)
-                .content(String.format(NotificationTypeEnum.COMMENT_POST.getTemplate(), current.getNickname(), postModel.getTitle(), content))
-                .build();
-        this.notificationService.send(notifyMsgDTO);
 
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }

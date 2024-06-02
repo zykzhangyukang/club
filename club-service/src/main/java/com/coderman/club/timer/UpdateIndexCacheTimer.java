@@ -49,7 +49,7 @@ public class UpdateIndexCacheTimer implements CommandLineRunner {
     @Scheduled(cron = "0 */15 * * * ?")
     public void refreshIndexSectionsCache() {
         this.initSectionCache();
-        log.info("refreshSectionCache#首页栏目缓存数据刷新完成....");
+        log.info("REFRESH_SECTION_CACHE#栏目缓存数据刷新完成....");
     }
 
     /**
@@ -58,7 +58,7 @@ public class UpdateIndexCacheTimer implements CommandLineRunner {
     @Scheduled(cron = "0 */15 * * * ?")
     public void refreshIndexCarousesCache() {
         this.initCarouseCache();
-        log.info("refreshCarouseCache#首页轮播图数据刷新完成....");
+        log.info("REFRESH_CAROUSE_CACHE#轮播图数据刷新完成....");
     }
 
     /**
