@@ -25,7 +25,11 @@ public enum NotificationTypeEnum {
     /**
      * 收藏帖子
      */
-    COLLECT_POST("collect_post", "%s 收藏了你的帖子 %s");
+    COLLECT_POST("collect_post", "%s 收藏了你的帖子 %s"),
+    /**
+     * 评论帖子
+     */
+    COMMENT_POST("comment_post", "%s 评论了你的帖子 “%s”  ：%s ");
 
     NotificationTypeEnum(String msgType, String template) {
         this.template = template;

@@ -98,6 +98,8 @@ public class AuthAspect {
         WHITE_LIST.add("/api/index");
         // 帖子分页
         WHITE_LIST.add("/api/post/page");
+        // 帖子评论
+        WHITE_LIST.add("/api/post/comment/page");
         // 帖子详情
         WHITE_LIST.add("/api/post/detail");
     }

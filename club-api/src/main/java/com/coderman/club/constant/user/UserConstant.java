@@ -15,4 +15,9 @@ public interface UserConstant {
      * 用户默认头像
      */
     public static final String USER_DEFAULT_AVATAR = "https://ioss-bucket.oss-cn-shenzhen.aliyuncs.com/club/user/2023-11-25/png/defaut_avatar.jpg";
+
+    /**
+     * 用户默认性别
+     */
+    public static final String USER_STATUS_GENDER = "man";
 }

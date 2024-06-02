@@ -18,7 +18,7 @@ public interface NotificationService {
      *
      * @param notifyMsgDTO
      */
-    public void saveAndNotify(NotifyMsgDTO notifyMsgDTO);
+    public void send(NotifyMsgDTO notifyMsgDTO);
 
     /**
      * 获取未读消息数

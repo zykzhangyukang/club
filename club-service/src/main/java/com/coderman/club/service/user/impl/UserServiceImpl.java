@@ -1,7 +1,6 @@
 package com.coderman.club.service.user.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.common.ResultConstant;
@@ -281,7 +280,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         userInfoModel.setLocation(StringUtils.EMPTY);
         userInfoModel.setUserTags(StringUtils.EMPTY);
         userInfoModel.setWebsite(StringUtils.EMPTY);
-        userInfoModel.setGender(StringUtils.EMPTY);
+        userInfoModel.setGender(UserConstant.USER_STATUS_GENDER);
         userInfoModel.setRegisterTime(new Date());
         userInfoModel.setFollowersCount(0L);
         userInfoModel.setFollowingCount(0L);
@@ -304,7 +303,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
                 .typeEnum(NotificationTypeEnum.REGISTER_WELCOME)
                 .content(String.format(NotificationTypeEnum.REGISTER_WELCOME.getTemplate(), registerModel.getNickname()))
                 .build();
-        notificationService.saveAndNotify(notifyMsgDTO);
+        notificationService.send(notifyMsgDTO);
 
         return registerModel;
     }
@@ -586,7 +585,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
                         .typeEnum(NotificationTypeEnum.FOLLOWING_USER)
                         .content(String.format(NotificationTypeEnum.FOLLOWING_USER.getTemplate(), current.getNickname()))
                         .build();
-                this.notificationService.saveAndNotify(notifyMsgDTO);
+                this.notificationService.send(notifyMsgDTO);
 
             } else if (StringUtils.equals(userFollowingModel.getStatus(), CommonConst.STATUS_CANCEL)) {
 
@@ -749,7 +748,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
                     .typeEnum(NotificationTypeEnum.REGISTER_INIT_PWD)
                     .content(String.format(NotificationTypeEnum.REGISTER_INIT_PWD.getTemplate(), userModel.getNickname(), realPwd))
                     .build();
-            notificationService.saveAndNotify(notifyMsgDTO);
+            notificationService.send(notifyMsgDTO);
         }
 
         UserLoginVO userLoginVO = createSession(userModel);

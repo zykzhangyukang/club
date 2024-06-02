@@ -93,14 +93,22 @@ public class UpdateHotPostTimer implements CommandLineRunner {
         List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(500);
         log.info("Retrieved post tasks: {}", JSON.toJSONString(taskVoList));
 
+        long currentTimeMillis = System.currentTimeMillis();
+        String oldKey = RedisKeyConstant.REDIS_HOT_POST_CACHE + ":" + currentTimeMillis;
+
         List<CompletableFuture<String>> futures = new ArrayList<>();
         for (PostHotTaskVO postHotTaskVO : taskVoList) {
+            postHotTaskVO.setRedisKeyName(oldKey);
             CompletableFuture<String> future = thread0(postHotTaskVO);
             futures.add(future);
         }
 
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        allFutures.thenRun(() -> log.info("刷新帖子热度完成"));
+        allFutures.thenRun(() -> {
+            this.redisService.rename(oldKey, RedisKeyConstant.REDIS_HOT_POST_CACHE,RedisDbConstant.REDIS_BIZ_CACHE);
+            log.info("刷新帖子热度完成，耗时：{} ms", System.currentTimeMillis() - currentTimeMillis);
+        });
+
     }
 
     private CompletableFuture<String> thread0(PostHotTaskVO postHotTaskVO) {
@@ -162,7 +170,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
         }
 
         if (!tuples.isEmpty()) {
-            this.redisService.addZSetWithMaxSize(RedisKeyConstant.REDIS_HOT_POST_CACHE, tuples, RedisDbConstant.REDIS_BIZ_CACHE, MAX_HOT_POSTS);
+            this.redisService.addZSetWithMaxSize(postHotTaskVO.getRedisKeyName(), tuples, RedisDbConstant.REDIS_BIZ_CACHE, MAX_HOT_POSTS);
         }
 
         String msg = String.format("刷新帖子热度成功: [beginId: %s, endId: %s]", beginId, endId);

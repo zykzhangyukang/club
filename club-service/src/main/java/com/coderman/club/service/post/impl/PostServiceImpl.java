@@ -109,7 +109,7 @@ public class PostServiceImpl implements PostService {
         // 防重校验
         boolean exists = this.redisService.exists(RedisKeyConstant.REDIS_POST_REPEAT + token, RedisDbConstant.REDIS_BIZ_CACHE);
         if (!exists) {
-            return ResultUtil.getWarn("数据已过期，请重新进行提交！");
+            return ResultUtil.getWarn("Token已过期，请重新提交！");
         }
 
         try {
@@ -606,7 +606,7 @@ public class PostServiceImpl implements PostService {
                         .typeEnum(NotificationTypeEnum.LIKE_POST)
                         .content(String.format(NotificationTypeEnum.LIKE_POST.getTemplate(), current.getNickname(), postDetailVO.getTitle()))
                         .build();
-                this.notificationService.saveAndNotify(notifyMsgDTO);
+                this.notificationService.send(notifyMsgDTO);
             }
 
             // 维护帖子点赞数
@@ -777,7 +777,7 @@ public class PostServiceImpl implements PostService {
                         .typeEnum(NotificationTypeEnum.COLLECT_POST)
                         .content(String.format(NotificationTypeEnum.COLLECT_POST.getTemplate(), current.getNickname(), postDetailVO.getTitle()))
                         .build();
-                this.notificationService.saveAndNotify(notifyMsgDTO);
+                this.notificationService.send(notifyMsgDTO);
             }
 
             // 维护帖子收藏数
@@ -867,8 +867,8 @@ public class PostServiceImpl implements PostService {
         if (StringUtils.isBlank(content)) {
             return ResultUtil.getWarn("内容不能为空！");
         }
-        if (StringUtils.length(content) > 1024) {
-            return ResultUtil.getWarn("内容不超过1024个字符！");
+        if (StringUtils.length(content) > 512) {
+            return ResultUtil.getWarn("内容不超过512个字符！");
         }
 
         PostModel postModel = this.postMapper.selectById(postId);
@@ -876,11 +876,13 @@ public class PostServiceImpl implements PostService {
             throw new BusinessException("评论的帖子不存在！");
         }
 
+        AuthUserVO current = AuthUtil.getCurrent();
+
         PostCommentModel insertModel = new PostCommentModel();
         insertModel.setCreateTime(new Date());
         insertModel.setPostId(postId);
         insertModel.setParentId(parentId);
-        insertModel.setUserId(AuthUtil.getCurrent().getUserId());
+        insertModel.setUserId(current.getUserId());
         insertModel.setIsHide(Boolean.FALSE);
         insertModel.setContent(content);
         insertModel.setLocation(IpUtil.getCityInfo());
@@ -930,6 +932,15 @@ public class PostServiceImpl implements PostService {
 
         // 增加帖子评论数
         this.postMapper.addCommentsCount(postId, 1);
+
+        // 发送消息通知
+        NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
+                .senderId(current.getUserId())
+                .userIdList(Collections.singletonList(postModel.getUserId()))
+                .typeEnum(NotificationTypeEnum.COMMENT_POST)
+                .content(String.format(NotificationTypeEnum.COMMENT_POST.getTemplate(), current.getNickname(), postModel.getTitle(), content))
+                .build();
+        this.notificationService.send(notifyMsgDTO);
 
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }

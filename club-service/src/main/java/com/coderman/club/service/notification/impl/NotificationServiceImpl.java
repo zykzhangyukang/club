@@ -42,7 +42,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public void saveAndNotify(NotifyMsgDTO notifyMsgDTO) {
+    public void send(NotifyMsgDTO notifyMsgDTO) {
 
         Long senderId = notifyMsgDTO.getSenderId();
         List<Long> userIdList = notifyMsgDTO.getUserIdList();

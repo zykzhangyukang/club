@@ -29,6 +29,9 @@ public class PostHotTaskVO extends BaseModel implements Delayed {
     @ApiModelProperty(value = "延时处理时间")
     private Long delayTime;
 
+    @ApiModelProperty(value = "redis的键")
+    private String redisKeyName;
+
     private final AtomicInteger retry =  new AtomicInteger(0);
 
     public void setDelayTime(long delayTime) {

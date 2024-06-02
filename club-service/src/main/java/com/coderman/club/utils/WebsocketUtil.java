@@ -78,7 +78,7 @@ public class WebsocketUtil {
             redisService.sendMessage(RedisKeyConstant.CHANNEL_WEBSOCKET_NOTIFY, websocketRedisMsg);
         } else {
 
-            log.info("消息接收者:{}还未建立WebSocket连接 [离线]，{} 发送的消息: {}", receiver, sender, payload);
+            log.info("消息接收者:{}, 还未建立WebSocket连接 [离线]，{} 发送的消息: {}", receiver, sender, payload);
         }
     }
 
