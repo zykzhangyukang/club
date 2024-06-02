@@ -16,9 +16,9 @@ import lombok.Data;
  */
 @Data
 @ApiModel(value="NotificationModel", description = "club_notification 实体类")
-@TableName(value = "club_notification")
+@TableName(value="club_notification")
 public class NotificationModel implements Serializable {
-
+    
     @TableId(value = "notification_id",type = IdType.AUTO)
     @ApiModelProperty(value = "主键")
     private Long notificationId;
@@ -35,8 +35,8 @@ public class NotificationModel implements Serializable {
     @ApiModelProperty(value = "通知的具体内容")
     private String content;
 
-    @ApiModelProperty(value = "通知相关页面的链接（可选）")
-    private String link;
+    @ApiModelProperty(value = "关联的业务id")
+    private Long relationId;
 
     @ApiModelProperty(value = "标记通知是否已被用户阅读")
     private Boolean isRead;

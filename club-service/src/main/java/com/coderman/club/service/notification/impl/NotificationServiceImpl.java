@@ -1,13 +1,14 @@
 package com.coderman.club.service.notification.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
-import com.coderman.club.constant.common.ResultConstant;
-import com.coderman.club.constant.user.UserConstant;
 import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.mapper.notification.NotificationMapper;
+import com.coderman.club.mapper.post.PostMapper;
 import com.coderman.club.model.notification.NotificationModel;
+import com.coderman.club.model.post.PostModel;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.ResultUtil;
@@ -19,6 +20,7 @@ import com.coderman.club.vo.notification.NotificationVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -27,7 +29,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author ：zhangyukang
@@ -39,7 +45,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Resource
     private NotificationMapper notificationMapper;
-
+    @Resource
+    private PostMapper postMapper;
     @Resource
     private WebsocketUtil websocketUtil;
 
@@ -51,7 +58,7 @@ public class NotificationServiceImpl implements NotificationService {
         List<Long> userIdList = notifyMsgDTO.getUserIdList();
         NotificationTypeEnum typeEnum = notifyMsgDTO.getTypeEnum();
         String content = notifyMsgDTO.getContent();
-        String link = notifyMsgDTO.getLink();
+        Long relationId = notifyMsgDTO.getRelationId();
 
         if (senderId == null || CollectionUtils.isEmpty(userIdList) || typeEnum == null) {
 
@@ -59,9 +66,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
         if (StringUtils.isBlank(content) || StringUtils.length(content) > CommonConstant.LENGTH_256) {
             throw new IllegalArgumentException("发送的内容不能为空，且不超过256个字符！");
-        }
-        if (StringUtils.length(link) > CommonConstant.LENGTH_256) {
-            throw new IllegalArgumentException("跳转链接不超过256个字符！");
         }
 
         for (Long userId : userIdList) {
@@ -71,7 +75,7 @@ public class NotificationServiceImpl implements NotificationService {
             notificationModel.setContent(content);
             notificationModel.setCreateTime(new Date());
             notificationModel.setIsRead(Boolean.FALSE);
-            notificationModel.setLink(link);
+            notificationModel.setRelationId(relationId);
             notificationModel.setType(typeEnum.getMsgType());
             notificationModel.setUserId(userId);
             this.notificationMapper.insert(notificationModel);
@@ -115,15 +119,37 @@ public class NotificationServiceImpl implements NotificationService {
         List<NotificationVO> notificationVos = this.notificationMapper.getPage(current.getUserId(), isRead, type);
         PageInfo<NotificationVO> pageInfo = new PageInfo<>(notificationVos);
 
-        for (NotificationVO notificationVo : pageInfo.getList()) {
-            if (Objects.equals(notificationVo.getSenderId(), 0L)) {
-                notificationVo.setSenderName("系统");
-                notificationVo.setSenderAvatar(UserConstant.USER_DEFAULT_AVATAR);
+        List<NotificationVO> voList = pageInfo.getList();
+
+        // 帖子信息
+        Map<Long, PostModel> postModelMap = Maps.newHashMap();
+        List<Long> postIdList = voList.stream().filter(e -> this.isPostInfo(e.getType())).map(NotificationVO::getRelationId).distinct().collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(postIdList)) {
+            postModelMap = this.postMapper.selectList(Wrappers.<PostModel>lambdaQuery()
+                    .select(PostModel::getPostId, PostModel::getTitle)
+                    .in(PostModel::getPostId, postIdList)).stream()
+                    .collect(Collectors.toMap(PostModel::getPostId, e -> e, (k1, k2) -> k2));
+        }
+
+        for (NotificationVO notificationVO : voList) {
+
+            // 帖子信息封装
+            if (this.isPostInfo(notificationVO.getType())) {
+                PostModel postModel = postModelMap.get(notificationVO.getRelationId());
+                if (postModel != null) {
+                    notificationVO.setPostTitle(postModel.getTitle());
+                }
             }
         }
 
         long total = pageInfo.getTotal();
         return ResultUtil.getSuccessPage(NotificationVO.class, new PageVO<>(total, notificationVos, currentPage, pageSize));
+    }
+
+    private boolean isPostInfo(String type){
+        return StringUtils.equals(type, NotificationTypeEnum.LIKE_POST.getMsgType())
+                || StringUtils.equals(type, NotificationTypeEnum.COMMENT_POST.getMsgType())
+                || StringUtils.equals(type, NotificationTypeEnum.COLLECT_POST.getMsgType());
     }
 
     @Override

@@ -7,13 +7,14 @@
     <result column="sender_id" jdbcType="BIGINT" property="senderId" />
     <result column="type" jdbcType="VARCHAR" property="type" />
     <result column="content" jdbcType="VARCHAR" property="content" />
-    <result column="link" jdbcType="VARCHAR" property="link" />
+    <result column="relation_id" jdbcType="BIGINT" property="relationId" />
     <result column="is_read" jdbcType="BIT" property="isRead" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="read_time" jdbcType="TIMESTAMP" property="readTime" />
   </resultMap>
   <sql id="Base_Column_List">
-    notification_id, user_id, sender_id, type, content, link, is_read, create_time, read_time
+    notification_id, user_id, sender_id, type, content, relation_id, is_read, create_time, 
+    read_time
   </sql>
 
   <select id="getUnReadCount" resultType="com.coderman.club.vo.notification.NotificationCountVO">
@@ -43,15 +44,15 @@
     cn.notification_id,
     cn.user_id,
     cn.sender_id,
+    cn.relation_id,
     cn.type,
-    cn.content,
-    cn.link,
     cn.is_read,
     cn.create_time,
     cn.read_time,
     cu1.username AS username,
     cui1.avatar AS userAvatar,
     cu2.username AS senderName,
+    cu2.nickname as sendNickName,
     cui2.avatar AS senderAvatar
     FROM
     club_notification cn

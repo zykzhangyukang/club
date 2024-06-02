@@ -21,8 +21,8 @@ public class NotifyMsgDTO extends BaseModel {
     @ApiModelProperty(value = "通知的具体内容")
     private String content;
 
-    @ApiModelProperty(value = "通知相关页面的链接（可选）")
-    private String link;
+    @ApiModelProperty(value = "关联业务id")
+    private Long relationId;
 
     @ApiModelProperty(value = "消息类型")
     private NotificationTypeEnum typeEnum;

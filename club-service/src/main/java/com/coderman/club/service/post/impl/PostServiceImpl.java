@@ -602,10 +602,11 @@ public class PostServiceImpl implements PostService {
             if (isFirstLike && rowCount > 0 && !Objects.equals(current.getUserId(), postDetailVO.getUserId())) {
 
                 NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                        .senderId(0L)
+                        .senderId(current.getUserId())
                         .userIdList(Collections.singletonList(postDetailVO.getUserId()))
                         .typeEnum(NotificationTypeEnum.LIKE_POST)
                         .content(String.format(NotificationTypeEnum.LIKE_POST.getTemplate(), current.getNickname(), postDetailVO.getTitle()))
+                        .relationId(postId)
                         .build();
                 this.notificationService.send(notifyMsgDTO);
             }
@@ -777,6 +778,7 @@ public class PostServiceImpl implements PostService {
                         .userIdList(Collections.singletonList(postDetailVO.getUserId()))
                         .typeEnum(NotificationTypeEnum.COLLECT_POST)
                         .content(String.format(NotificationTypeEnum.COLLECT_POST.getTemplate(), current.getNickname(), postDetailVO.getTitle()))
+                        .relationId(postId)
                         .build();
                 this.notificationService.send(notifyMsgDTO);
             }
