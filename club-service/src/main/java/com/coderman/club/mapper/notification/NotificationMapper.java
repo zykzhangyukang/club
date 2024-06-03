@@ -2,6 +2,7 @@ package com.coderman.club.mapper.notification;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coderman.club.model.notification.NotificationModel;
+import com.coderman.club.vo.notification.NotificationCommentVO;
 import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
 import org.apache.ibatis.annotations.Param;
@@ -41,4 +42,11 @@ public interface NotificationMapper extends BaseMapper<NotificationModel> {
      * @return
      */
     int updateReadStatus(@Param(value = "isRead") Integer isRead,@Param(value = "userId") Long userId,@Param(value = "notificationId") Long notificationId);
+
+    /**
+     * 获取评论相关信息
+     * @param commentIdList
+     * @return
+     */
+    List<NotificationCommentVO> selectNotificationCommentVOs(@Param(value = "commentIdList") List<Long> commentIdList);
 }

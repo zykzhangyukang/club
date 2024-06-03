@@ -13,6 +13,7 @@ public interface CommonConstant {
     /**
      * 字符长度256
      */
+    public static final Integer LENGTH_512 = 512;
     public static final Integer LENGTH_256 = 256;
     public static final Integer LENGTH_128 = 128;
     public static final Integer LENGTH_64 = 64;

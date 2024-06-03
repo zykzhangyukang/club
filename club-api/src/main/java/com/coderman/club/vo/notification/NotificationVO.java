@@ -1,6 +1,8 @@
 package com.coderman.club.vo.notification;
 
 import com.coderman.club.model.common.BaseModel;
+import com.coderman.club.model.post.PostCommentModel;
+import com.coderman.club.model.post.PostModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,9 +25,6 @@ public class NotificationVO extends BaseModel {
 
     @ApiModelProperty(value = "关联业务id")
     private Long relationId;
-
-    @ApiModelProperty(value = "帖子标题")
-    private String postTitle;
 
     @ApiModelProperty(value = "接收人")
     private String username;
@@ -62,5 +61,14 @@ public class NotificationVO extends BaseModel {
 
     @ApiModelProperty(value = "读取时间")
     private Date readTime;
+
+    @ApiModelProperty(value = "帖子信息")
+    private PostModel post;
+
+    @ApiModelProperty(value = "评论信息")
+    private NotificationCommentVO comment;
+
+    @ApiModelProperty(value = "回复信息")
+    private PostCommentModel reply;
 
 }

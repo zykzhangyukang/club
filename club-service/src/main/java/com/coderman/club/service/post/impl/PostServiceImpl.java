@@ -372,7 +372,7 @@ public class PostServiceImpl implements PostService {
         PageHelper.startPage(currentPage, pageSize);
         List<PostCommentModel> list = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
                 .eq(PostCommentModel::getPostId, postId)
-                .eq(PostCommentModel::getIsHide, Boolean.FALSE)
+                .eq(PostCommentModel::getIsHide, 0)
                 .eq(PostCommentModel::getParentId, 0)
                 .eq(PostCommentModel::getType, PostConstant.COMMENT_TYPE)
                 .orderByDesc(PostCommentModel::getCreateTime)
@@ -870,7 +870,7 @@ public class PostServiceImpl implements PostService {
         if (StringUtils.isBlank(content)) {
             return ResultUtil.getWarn("内容不能为空！");
         }
-        if (StringUtils.length(content) > 512) {
+        if (StringUtils.length(content) > CommonConstant.LENGTH_512) {
             return ResultUtil.getWarn("内容不超过512个字符！");
         }
 
@@ -892,65 +892,71 @@ public class PostServiceImpl implements PostService {
         insertModel.setReplyId(replyId);
         insertModel.setReplyCount(0);
 
+        PostCommentModel parentComment = null;
+        PostCommentModel replyComment = null;
+
         if (parentId == 0) {
 
             // 根评论 (回复帖子)
             insertModel.setToUserId(postModel.getUserId());
             insertModel.setType(PostConstant.COMMENT_TYPE);
 
-            // 发送消息通知
-            NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                    .senderId(current.getUserId())
-                    .userIdList(Collections.singletonList(postModel.getUserId()))
-                    .typeEnum(NotificationTypeEnum.COMMENT_POST)
-                    .content(String.format(NotificationTypeEnum.COMMENT_POST.getTemplate(), current.getNickname(), postModel.getTitle(), content))
-                    .build();
-            this.notificationService.send(notifyMsgDTO);
-
         } else {
 
             // 父级评论
-            PostCommentModel targetComment = this.postCommentMapper.selectById(parentId);
-            if (targetComment == null) {
+            parentComment =  this.postCommentMapper.selectById(parentId);
+            if (parentComment == null) {
                 throw new BusinessException("父级评论不存在！");
             }
+
             // 被回复的评论
             if (insertModel.getReplyId() > 0) {
-                PostCommentModel replyModel = this.postCommentMapper.selectById(replyId);
-                if (replyModel == null) {
+                replyComment = this.postCommentMapper.selectById(replyId);
+                if (replyComment == null) {
                     throw new BusinessException("被回复的评论不存在！");
                 }
                 // 更新目标评论的回复数
                 this.postCommentMapper.addReplyCount(insertModel.getReplyId(), 1);
-
-                // 发送消息通知 (回复@某人)
-                NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                        .senderId(current.getUserId())
-                        .userIdList(Collections.singletonList(postModel.getUserId()))
-                        .typeEnum(NotificationTypeEnum.REPLY_COMMENT)
-                        .content(String.format(NotificationTypeEnum.REPLY_COMMENT.getTemplate(), current.getNickname(), replyModel.getContent(), content))
-                        .build();
-                this.notificationService.send(notifyMsgDTO);
-            }else {
-
-                // 发送消息通知 (回复评论)
-                NotifyMsgDTO notifyMsgDTO = NotifyMsgDTO.builder()
-                        .senderId(current.getUserId())
-                        .userIdList(Collections.singletonList(postModel.getUserId()))
-                        .typeEnum(NotificationTypeEnum.REPLY_AT_COMMENT)
-                        .content(String.format(NotificationTypeEnum.REPLY_AT_COMMENT.getTemplate(), current.getNickname(), targetComment.getContent(), content))
-                        .build();
-                this.notificationService.send(notifyMsgDTO);
             }
 
-            insertModel.setToUserId(targetComment.getUserId());
+            insertModel.setToUserId(parentComment.getUserId());
             insertModel.setType(PostConstant.REPLY_TYPE);
 
             // 更新根评论的回复数
             this.postCommentMapper.addReplyCount(parentId, 1);
         }
 
+        // 插入评论数据
         this.postCommentMapper.insert(insertModel);
+
+
+        // 发送消息通知
+        NotifyMsgDTO.NotifyMsgDTOBuilder notifyMsgBuilder = NotifyMsgDTO.builder()
+                .senderId(current.getUserId())
+                .relationId(insertModel.getCommentId())
+                .content(content)
+                .userIdList(Collections.singletonList(postModel.getUserId()))
+                .relationId(insertModel.getCommentId());
+
+        if (StringUtils.equals(insertModel.getType(), PostConstant.COMMENT_TYPE)) {
+
+            // 评论帖子
+            NotifyMsgDTO msgDTO = notifyMsgBuilder.typeEnum(NotificationTypeEnum.COMMENT_POST).build();
+            this.notificationService.send(msgDTO);
+
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE) && parentComment != null && replyComment != null) {
+
+            // 发送消息通知 (回复@某人)
+            NotifyMsgDTO msgDTO = notifyMsgBuilder.typeEnum(NotificationTypeEnum.REPLY_AT_COMMENT).build();
+            this.notificationService.send(msgDTO);
+
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE) && parentComment != null) {
+
+            // 发送消息通知 (回复评论)
+            NotifyMsgDTO msgDTO = notifyMsgBuilder.typeEnum(NotificationTypeEnum.REPLY_COMMENT).build();
+            this.notificationService.send(msgDTO);
+        }
+
 
         // 返回给前台
         List<UserInfoVO> userInfoByIdList = this.userService.getUserInfoByIdList(Collections.singletonList(insertModel.getUserId()));
@@ -989,14 +995,14 @@ public class PostServiceImpl implements PostService {
         if (StringUtils.equals(postCommentModel.getType(), PostConstant.COMMENT_TYPE) && postCommentModel.getParentId() == 0) {
             count += this.postCommentMapper.update(null, Wrappers.<PostCommentModel>lambdaUpdate()
                     .eq(PostCommentModel::getParentId, postCommentModel.getCommentId())
-                    .eq(PostCommentModel::getIsHide, Boolean.FALSE)
-                    .set(PostCommentModel::getIsHide, Boolean.TRUE)
+                    .eq(PostCommentModel::getIsHide,0)
+                    .set(PostCommentModel::getIsHide, 1)
             );
         }
         count += this.postCommentMapper.update(null, Wrappers.<PostCommentModel>lambdaUpdate()
                 .eq(PostCommentModel::getCommentId, commentId)
-                .eq(PostCommentModel::getIsHide, Boolean.FALSE)
-                .set(PostCommentModel::getIsHide, Boolean.TRUE)
+                .eq(PostCommentModel::getIsHide, 0)
+                .set(PostCommentModel::getIsHide, 1)
         );
 
         // 维护评论表中的回复数

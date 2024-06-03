@@ -44,4 +44,11 @@ public class NotificationController {
 
         return this.notificationService.read(notificationId);
     }
+
+
+    @ApiOperation(value = "删除")
+    @DeleteMapping(value = "/delete/{notificationId}")
+    public ResultVO<Void> delete(@PathVariable(value = "notificationId") Long notificationId){
+        return this.notificationService.delete(notificationId);
+    }
 }

@@ -14,6 +14,15 @@ spring:
     host: 10.41.188.160 # 内网ip
     password: DES@99D5518076FE8F32214D66F4B59766B7
     port: 6379
+    jedis:
+      pool:
+        test-on-borrow: false
+        test-on-return: false
+        test-while-idle: true
+        max-active: 10
+        max-idle: 5
+        min-idle: 5
+        max-wait: -1
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

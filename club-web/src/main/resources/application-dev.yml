@@ -13,6 +13,15 @@ spring:
   redis:
     host: 127.0.0.1
     port: 6379
+    jedis:
+      pool:
+        test-on-borrow: false
+        test-on-return: false
+        test-while-idle: true
+        max-active: 10
+        max-idle: 5
+        min-idle: 5
+        max-wait: -1
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

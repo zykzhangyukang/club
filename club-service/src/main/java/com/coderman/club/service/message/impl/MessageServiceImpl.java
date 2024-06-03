@@ -74,8 +74,8 @@ public class MessageServiceImpl implements MessageService {
             return ResultUtil.getWarn("发送消息内容不能为空！");
         }
 
-        if (StringUtils.length(content) > CommonConstant.LENGTH_256) {
-            return ResultUtil.getWarn("发送消息内容最多256个字符！");
+        if (StringUtils.length(content) > CommonConstant.LENGTH_512) {
+            return ResultUtil.getWarn("发送消息内容最多512个字符！");
         }
 
         // 创建会话

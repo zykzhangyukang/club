@@ -20,16 +20,13 @@
   <select id="getUnReadCount" resultType="com.coderman.club.vo.notification.NotificationCountVO">
     SELECT
       COUNT(1) AS totalCount,
-      -- 系统通知
       COUNT( CASE WHEN `type` = 'following_user' THEN 1
                             WHEN `type` = 'register_welcome' THEN 1
                             WHEN `type` = 'collect_post' THEN 1
                             WHEN `type` = 'register_init_pwd' THEN 1
                              END ) AS sysCount,
-      -- 收到的赞
       COUNT( CASE WHEN `type` = 'like_post' THEN 1 END ) AS zanCount,
 
-      -- 回复我的
       COUNT( CASE WHEN `type` = 'reply_comment' THEN 1
                               WHEN `type` = 'comment_post' THEN 1
                               WHEN `type` = 'reply_at_comment' THEN 1
@@ -64,15 +61,12 @@
     cn.user_id = #{userId}
 
     <choose>
-      <!-- 系统消息 -->
       <when test="type == 'system'">
         and cn.type in ('register_welcome', 'register_init_pwd' , 'following_user')
       </when>
-      <!-- 回复我的 -->
       <when test="type == 'reply'">
         and cn.type in ('reply_comment','comment_post','reply_at_comment')
       </when>
-      <!-- 收到的赞 -->
       <when test="type == 'zan'">
         and cn.type in ('like_post')
       </when>
@@ -95,4 +89,18 @@
     </if>
     where notification_id = #{notificationId} and user_id = #{userId}
   </update>
+
+  <select id="selectNotificationCommentVOs" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
+    select
+       t1.comment_id,
+       t1.content,
+       t1.type,
+       t1.parent_id,
+       t1.reply_id
+    from club_post_comment t1
+    where t1.comment_id in
+    <foreach collection="commentIdList" item="item" separator="," open="(" close=")">
+      #{item}
+    </foreach>
+  </select>
 </mapper>

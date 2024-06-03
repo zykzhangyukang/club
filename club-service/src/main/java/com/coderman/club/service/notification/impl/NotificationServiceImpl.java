@@ -2,12 +2,16 @@ package com.coderman.club.service.notification.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
+import com.coderman.club.constant.notification.NotificationConst;
+import com.coderman.club.constant.post.PostConstant;
 import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.mapper.notification.NotificationMapper;
+import com.coderman.club.mapper.post.PostCommentMapper;
 import com.coderman.club.mapper.post.PostMapper;
 import com.coderman.club.model.notification.NotificationModel;
+import com.coderman.club.model.post.PostCommentModel;
 import com.coderman.club.model.post.PostModel;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.utils.AuthUtil;
@@ -15,11 +19,14 @@ import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.utils.WebsocketUtil;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.notification.NotificationCommentVO;
 import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
+import com.coderman.club.vo.post.PostCommentVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -29,10 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +53,8 @@ public class NotificationServiceImpl implements NotificationService {
     private PostMapper postMapper;
     @Resource
     private WebsocketUtil websocketUtil;
+    @Resource
+    private PostCommentMapper postCommentMapper;
 
 
     @Override
@@ -64,8 +70,8 @@ public class NotificationServiceImpl implements NotificationService {
 
             throw new IllegalArgumentException("参数错误！");
         }
-        if (StringUtils.isBlank(content) || StringUtils.length(content) > CommonConstant.LENGTH_256) {
-            throw new IllegalArgumentException("发送的内容不能为空，且不超过256个字符！");
+        if (StringUtils.isBlank(content) || StringUtils.length(content) > CommonConstant.LENGTH_512) {
+            throw new IllegalArgumentException("发送的内容不能为空，且不超过512个字符！");
         }
 
         for (Long userId : userIdList) {
@@ -127,19 +133,65 @@ public class NotificationServiceImpl implements NotificationService {
         if (CollectionUtils.isNotEmpty(postIdList)) {
             postModelMap = this.postMapper.selectList(Wrappers.<PostModel>lambdaQuery()
                     .select(PostModel::getPostId, PostModel::getTitle)
-                    .in(PostModel::getPostId, postIdList)).stream()
+                    .in(PostModel::getPostId, postIdList))
+                    .stream()
                     .collect(Collectors.toMap(PostModel::getPostId, e -> e, (k1, k2) -> k2));
+        }
+
+        // 评论信息
+        List<NotificationCommentVO> commentVOList = Lists.newArrayList();
+        Map<Long, NotificationCommentVO> notificationCommentVOMap = Maps.newHashMap();
+        List<Long> commentIdList = voList.stream().filter(e -> this.isCommentInfo(e.getType())).map(NotificationVO::getRelationId).distinct().collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(commentIdList)) {
+            commentVOList =  this.notificationMapper.selectNotificationCommentVOs(commentIdList);
+            notificationCommentVOMap = commentVOList.stream().collect(Collectors.toMap(NotificationCommentVO::getCommentId, e -> e, (k1, k2) -> k2));
+        }
+
+        // 回复信息
+        Map<Long, PostCommentModel> replyMap = Maps.newHashMap();
+        if(CollectionUtils.isNotEmpty(commentVOList)){
+
+            List<Long> replyIdList = Lists.newArrayList();
+            for (NotificationCommentVO notificationCommentVO : commentVOList) {
+                // 回复评论
+                if(StringUtils.equals(notificationCommentVO.getType(), PostConstant.REPLY_TYPE) && notificationCommentVO.getReplyId() == 0){
+                    replyIdList.add(notificationCommentVO.getParentId());
+                }
+                // 回复@
+                if(StringUtils.equals(notificationCommentVO.getType(), PostConstant.REPLY_TYPE) && notificationCommentVO.getReplyId() > 0){
+                    replyIdList.add(notificationCommentVO.getReplyId());
+                }
+            }
+
+            if(CollectionUtils.isNotEmpty(replyIdList)){
+                replyMap = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
+                        .in(PostCommentModel::getCommentId, replyIdList)
+                        .eq(PostCommentModel::getIsHide, 0)
+                ).stream()
+                        .collect(Collectors.toMap(PostCommentModel::getCommentId, e -> e, (k1, k2) -> k2));
+            }
         }
 
         for (NotificationVO notificationVO : voList) {
 
             // 帖子信息封装
             if (this.isPostInfo(notificationVO.getType())) {
-                PostModel postModel = postModelMap.get(notificationVO.getRelationId());
-                if (postModel != null) {
-                    notificationVO.setPostTitle(postModel.getTitle());
+                notificationVO.setPost(postModelMap.get(notificationVO.getRelationId()));
+            }
+
+            // 评论信息
+            if (this.isCommentInfo(notificationVO.getType())) {
+                notificationVO.setComment(notificationCommentVOMap.get(notificationVO.getRelationId()));
+
+                // 被回复信息
+                NotificationCommentVO comment = notificationVO.getComment();
+                if(comment!=null &&StringUtils.equals(comment.getType(), PostConstant.REPLY_TYPE) && comment.getReplyId() == 0){
+                    notificationVO.setReply(replyMap.get(comment.getParentId()));
+                }else   if(comment!=null && StringUtils.equals(comment.getType(), PostConstant.REPLY_TYPE) && comment.getReplyId() > 0){
+                    notificationVO.setReply(replyMap.get(comment.getReplyId()));
                 }
             }
+
         }
 
         long total = pageInfo.getTotal();
@@ -148,9 +200,16 @@ public class NotificationServiceImpl implements NotificationService {
 
     private boolean isPostInfo(String type){
         return StringUtils.equals(type, NotificationTypeEnum.LIKE_POST.getMsgType())
-                || StringUtils.equals(type, NotificationTypeEnum.COMMENT_POST.getMsgType())
                 || StringUtils.equals(type, NotificationTypeEnum.COLLECT_POST.getMsgType());
     }
+
+    private boolean isCommentInfo(String type){
+        return StringUtils.equals(type, NotificationTypeEnum.COMMENT_POST.getMsgType())
+                || StringUtils.equals(type, NotificationTypeEnum.REPLY_COMMENT.getMsgType())
+                || StringUtils.equals(type, NotificationTypeEnum.REPLY_AT_COMMENT.getMsgType());
+    }
+
+
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
@@ -164,7 +223,7 @@ public class NotificationServiceImpl implements NotificationService {
             return ResultUtil.getWarn("参数错误！");
         }
 
-        NotificationModel notificationModel = this.notificationMapper.selectById(notificationId);
+        NotificationModel notificationModel = this.selectNotification(notificationId);
         if (notificationModel == null) {
             return ResultUtil.getWarn("消息不存在！");
         }
@@ -174,6 +233,27 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         return ResultUtil.getSuccess();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ResultVO<Void> delete(Long notificationId) {
+
+        NotificationModel notificationModel = this.selectNotification(notificationId);
+        if (notificationModel == null) {
+            return ResultUtil.getWarn("消息不存在！");
+        }
+
+        this.notificationMapper.deleteById(notificationId);
+        return ResultUtil.getSuccess();
+    }
+
+    private NotificationModel selectNotification(Long id){
+        return this.notificationMapper.selectOne(Wrappers.<NotificationModel>lambdaQuery()
+                .eq(NotificationModel::getNotificationId, id)
+                .eq(NotificationModel::getUserId, AuthUtil.getCurrent().getUserId())
+                .last("limit 1")
+        );
     }
 
 }

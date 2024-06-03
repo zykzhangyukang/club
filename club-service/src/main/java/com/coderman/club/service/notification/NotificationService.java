@@ -40,4 +40,11 @@ public interface NotificationService {
      * @return
      */
     ResultVO<Void> read(Long notificationId);
+
+    /**
+     * 删除消息
+     * @param notificationId
+     * @return
+     */
+    ResultVO<Void> delete(Long notificationId);
 }
