@@ -904,7 +904,7 @@ public class PostServiceImpl implements PostService {
         } else {
 
             // 父级评论
-            parentComment =  this.postCommentMapper.selectById(parentId);
+            parentComment = this.postCommentMapper.selectById(parentId);
             if (parentComment == null) {
                 throw new BusinessException("父级评论不存在！");
             }
@@ -917,9 +917,13 @@ public class PostServiceImpl implements PostService {
                 }
                 // 更新目标评论的回复数
                 this.postCommentMapper.addReplyCount(insertModel.getReplyId(), 1);
+
+                insertModel.setToUserId(replyComment.getUserId());
+            } else {
+                insertModel.setToUserId(parentComment.getUserId());
             }
 
-            insertModel.setToUserId(parentComment.getUserId());
+
             insertModel.setType(PostConstant.REPLY_TYPE);
 
             // 更新根评论的回复数
@@ -995,7 +999,7 @@ public class PostServiceImpl implements PostService {
         if (StringUtils.equals(postCommentModel.getType(), PostConstant.COMMENT_TYPE) && postCommentModel.getParentId() == 0) {
             count += this.postCommentMapper.update(null, Wrappers.<PostCommentModel>lambdaUpdate()
                     .eq(PostCommentModel::getParentId, postCommentModel.getCommentId())
-                    .eq(PostCommentModel::getIsHide,0)
+                    .eq(PostCommentModel::getIsHide, 0)
                     .set(PostCommentModel::getIsHide, 1)
             );
         }
