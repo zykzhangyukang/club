@@ -939,7 +939,7 @@ public class PostServiceImpl implements PostService {
                 .senderId(current.getUserId())
                 .relationId(insertModel.getCommentId())
                 .content(content)
-                .userIdList(Collections.singletonList(postModel.getUserId()))
+                .userIdList(Collections.singletonList(insertModel.getToUserId()))
                 .relationId(insertModel.getCommentId());
 
         if (StringUtils.equals(insertModel.getType(), PostConstant.COMMENT_TYPE)) {
