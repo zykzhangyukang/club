@@ -1,6 +1,8 @@
 package com.coderman.club.controller.notification;
 
+import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.dto.notification.NotificationDTO;
+import com.coderman.club.limiter.LimiterStrategy;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Administrator
@@ -26,21 +29,22 @@ public class NotificationController {
 
     @ApiOperation(value = "获取未读消息数")
     @GetMapping(value = "/count")
-    public ResultVO<NotificationCountVO> getUnReadCount(){
+    public ResultVO<NotificationCountVO> getUnReadCount() {
 
         return this.notificationService.getUnReadCount();
     }
 
     @ApiOperation(value = "获取消息通知列表")
     @PostMapping(value = "/page")
-    public ResultVO<PageVO<List<NotificationVO>>> getPage(@RequestBody NotificationDTO notificationDTO){
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW)
+    public ResultVO<PageVO<List<NotificationVO>>> getPage(@RequestBody NotificationDTO notificationDTO) {
 
         return this.notificationService.getPage(notificationDTO);
     }
 
     @ApiOperation(value = "已读消息")
     @GetMapping(value = "/read")
-    public ResultVO<Void> read(Long notificationId){
+    public ResultVO<Void> read(Long notificationId) {
 
         return this.notificationService.read(notificationId);
     }
@@ -48,7 +52,7 @@ public class NotificationController {
 
     @ApiOperation(value = "删除")
     @DeleteMapping(value = "/delete/{notificationId}")
-    public ResultVO<Void> delete(@PathVariable(value = "notificationId") Long notificationId){
+    public ResultVO<Void> delete(@PathVariable(value = "notificationId") Long notificationId) {
         return this.notificationService.delete(notificationId);
     }
 }

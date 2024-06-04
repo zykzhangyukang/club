@@ -447,12 +447,12 @@ public interface RedisService {
     /**
      * 执行 Lua 脚本，并返回脚本执行结果。
      *
-     * @param luaScript Lua 脚本字符串
      * @param keys      键名列表
+     * @param clazz     返回类型
      * @param args      参数列表
      * @return 脚本执行结果，如果执行失败则返回 null
      */
-    List<Long> executeLuaScript(String luaScript, List<String> keys, Object... args);
+    <T > List<T> executeLuaScript(Class<T> clazz, String classpath, List<String> keys, Object... args);
 
     /**
      * 获取匹配指定模式的键集合。

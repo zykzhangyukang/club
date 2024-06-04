@@ -65,4 +65,8 @@ public interface RedisKeyConstant {
      * 帖子浏览量防刷
      */
     public static final String POST_VIEWS_LIMIT_PREFIX = "club:post:views_limit:";
+    /**
+     * 系统限流前缀
+     */
+    public static final String RATE_LIMIT = "RATE_LIMIT:";
 }

@@ -5,12 +5,14 @@ import com.google.common.collect.Sets;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -1069,16 +1071,16 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
-    public List<Long> executeLuaScript(String luaScript, List<String> keys, Object... args) {
+    @SuppressWarnings("unchecked")
+    public <T>List<T> executeLuaScript(Class<T> clazz, String classpath, List<String> keys, Object... args) {
 
-        DefaultRedisScript redisScript = new DefaultRedisScript();
-        redisScript.setResultType(List.class);
-        redisScript.setScriptText(luaScript);
+        DefaultRedisScript<T> redisScript = new DefaultRedisScript<T>();
+        redisScript.setResultType(clazz);
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(classpath)));
         Object obj = redisTemplate.execute(redisScript, redisTemplate.getStringSerializer(), redisTemplate.getStringSerializer(), keys, args);
 
         if (obj != null) {
-
-            return (List<Long>) obj;
+            return (List<T>) obj;
         }
 
         return null;
