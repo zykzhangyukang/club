@@ -1,5 +1,7 @@
 package com.coderman.club.controller.index;
 
+import com.coderman.club.annotation.RateLimit;
+import com.coderman.club.limiter.LimiterStrategy;
 import com.coderman.club.service.openai.OpenAiService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,6 +14,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import javax.annotation.Resource;
 import java.util.Arrays;
 
+/**
+ * @author zhangyukang
+ */
 @Slf4j
 @Api(value = "社区SSE模块", tags = {"社区SSE模块"})
 @RestController
@@ -23,6 +28,7 @@ public class SseController {
 
     @ApiOperation(value = "AI聊天接口")
     @GetMapping(value = "/chatgpt", produces = "text/event-stream;charset=UTF-8")
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 30 , windowRequests = 5)
     public SseEmitter subscript(String content) {
         SseEmitter sseEmitter = new SseEmitter(-1L);
 
