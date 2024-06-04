@@ -26,6 +26,9 @@ public class NotificationVO extends BaseModel {
     @ApiModelProperty(value = "关联业务id")
     private Long relationId;
 
+    @ApiModelProperty(value = "昵称")
+    private String nickname;
+
     @ApiModelProperty(value = "接收人")
     private String username;
 

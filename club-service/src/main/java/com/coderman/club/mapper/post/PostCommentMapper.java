@@ -2,6 +2,8 @@ package com.coderman.club.mapper.post;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coderman.club.model.post.PostCommentModel;
+import com.coderman.club.vo.notification.NotificationCommentVO;
+import com.coderman.club.vo.notification.NotificationReplyVO;
 import com.coderman.club.vo.post.PostReplyVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -37,4 +39,18 @@ public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
      * @return
      */
     List<PostReplyVO> getPostReplyPage(@Param(value = "pageSize") Long pageSize,@Param(value = "offsetId") Long offsetId,@Param(value = "commentId") Long commentId);
+
+    /**
+     * 获取评论相关信息
+     * @param commentIdList
+     * @return
+     */
+    List<NotificationCommentVO> selectNotificationCommentVOs(@Param(value = "commentIdList") List<Long> commentIdList);
+
+    /**
+     * 获取回复信息 （消息通知）
+     * @param replyIdList
+     * @return
+     */
+    List<NotificationReplyVO> selectNotificationReplyVos(@Param(value = "replyIdList") List<Long> replyIdList);
 }

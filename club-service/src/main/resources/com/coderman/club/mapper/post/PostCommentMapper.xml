@@ -69,4 +69,38 @@
                      LIMIT #{pageSize}
 
   </select>
+
+  <select id="selectNotificationCommentVOs" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
+    select
+    t1.comment_id,
+    t1.content,
+    t1.type,
+    t1.parent_id,
+    t1.reply_id
+    from club_post_comment t1
+    LEFT JOIN club_user cu1 ON cu1.user_id = t1.user_id
+    LEFT JOIN club_user cu2 ON cu2.user_id = t1.to_user_id
+    where t1.comment_id in
+    <foreach collection="commentIdList" item="item" separator="," open="(" close=")">
+      #{item}
+    </foreach>
+    and is_hide = 0
+  </select>
+
+  <select id="selectNotificationReplyVos" resultType="com.coderman.club.vo.notification.NotificationReplyVO">
+    select
+    cn.comment_id,
+    cn.content,
+    cn.type,
+    cu1.nickname as sendNickName,
+    cu2.nickname as toNickName
+    from club_post_comment cn
+     LEFT JOIN club_user cu1 ON cu1.user_id = cn.user_id
+     LEFT JOIN club_user cu2 ON cu2.user_id = cn.to_user_id
+     where
+     is_hide = 0 and cn.comment_id in
+    <foreach collection="replyIdList" item="item" separator="," open="(" close=")">
+      #{item}
+    </foreach>
+  </select>
 </mapper>

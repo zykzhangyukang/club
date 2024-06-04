@@ -47,6 +47,7 @@
     cn.create_time,
     cn.read_time,
     cu1.username AS username,
+    cu1.nickname AS nickname,
     cui1.avatar AS userAvatar,
     cu2.username AS senderName,
     cu2.nickname as sendNickName,
@@ -90,17 +91,4 @@
     where notification_id = #{notificationId} and user_id = #{userId}
   </update>
 
-  <select id="selectNotificationCommentVOs" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
-    select
-       t1.comment_id,
-       t1.content,
-       t1.type,
-       t1.parent_id,
-       t1.reply_id
-    from club_post_comment t1
-    where t1.comment_id in
-    <foreach collection="commentIdList" item="item" separator="," open="(" close=")">
-      #{item}
-    </foreach>
-  </select>
 </mapper>

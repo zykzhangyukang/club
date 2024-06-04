@@ -42,11 +42,4 @@ public interface NotificationMapper extends BaseMapper<NotificationModel> {
      * @return
      */
     int updateReadStatus(@Param(value = "isRead") Integer isRead,@Param(value = "userId") Long userId,@Param(value = "notificationId") Long notificationId);
-
-    /**
-     * 获取评论相关信息
-     * @param commentIdList
-     * @return
-     */
-    List<NotificationCommentVO> selectNotificationCommentVOs(@Param(value = "commentIdList") List<Long> commentIdList);
 }

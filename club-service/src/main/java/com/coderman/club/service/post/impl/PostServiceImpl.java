@@ -373,7 +373,7 @@ public class PostServiceImpl implements PostService {
         PageHelper.startPage(currentPage, pageSize);
         List<PostCommentModel> list = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
                 .eq(PostCommentModel::getPostId, postId)
-                .eq(PostCommentModel::getIsHide, 0)
+                .eq(PostCommentModel::getIsHide, Boolean.FALSE)
                 .eq(PostCommentModel::getParentId, 0)
                 .eq(PostCommentModel::getType, PostConstant.COMMENT_TYPE)
                 .orderByDesc(PostCommentModel::getCreateTime)
@@ -1003,30 +1003,32 @@ public class PostServiceImpl implements PostService {
         int count = 0;
 
         // 根评论 下面的子评论也要删除
-        if (StringUtils.equals(postCommentModel.getType(), PostConstant.COMMENT_TYPE) && postCommentModel.getParentId() == 0) {
+        if (StringUtils.equals(postCommentModel.getType(), PostConstant.COMMENT_TYPE)) {
             count += this.postCommentMapper.update(null, Wrappers.<PostCommentModel>lambdaUpdate()
                     .eq(PostCommentModel::getParentId, postCommentModel.getCommentId())
-                    .eq(PostCommentModel::getIsHide, 0)
-                    .set(PostCommentModel::getIsHide, 1)
+                    .eq(PostCommentModel::getIsHide, Boolean.FALSE)
+                    .set(PostCommentModel::getIsHide, Boolean.TRUE)
             );
         }
         count += this.postCommentMapper.update(null, Wrappers.<PostCommentModel>lambdaUpdate()
                 .eq(PostCommentModel::getCommentId, commentId)
-                .eq(PostCommentModel::getIsHide, 0)
-                .set(PostCommentModel::getIsHide, 1)
+                .eq(PostCommentModel::getIsHide, Boolean.FALSE)
+                .set(PostCommentModel::getIsHide, Boolean.TRUE)
         );
 
         // 维护评论表中的回复数
-        if (StringUtils.equals(postCommentModel.getType(), PostConstant.REPLY_TYPE) && postCommentModel.getParentId() != 0) {
-
+        if (StringUtils.equals(postCommentModel.getType(), PostConstant.REPLY_TYPE)) {
             // 更新根评论的回复数
             this.postCommentMapper.addReplyCount(postCommentModel.getParentId(), -1);
-
-            // 更新目标评论的回复数
-            if (postCommentModel.getReplyId() > 0) {
-                this.postCommentMapper.addReplyCount(postCommentModel.getReplyId(), -1);
-            }
         }
+
+        if (StringUtils.equals(postCommentModel.getType(), PostConstant.REPLY_AT_TYPE)) {
+            // 更新根评论的回复数
+            this.postCommentMapper.addReplyCount(postCommentModel.getParentId(), -1);
+            // 更新目标评论的回复数
+            this.postCommentMapper.addReplyCount(postCommentModel.getReplyId(), -1);
+        }
+
 
         // 减少帖子评论数
         this.postMapper.addCommentsCount(postCommentModel.getPostId(), -count);

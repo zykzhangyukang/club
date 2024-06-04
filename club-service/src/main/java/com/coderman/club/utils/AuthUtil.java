@@ -46,16 +46,12 @@ public class AuthUtil {
 
                 try {
 
-                    authUserVO = AuthAspect.USER_TOKEN_CACHE_MAP.get(token, new Callable<AuthUserVO>() {
-                        @Override
-                        public AuthUserVO call() throws Exception {
-                            RedisService redisService = SpringContextUtil.getBean(RedisService.class);
-
-                            log.warn("尝试从redis中获取用户信息结果.token:{}", token);
-                            return redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
-                        }
+                    authUserVO = AuthAspect.USER_TOKEN_CACHE_MAP.get(token, () -> {
+                        RedisService redisService = SpringContextUtil.getBean(RedisService.class);
+                        log.warn("尝试从redis中获取用户信息结果.token:{}", token);
+                        return redisService.getObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
                     });
-                } catch (ExecutionException e) {
+                } catch (Exception e) {
                     log.error("尝试从redis中获取用户信息结果失败:{}", e.getMessage());
                 }
             }

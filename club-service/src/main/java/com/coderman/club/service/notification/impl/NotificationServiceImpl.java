@@ -19,10 +19,7 @@ import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.utils.WebsocketUtil;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.notification.NotificationCommentVO;
-import com.coderman.club.vo.notification.NotificationCountVO;
-import com.coderman.club.vo.notification.NotificationPostVO;
-import com.coderman.club.vo.notification.NotificationVO;
+import com.coderman.club.vo.notification.*;
 import com.coderman.club.vo.post.PostCommentVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.github.pagehelper.PageHelper;
@@ -145,36 +142,31 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // 评论信息
-        List<NotificationCommentVO> commentVOList = Lists.newArrayList();
+        List<NotificationCommentVO> commentVoList = Lists.newArrayList();
         Map<Long, NotificationCommentVO> notificationCommentVoMap = Maps.newHashMap();
         List<Long> commentIdList = voList.stream().filter(e -> this.isCommentInfo(e.getType())).map(NotificationVO::getRelationId).distinct().collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(commentIdList)) {
-            commentVOList =  this.notificationMapper.selectNotificationCommentVOs(commentIdList);
-            notificationCommentVoMap = commentVOList.stream().collect(Collectors.toMap(NotificationCommentVO::getCommentId, e -> e, (k1, k2) -> k2));
+            commentVoList = this.postCommentMapper.selectNotificationCommentVOs(commentIdList);
+            notificationCommentVoMap = commentVoList.stream().collect(Collectors.toMap(NotificationCommentVO::getCommentId, e -> e, (k1, k2) -> k2));
         }
 
         // 回复信息
-        Map<Long, PostCommentModel> replyMap = Maps.newHashMap();
-        if(CollectionUtils.isNotEmpty(commentVOList)){
+        Map<Long, NotificationReplyVO> replyMap = Maps.newHashMap();
+        if (CollectionUtils.isNotEmpty(commentVoList)) {
 
             List<Long> replyIdList = Lists.newArrayList();
-            for (NotificationCommentVO notificationCommentVO : commentVOList) {
+            for (NotificationCommentVO notificationCommentVO : commentVoList) {
                 // 回复评论
-                if(StringUtils.equals(notificationCommentVO.getType(), PostConstant.REPLY_TYPE)){
+                if (StringUtils.equals(notificationCommentVO.getType(), PostConstant.REPLY_TYPE)) {
                     replyIdList.add(notificationCommentVO.getParentId());
                 }
                 // 回复@
-                if(StringUtils.equals(notificationCommentVO.getType(), PostConstant.REPLY_AT_TYPE)){
+                if (StringUtils.equals(notificationCommentVO.getType(), PostConstant.REPLY_AT_TYPE)) {
                     replyIdList.add(notificationCommentVO.getReplyId());
                 }
             }
-
-            if(CollectionUtils.isNotEmpty(replyIdList)){
-                replyMap = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
-                        .in(PostCommentModel::getCommentId, replyIdList)
-                        .eq(PostCommentModel::getIsHide, 0)
-                ).stream()
-                        .collect(Collectors.toMap(PostCommentModel::getCommentId, e -> e, (k1, k2) -> k2));
+            if (CollectionUtils.isNotEmpty(replyIdList)) {
+                replyMap = this.postCommentMapper.selectNotificationReplyVos(replyIdList).stream().collect(Collectors.toMap(NotificationReplyVO::getCommentId, e -> e, (k1, k2) -> k2));
             }
         }
 
@@ -187,22 +179,20 @@ public class NotificationServiceImpl implements NotificationService {
 
             // 评论信息
             if (this.isCommentInfo(notificationVO.getType())) {
-                notificationVO.setComment(notificationCommentVoMap.get(notificationVO.getRelationId()));
-
-                // 被回复信息
-                NotificationCommentVO comment = notificationVO.getComment();
-                if (comment != null && StringUtils.equals(comment.getType(), PostConstant.REPLY_TYPE)) {
-
-                    PostCommentModel reply = replyMap.get(comment.getParentId());
-                    if (reply != null) {
-                        comment.setRepliedContent(reply.getContent());
+                NotificationCommentVO comment = notificationCommentVoMap.get(notificationVO.getRelationId());
+                if (comment != null) {
+                    // 被回复信息
+                    Long id = null;
+                    if (StringUtils.equals(comment.getType(), PostConstant.REPLY_TYPE)) {
+                        id = comment.getParentId();
                     }
-
-                } else if (comment != null && StringUtils.equals(comment.getType(), PostConstant.REPLY_AT_TYPE)) {
-                    PostCommentModel reply = replyMap.get(comment.getReplyId());
-                    if (reply != null) {
-                        comment.setRepliedContent(reply.getContent());
+                    if (StringUtils.equals(comment.getType(), PostConstant.REPLY_AT_TYPE)) {
+                        id = comment.getReplyId();
                     }
+                    NotificationReplyVO reply = replyMap.get(id);
+                    comment.setRepliedContent(this.formatContent(reply));
+                    // 设置评论
+                    notificationVO.setComment(comment);
                 }
             }
         }
@@ -211,17 +201,28 @@ public class NotificationServiceImpl implements NotificationService {
         return ResultUtil.getSuccessPage(NotificationVO.class, new PageVO<>(total, notificationVos, currentPage, pageSize));
     }
 
-    private boolean isPostInfo(String type){
+    private String formatContent(NotificationReplyVO replyVO) {
+        if (replyVO == null) {
+            return "该回复已被删除！";
+        }
+        if (StringUtils.equals(replyVO.getType(), PostConstant.REPLY_TYPE) || StringUtils.equals(replyVO.getType(), PostConstant.COMMENT_TYPE)) {
+            return replyVO.getSendNickName() + "：" + replyVO.getContent();
+        }
+        if (StringUtils.equals(replyVO.getType(), PostConstant.REPLY_AT_TYPE)) {
+            return String.format("%s 回复 @%s ：%s ", replyVO.getSendNickName(), replyVO.getToNickName(), replyVO.getContent());
+        }
+        return "TODO";
+    }
+
+    private boolean isPostInfo(String type) {
         return StringUtils.equals(type, NotificationTypeEnum.LIKE_POST.getMsgType())
                 || StringUtils.equals(type, NotificationTypeEnum.COLLECT_POST.getMsgType());
     }
-
-    private boolean isCommentInfo(String type){
+    private boolean isCommentInfo(String type) {
         return StringUtils.equals(type, NotificationTypeEnum.COMMENT_POST.getMsgType())
                 || StringUtils.equals(type, NotificationTypeEnum.REPLY_COMMENT.getMsgType())
                 || StringUtils.equals(type, NotificationTypeEnum.REPLY_AT_COMMENT.getMsgType());
     }
-
 
 
     @Override
@@ -261,7 +262,7 @@ public class NotificationServiceImpl implements NotificationService {
         return ResultUtil.getSuccess();
     }
 
-    private NotificationModel selectNotification(Long id){
+    private NotificationModel selectNotification(Long id) {
         return this.notificationMapper.selectOne(Wrappers.<NotificationModel>lambdaQuery()
                 .eq(NotificationModel::getNotificationId, id)
                 .eq(NotificationModel::getUserId, AuthUtil.getCurrent().getUserId())
