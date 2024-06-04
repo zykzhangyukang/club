@@ -54,7 +54,7 @@ public @interface RateLimit {
      *
      * @return 窗口内允许的最大请求数量
      */
-    int windowRequests() default 5;
+    int windowRequests() default 3;
 
     /**
      * 时间窗口大小，默认为 1 秒

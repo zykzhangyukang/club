@@ -15,4 +15,10 @@ public interface LimiterStrategy {
      * 固定窗口限流
      */
     String FIXED_WINDOW = "FIXED_WINDOW";
+
+    /**
+     * 固定窗口限流
+     */
+    String SLIDING_WINDOW = "SLIDING_WINDOW";
+
 }

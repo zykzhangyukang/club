@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +37,6 @@ public class NotificationController {
 
     @ApiOperation(value = "获取消息通知列表")
     @PostMapping(value = "/page")
-    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW)
     public ResultVO<PageVO<List<NotificationVO>>> getPage(@RequestBody NotificationDTO notificationDTO) {
 
         return this.notificationService.getPage(notificationDTO);

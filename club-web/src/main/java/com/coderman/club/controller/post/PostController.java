@@ -2,6 +2,7 @@ package com.coderman.club.controller.post;
 
 import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.dto.post.*;
+import com.coderman.club.limiter.LimiterStrategy;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
@@ -32,7 +33,7 @@ public class PostController {
 
     @ApiOperation(value = "创建帖子")
     @PostMapping(value = "/publish")
-    @RateLimit
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
     public ResultVO<Void> postPublish(@RequestBody PostPublishDTO postPublishDTO) {
 
         return this.postService.postPublish(postPublishDTO);
@@ -40,7 +41,7 @@ public class PostController {
 
     @ApiOperation(value = "评论帖子")
     @PostMapping(value = "/comment")
-    @RateLimit
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
     public ResultVO<PostCommentVO> postComment(@RequestBody PostCommentDTO postCommentDTO) {
 
         return this.postService.postComment(postCommentDTO);
@@ -48,7 +49,7 @@ public class PostController {
 
     @ApiOperation(value = "回复分页加载")
     @PostMapping(value = "/reply/page")
-    @RateLimit
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
     public ResultVO<List<PostReplyVO>> postReplyPage(@RequestBody PostReplyDTO postReplyDTO) {
 
         return this.postService.postReplyPage(postReplyDTO);
@@ -56,7 +57,6 @@ public class PostController {
 
     @ApiOperation(value = "删除帖子评论")
     @DeleteMapping(value = "/comment/delete/{commentId}")
-    @RateLimit
     public ResultVO<Void> postCommentDel(@PathVariable(value = "commentId") Long commentId) {
 
         return this.postService.postCommentDel(commentId);
@@ -93,7 +93,7 @@ public class PostController {
 
     @ApiOperation(value = "修改帖子")
     @PutMapping(value = "/update")
-    @RateLimit
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
     public ResultVO<Void> postUpdate(@RequestBody PostUpdateDTO postUpdateDTO) {
         return this.postService.postUpdate(postUpdateDTO);
     }
@@ -135,7 +135,7 @@ public class PostController {
 
     @ApiOperation(value = "上传图片")
     @PostMapping(value = "/upload/image")
-    @RateLimit
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
     public ResultVO<String> uploadImage(MultipartFile file) throws IOException {
 
         return this.postService.uploadImage(file);

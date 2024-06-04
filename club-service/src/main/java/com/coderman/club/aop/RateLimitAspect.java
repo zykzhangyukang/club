@@ -4,8 +4,10 @@ import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.constant.redis.RedisKeyConstant;
 import com.coderman.club.constant.user.CommonConst;
 import com.coderman.club.exception.RateLimitException;
+import com.coderman.club.limiter.properties.SlidingWindowLimitProperties;
 import com.coderman.club.limiter.strategy.FixedWindowRateLimiter;
 import com.coderman.club.limiter.RateLimiter;
+import com.coderman.club.limiter.strategy.SlidingWindowRateLimiter;
 import com.coderman.club.limiter.strategy.TokenBucketRateLimiter;
 import com.coderman.club.limiter.LimiterStrategy;
 import com.coderman.club.limiter.properties.TokenBucketProperties;
@@ -60,6 +62,8 @@ public class RateLimitAspect implements ApplicationContextAware {
                 return applicationContext.getBean(TokenBucketRateLimiter.class);
             case LimiterStrategy.FIXED_WINDOW:
                 return applicationContext.getBean(FixedWindowRateLimiter.class);
+            case LimiterStrategy.SLIDING_WINDOW:
+                return applicationContext.getBean(SlidingWindowRateLimiter.class);
             default:
                 throw new IllegalArgumentException("Unsupported rate limiting strategy: " + rateLimit.strategy());
         }
@@ -83,7 +87,7 @@ public class RateLimitAspect implements ApplicationContextAware {
 
         boolean isAllowed = rateLimiter.allowRequest(resolve, limitProperties);
         if (!isAllowed) {
-            throw new RateLimitException("访问太频繁！");
+            throw new RateLimitException("访问过于频繁！");
         }
     }
 
@@ -95,6 +99,8 @@ public class RateLimitAspect implements ApplicationContextAware {
             return new TokenBucketProperties(rateLimit.replenishRate(), rateLimit.burstCapacity(), rateLimit.timeUnit());
         } else if (LimiterStrategy.FIXED_WINDOW.equals(strategy)) {
             return new FixedWindowLimitProperties(rateLimit.windowSize(), rateLimit.windowRequests(), rateLimit.timeUnit());
+        } else if(LimiterStrategy.SLIDING_WINDOW.equals(strategy)){
+            return new SlidingWindowLimitProperties(rateLimit.windowSize(), rateLimit.windowRequests(), rateLimit.timeUnit());
         }
 
         throw new IllegalArgumentException("getLimitProperties strategy not support ");
