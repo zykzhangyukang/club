@@ -8,6 +8,7 @@ import com.coderman.club.service.section.SectionService;
 import com.coderman.club.vo.carouse.CarouseVO;
 import com.coderman.club.vo.section.SectionVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -68,6 +69,10 @@ public class UpdateIndexCacheTimer implements CommandLineRunner {
 
         final String tempKey = RedisKeyConstant.REDIS_CAROUSE_CACHE + "_" + System.currentTimeMillis();
         List<CarouseVO> carouselVoList = this.carouseService. getCarouselVoList();
+        if(CollectionUtils.isEmpty(carouselVoList)){
+            return;
+        }
+
         this.redisService.setListData(tempKey, carouselVoList, RedisDbConstant.REDIS_BIZ_CACHE);
         // 重命名key
         this.redisService.rename(tempKey, RedisKeyConstant.REDIS_CAROUSE_CACHE, RedisDbConstant.REDIS_BIZ_CACHE);
@@ -80,6 +85,10 @@ public class UpdateIndexCacheTimer implements CommandLineRunner {
 
         final String tempKey = RedisKeyConstant.REDIS_SECTION_CACHE + "_" + System.currentTimeMillis();
         List<SectionVO> sectionVOList = this.sectionService.getSectionVoList();
+        if(CollectionUtils.isEmpty(sectionVOList)){
+            return;
+        }
+
         this.redisService.setListData(tempKey, sectionVOList, RedisDbConstant.REDIS_BIZ_CACHE);
         // 重命名key
         this.redisService.rename(tempKey, RedisKeyConstant.REDIS_SECTION_CACHE, RedisDbConstant.REDIS_BIZ_CACHE);

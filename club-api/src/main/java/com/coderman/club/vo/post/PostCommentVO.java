@@ -8,6 +8,9 @@ import lombok.EqualsAndHashCode;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * @author zhangyukang
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class PostCommentVO extends BaseModel {
@@ -43,11 +46,17 @@ public class PostCommentVO extends BaseModel {
     private Date createTime;
 
     @ApiModelProperty(value = "点赞数")
-    private Integer likes = 0;
+    private Integer likes;
 
     @ApiModelProperty(value = "回复数")
     private Integer replyCount;
 
     @ApiModelProperty(value = "回复列表")
     private List<PostReplyVO> replies;
+
+    @ApiModelProperty(value = "被评论昵称")
+    private String toUserNickName;
+
+    @ApiModelProperty(value = "被评论人头像")
+    private String toUserAvatar;
 }

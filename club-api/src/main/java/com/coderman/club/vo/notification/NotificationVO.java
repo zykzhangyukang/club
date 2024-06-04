@@ -63,12 +63,8 @@ public class NotificationVO extends BaseModel {
     private Date readTime;
 
     @ApiModelProperty(value = "帖子信息")
-    private PostModel post;
+    private NotificationPostVO post;
 
     @ApiModelProperty(value = "评论信息")
     private NotificationCommentVO comment;
-
-    @ApiModelProperty(value = "回复信息")
-    private PostCommentModel reply;
-
 }

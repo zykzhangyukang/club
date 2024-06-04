@@ -191,7 +191,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
 
         String username = userRegisterDTO.getUsername();
         String email = userRegisterDTO.getEmail();
-        String mpOpenId = userRegisterDTO.getMpOpenId();
 
         final String lockName = RedisKeyConstant.REDIS_REGISTER_LOCK_PREFIX + userRegisterDTO.getUsername();
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
@@ -223,13 +222,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
                 return ResultUtil.getWarn("当前邮箱已被注册！");
             }
 
-            if (StringUtils.isBlank(mpOpenId)) {
-                Integer mpCount = this.userMapper.selectCount(Wrappers.<UserModel>lambdaQuery().eq(UserModel::getMpOpenId, mpOpenId));
-                if (mpCount > 0) {
-                    return ResultUtil.getWarn("当前公众号openId已绑定其他账号！");
-                }
-            }
-
             // 初始化用户相关信息
             this.createClubUser(userRegisterDTO);
 
@@ -256,7 +248,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         String password = userRegisterDTO.getPassword();
         String username = userRegisterDTO.getUsername();
         String email = userRegisterDTO.getEmail();
-        String mpOpenId = userRegisterDTO.getMpOpenId();
 
         // 用户账号信息
         UserModel registerModel = new UserModel();
@@ -269,7 +260,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
-        registerModel.setMpOpenId(mpOpenId);
         this.userMapper.insert(registerModel);
 
         // 用户详情信息

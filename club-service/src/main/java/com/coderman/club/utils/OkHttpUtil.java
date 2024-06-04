@@ -6,6 +6,9 @@ import okhttp3.OkHttpClient;
 import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author zhangyukang
+ */
 public class OkHttpUtil {
 
     private static volatile OkHttpClient okHttpClient;

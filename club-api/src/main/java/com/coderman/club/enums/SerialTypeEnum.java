@@ -7,7 +7,9 @@ package com.coderman.club.enums;
  */
 public enum SerialTypeEnum {
 
-    NICK_CODE("nick_code", "昵称编号"),
+    /**
+     * 用户编号
+     */
     USER_CODE("user_code", "用户编号");
 
 

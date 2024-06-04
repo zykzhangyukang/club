@@ -31,13 +31,14 @@
 
   <!-- 获取每个根评论的最新三条子回复 -->
   <select id="getTopRepliesForComments" parameterType="java.util.List" resultType="com.coderman.club.model.post.PostCommentModel">
-    SELECT parent_id, comment_id, post_id, user_id, to_user_id, content, location, create_time, is_hide,reply_id
+    SELECT parent_id, comment_id, post_id, user_id, to_user_id, content, location, create_time, is_hide,reply_id,reply_count
     FROM (
     SELECT
     comment_id,
     post_id,
     parent_id,
     reply_id,
+    reply_count,
     user_id,
     to_user_id,
     content,
@@ -52,7 +53,7 @@
     <foreach item="item" index="index" collection="parentIds" open="(" separator="," close=")">
       #{item}
     </foreach>
-    AND is_hide = 0 AND `type` = 'reply'
+    AND is_hide = 0 AND `type` in ('reply','reply_at')
     ORDER BY parent_id , comment_id ASC
     ) AS subquery
     WHERE row_number &lt;= 2
@@ -63,7 +64,7 @@
     FROM club_post_comment
     WHERE  parent_id = #{commentId}
                       AND comment_id > #{offsetId}
-                      AND is_hide = 0 AND  `type` = 'reply'
+                      AND is_hide = 0 AND  `type` in ('reply','reply_at')
                      ORDER BY comment_id ASC
                      LIMIT #{pageSize}
 

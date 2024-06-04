@@ -47,11 +47,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author ：zhangyukang
@@ -363,7 +365,6 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public ResultVO<PageVO<List<PostCommentVO>>> getCommentPage(PostCommentPageDTO pageDTO) {
-
         Integer pageSize = pageDTO.getPageSize();
         Integer currentPage = pageDTO.getCurrentPage();
         Long postId = pageDTO.getPostId();
@@ -386,8 +387,6 @@ public class PostServiceImpl implements PostService {
             root.setReplies(Lists.newArrayList());
             return root;
         }).collect(Collectors.toList());
-        ;
-
 
         // 获取每个根评论的前三条子评论
         List<Long> parentIds = rootComments.stream().map(PostCommentVO::getCommentId).collect(Collectors.toList());
@@ -395,60 +394,61 @@ public class PostServiceImpl implements PostService {
             List<PostCommentModel> topReplies = this.postCommentMapper.getTopRepliesForComments(parentIds);
 
             // 获取用户信息
-            Set<Long> userInfoIds = Sets.newHashSet();
-            for (PostCommentVO rootComment : rootComments) {
-                userInfoIds.add(rootComment.getUserId());
-                userInfoIds.add(rootComment.getToUserId());
-            }
-            for (PostCommentModel topReply : topReplies) {
-                userInfoIds.add(topReply.getUserId());
-                userInfoIds.add(topReply.getToUserId());
-            }
-            Map<Long, UserInfoVO> userInfoVOMap = this.userService.getUserInfoByIdList(new ArrayList<>(userInfoIds)).stream()
+            Set<Long> userInfoIds = rootComments.stream()
+                    .flatMap(comment -> Stream.of(comment.getUserId(), comment.getToUserId()))
+                    .collect(Collectors.toSet());
+            userInfoIds.addAll(topReplies.stream()
+                    .flatMap(reply -> Stream.of(reply.getUserId(), reply.getToUserId()))
+                    .collect(Collectors.toSet()));
+
+            Map<Long, UserInfoVO> userInfoVoMap = this.userService.getUserInfoByIdList(new ArrayList<>(userInfoIds)).stream()
                     .collect(Collectors.toMap(UserInfoVO::getUserId, e -> e, (k1, k2) -> k2));
 
-            // 设置评论的用户信息
-            for (PostCommentVO rootComment : rootComments) {
-                UserInfoVO userInfoVO = userInfoVOMap.get(rootComment.getUserId());
-                if (userInfoVO != null) {
-                    rootComment.setAvatar(userInfoVO.getAvatar());
-                    rootComment.setNickname(userInfoVO.getNickname());
-                }
-            }
-
-            // 封装回复信息
-            for (PostCommentModel postCommentModel : topReplies) {
-                for (PostCommentVO root : rootComments) {
-                    if (Objects.equals(postCommentModel.getParentId(), root.getCommentId())) {
-                        PostReplyVO postReplyVO = new PostReplyVO();
-                        BeanUtils.copyProperties(postCommentModel, postReplyVO);
-
-                        // 当前评论人
-                        UserInfoVO userInfoVO = userInfoVOMap.get(postCommentModel.getUserId());
-                        if (userInfoVO != null) {
-                            postReplyVO.setAvatar(userInfoVO.getAvatar());
-                            postReplyVO.setNickname(userInfoVO.getNickname());
-                        }
-
-                        // 被评论人
-                        UserInfoVO replyUserVO = userInfoVOMap.get(postCommentModel.getToUserId());
-                        if (postCommentModel.getReplyId() > 0 && replyUserVO != null) {
-                            postReplyVO.setToUserNickName(replyUserVO.getNickname());
-                            postReplyVO.setToUserAvatar(replyUserVO.getAvatar());
-                        }
-
-                        root.getReplies().add(postReplyVO);
-                    }
-                }
-            }
+            // 设置评论和回复的用户信息
+            rootComments.forEach(root -> setUserInfo(root, userInfoVoMap));
+            topReplies.forEach(reply -> setReplyUserInfo(reply, userInfoVoMap, rootComments));
 
             // 为每个根评论的回复按时间倒序排序
-            for (PostCommentVO root : rootComments) {
-                root.getReplies().sort(Comparator.comparing(PostReplyVO::getCreateTime));
-            }
+            rootComments.forEach(root -> root.getReplies().sort(Comparator.comparing(PostReplyVO::getCreateTime)));
         }
 
         return ResultUtil.getSuccessPage(PostCommentVO.class, new PageVO<>(pageInfo.getTotal(), rootComments, currentPage, pageSize));
+    }
+
+    private void setUserInfo(PostCommentVO comment, Map<Long, UserInfoVO> userInfoVoMap) {
+        UserInfoVO userInfoVO = userInfoVoMap.get(comment.getUserId());
+        if (userInfoVO != null) {
+            comment.setAvatar(userInfoVO.getAvatar());
+            comment.setNickname(userInfoVO.getNickname());
+        }
+
+        UserInfoVO replyUserVO = userInfoVoMap.get(comment.getToUserId());
+        if (replyUserVO != null) {
+            comment.setToUserNickName(replyUserVO.getNickname());
+            comment.setToUserAvatar(replyUserVO.getAvatar());
+        }
+    }
+
+    private void setReplyUserInfo(PostCommentModel reply, Map<Long, UserInfoVO> userInfoVoMap, List<PostCommentVO> rootComments) {
+        PostReplyVO postReplyVO = new PostReplyVO();
+        BeanUtils.copyProperties(reply, postReplyVO);
+
+        UserInfoVO userInfoVO = userInfoVoMap.get(reply.getUserId());
+        if (userInfoVO != null) {
+            postReplyVO.setNickname(userInfoVO.getNickname());
+            postReplyVO.setAvatar(userInfoVO.getAvatar());
+        }
+
+        UserInfoVO replyUserVO = userInfoVoMap.get(reply.getToUserId());
+        if (replyUserVO != null) {
+            postReplyVO.setToUserNickName(replyUserVO.getNickname());
+            postReplyVO.setToUserAvatar(replyUserVO.getAvatar());
+        }
+
+        rootComments.stream()
+                .filter(root -> Objects.equals(reply.getParentId(), root.getCommentId()))
+                .findFirst()
+                .ifPresent(root -> root.getReplies().add(postReplyVO));
     }
 
 
@@ -909,22 +909,22 @@ public class PostServiceImpl implements PostService {
                 throw new BusinessException("父级评论不存在！");
             }
 
-            // 被回复的评论
+            // @被回复的评论
             if (insertModel.getReplyId() > 0) {
                 replyComment = this.postCommentMapper.selectById(replyId);
                 if (replyComment == null) {
-                    throw new BusinessException("被回复的评论不存在！");
+                    throw new BusinessException("被@的评论不存在！");
                 }
+
                 // 更新目标评论的回复数
                 this.postCommentMapper.addReplyCount(insertModel.getReplyId(), 1);
 
                 insertModel.setToUserId(replyComment.getUserId());
+                insertModel.setType(PostConstant.REPLY_AT_TYPE);
             } else {
+                insertModel.setType(PostConstant.REPLY_TYPE);
                 insertModel.setToUserId(parentComment.getUserId());
             }
-
-
-            insertModel.setType(PostConstant.REPLY_TYPE);
 
             // 更新根评论的回复数
             this.postCommentMapper.addReplyCount(parentId, 1);
@@ -933,6 +933,8 @@ public class PostServiceImpl implements PostService {
         // 插入评论数据
         this.postCommentMapper.insert(insertModel);
 
+        // 增加帖子评论数
+        this.postMapper.addCommentsCount(postId, 1);
 
         // 发送消息通知
         NotifyMsgDTO.NotifyMsgDTOBuilder notifyMsgBuilder = NotifyMsgDTO.builder()
@@ -945,19 +947,27 @@ public class PostServiceImpl implements PostService {
         if (StringUtils.equals(insertModel.getType(), PostConstant.COMMENT_TYPE)) {
 
             // 评论帖子
-            NotifyMsgDTO msgDTO = notifyMsgBuilder.typeEnum(NotificationTypeEnum.COMMENT_POST).build();
+            NotifyMsgDTO msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.COMMENT_POST.getTemplate(), current.getNickname(), postModel.getTitle(), content))
+                    .typeEnum(NotificationTypeEnum.COMMENT_POST).build();
             this.notificationService.send(msgDTO);
 
-        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE) && parentComment != null && replyComment != null) {
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_AT_TYPE)) {
 
             // 发送消息通知 (回复@某人)
-            NotifyMsgDTO msgDTO = notifyMsgBuilder.typeEnum(NotificationTypeEnum.REPLY_AT_COMMENT).build();
+            assert replyComment != null;
+            NotifyMsgDTO msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.REPLY_AT_COMMENT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY_AT_COMMENT).build();
             this.notificationService.send(msgDTO);
 
-        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE) && parentComment != null) {
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
 
             // 发送消息通知 (回复评论)
-            NotifyMsgDTO msgDTO = notifyMsgBuilder.typeEnum(NotificationTypeEnum.REPLY_COMMENT).build();
+            assert parentComment != null;
+            NotifyMsgDTO msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.REPLY_COMMENT.getTemplate(), current.getNickname(), parentComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY_COMMENT).build();
             this.notificationService.send(msgDTO);
         }
 
@@ -973,9 +983,6 @@ public class PostServiceImpl implements PostService {
             commentVO.setNickname(vo.getNickname());
             commentVO.setAvatar(vo.getAvatar());
         }
-
-        // 增加帖子评论数
-        this.postMapper.addCommentsCount(postId, 1);
 
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }

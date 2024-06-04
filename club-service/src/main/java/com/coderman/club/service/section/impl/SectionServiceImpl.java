@@ -76,6 +76,10 @@ public class SectionServiceImpl implements SectionService {
         List<SectionModel> sectionModels = this.sectionMapper.selectList(Wrappers.<SectionModel>lambdaQuery()
                 .eq(SectionModel::getIsActive, Boolean.TRUE));
 
+        if(CollectionUtils.isEmpty(sectionModels)){
+            return Lists.newArrayList();
+        }
+
         // 组装成二级结构
         List<SectionVO> firstLevelSection = sectionModels.stream()
                 .filter(e -> e.getParentSection() == 0)

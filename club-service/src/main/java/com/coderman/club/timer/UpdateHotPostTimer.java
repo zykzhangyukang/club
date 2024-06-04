@@ -9,6 +9,7 @@ import com.coderman.club.vo.post.PostHotTaskVO;
 import com.coderman.club.vo.post.PostHotVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands;
@@ -92,6 +93,10 @@ public class UpdateHotPostTimer implements CommandLineRunner {
     public void refreshHotPosts() {
         List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(500);
         log.info("Retrieved post tasks: {}", JSON.toJSONString(taskVoList));
+
+        if(CollectionUtils.isEmpty(taskVoList)){
+            return;
+        }
 
         long currentTimeMillis = System.currentTimeMillis();
         String oldKey = RedisKeyConstant.REDIS_HOT_POST_CACHE + ":" + currentTimeMillis;
