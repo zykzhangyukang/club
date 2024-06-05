@@ -15,36 +15,40 @@ import java.util.List;
 public interface NotificationService {
 
     /**
-     * 保存消息并推送给用户
+     * 保存消息并推送给用户。
      *
-     * @param notifyMsgDTO
+     * @param notifyMsgDTO 包含待发送消息的数据传输对象。
      */
     public void send(NotifyMsgDTO notifyMsgDTO);
 
     /**
-     * 获取未读消息数
-     * @return
+     * 获取未读消息数。
+     *
+     * @return 包含未读消息数的响应结果对象。
      */
     ResultVO<NotificationCountVO> getUnReadCount();
 
     /**
-     * 获取消息列表
-     * @return
+     * 获取消息列表。
+     *
+     * @param notificationDTO 包含筛选条件的消息数据传输对象。
+     * @return 包含消息列表的响应结果对象。
      */
     ResultVO<PageVO<List<NotificationVO>>> getPage(NotificationDTO notificationDTO);
 
     /**
-     * 已读消息
+     * 标记消息为已读。
      *
-     * @param notificationId
-     * @return
+     * @param notificationId 消息的唯一标识符。
+     * @return 表示标记操作结果的响应结果对象。
      */
     ResultVO<Void> read(Long notificationId);
 
     /**
-     * 删除消息
-     * @param notificationId
-     * @return
+     * 删除消息。
+     *
+     * @param notificationId 消息的唯一标识符。
+     * @return 表示删除操作结果的响应结果对象。
      */
     ResultVO<Void> delete(Long notificationId);
 }
