@@ -45,7 +45,6 @@
     cn.type,
     cn.is_read,
     cn.create_time,
-    cn.read_time,
     cu1.username AS username,
     cu1.nickname AS nickname,
     cui1.avatar AS userAvatar,

@@ -53,17 +53,11 @@ public class NotificationVO extends BaseModel {
     @ApiModelProperty(value = "通知的具体内容")
     private String content;
 
-    @ApiModelProperty(value = "通知相关页面的链接（可选）")
-    private String link;
-
     @ApiModelProperty(value = "标记通知是否已被用户阅读")
     private Boolean isRead;
 
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
-
-    @ApiModelProperty(value = "读取时间")
-    private Date readTime;
 
     @ApiModelProperty(value = "帖子信息")
     private NotificationPostVO post;

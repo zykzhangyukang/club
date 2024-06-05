@@ -37,6 +37,7 @@ public class NotificationController {
 
     @ApiOperation(value = "获取消息通知列表")
     @PostMapping(value = "/page")
+    @RateLimit(strategy = LimiterStrategy.SLIDING_WINDOW, windowRequests = 10)
     public ResultVO<PageVO<List<NotificationVO>>> getPage(@RequestBody NotificationDTO notificationDTO) {
 
         return this.notificationService.getPage(notificationDTO);
