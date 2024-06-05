@@ -19,8 +19,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -54,14 +52,9 @@ public class CarouseServiceImpl implements CarouseService {
     public ResultVO<List<CarouseVO>> getCarouselVoCacheList() {
         List<CarouseVO> sectionVos = new ArrayList<>();
         try {
-            sectionVos = CAROUSE_CACHE_MAP.get(RedisKeyConstant.REDIS_CAROUSE_CACHE, new Callable<List<CarouseVO>>() {
-                @Override
-                public List<CarouseVO> call() {
-                    return redisService.getListData(RedisKeyConstant.REDIS_CAROUSE_CACHE, CarouseVO.class
-                            , RedisDbConstant.REDIS_BIZ_CACHE);
-                }
-            });
-        } catch (ExecutionException e) {
+            sectionVos = CAROUSE_CACHE_MAP.get(RedisKeyConstant.REDIS_CAROUSE_CACHE, () -> redisService.getListData(RedisKeyConstant.REDIS_CAROUSE_CACHE, CarouseVO.class
+                    , RedisDbConstant.REDIS_BIZ_CACHE));
+        } catch (Exception e) {
             log.error("获取首页轮播图失败:{}", e.getMessage(), e);
         }
         return ResultUtil.getSuccessList(CarouseVO.class, sectionVos);

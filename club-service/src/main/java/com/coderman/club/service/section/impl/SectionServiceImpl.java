@@ -58,14 +58,9 @@ public class SectionServiceImpl implements SectionService {
 
         List<SectionVO> sectionVos = new ArrayList<>();
         try {
-            sectionVos = SECTION_CACHE_MAP.get(RedisKeyConstant.REDIS_SECTION_CACHE, new Callable<List<SectionVO>>() {
-                @Override
-                public List<SectionVO> call() {
-                    return redisService.getListData(RedisKeyConstant.REDIS_SECTION_CACHE, SectionVO.class
-                            , RedisDbConstant.REDIS_BIZ_CACHE);
-                }
-            });
-        } catch (ExecutionException e) {
+            sectionVos = SECTION_CACHE_MAP.get(RedisKeyConstant.REDIS_SECTION_CACHE, () -> redisService.getListData(RedisKeyConstant.REDIS_SECTION_CACHE, SectionVO.class
+                    , RedisDbConstant.REDIS_BIZ_CACHE));
+        } catch (Exception e) {
             log.error("获取栏目数据失败:{}", e.getMessage(), e);
         }
         return ResultUtil.getSuccessList(SectionVO.class, sectionVos);

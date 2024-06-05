@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author ：zhangyukang
@@ -33,7 +34,7 @@ public class PostController {
 
     @ApiOperation(value = "创建帖子")
     @PostMapping(value = "/publish")
-    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowRequests = 5 ,timeUnit = TimeUnit.MINUTES)
     public ResultVO<Void> postPublish(@RequestBody PostPublishDTO postPublishDTO) {
 
         return this.postService.postPublish(postPublishDTO);
@@ -41,7 +42,7 @@ public class PostController {
 
     @ApiOperation(value = "评论帖子")
     @PostMapping(value = "/comment")
-    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
+    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 30, windowRequests = 10)
     public ResultVO<PostCommentVO> postComment(@RequestBody PostCommentDTO postCommentDTO) {
 
         return this.postService.postComment(postCommentDTO);
@@ -49,7 +50,6 @@ public class PostController {
 
     @ApiOperation(value = "回复分页加载")
     @PostMapping(value = "/reply/page")
-    @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 5 , windowRequests = 5)
     public ResultVO<List<PostReplyVO>> postReplyPage(@RequestBody PostReplyDTO postReplyDTO) {
 
         return this.postService.postReplyPage(postReplyDTO);

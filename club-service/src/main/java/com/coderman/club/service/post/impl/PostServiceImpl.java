@@ -936,40 +936,7 @@ public class PostServiceImpl implements PostService {
         this.postMapper.addCommentsCount(postId, 1);
 
         // 发送消息通知
-        NotifyMsgDTO.NotifyMsgDTOBuilder notifyMsgBuilder = NotifyMsgDTO.builder()
-                .senderId(current.getUserId())
-                .relationId(insertModel.getCommentId())
-                .content(content)
-                .userIdList(Collections.singletonList(insertModel.getToUserId()))
-                .relationId(insertModel.getCommentId());
-
-        if (StringUtils.equals(insertModel.getType(), PostConstant.COMMENT_TYPE)) {
-
-            // 评论帖子
-            NotifyMsgDTO msgDTO = notifyMsgBuilder
-                    .content(String.format(NotificationTypeEnum.COMMENT.getTemplate(), current.getNickname(), postModel.getTitle(), content))
-                    .typeEnum(NotificationTypeEnum.COMMENT).build();
-            this.notificationService.send(msgDTO);
-
-        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_AT_TYPE)) {
-
-            // 发送消息通知 (回复@某人)
-            assert replyComment != null;
-            NotifyMsgDTO msgDTO = notifyMsgBuilder
-                    .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
-                    .typeEnum(NotificationTypeEnum.REPLY_AT).build();
-            this.notificationService.send(msgDTO);
-
-        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
-
-            // 发送消息通知 (回复评论)
-            assert parentComment != null;
-            NotifyMsgDTO msgDTO = notifyMsgBuilder
-                    .content(String.format(NotificationTypeEnum.REPLY.getTemplate(), current.getNickname(), parentComment.getContent(), content))
-                    .typeEnum(NotificationTypeEnum.REPLY).build();
-            this.notificationService.send(msgDTO);
-        }
-
+        this.sendCommentNotification(insertModel,postModel,parentComment, replyComment);
 
         // 返回给前台
         List<UserInfoVO> userInfoByIdList = this.userService.getUserInfoByIdList(Collections.singletonList(insertModel.getUserId()));
@@ -984,6 +951,51 @@ public class PostServiceImpl implements PostService {
         }
 
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
+    }
+
+    private void sendCommentNotification(PostCommentModel insertModel,PostModel postModel, PostCommentModel parentComment, PostCommentModel replyComment){
+
+        AuthUserVO current = AuthUtil.getCurrent();
+        String content = postModel.getContent();
+        if(Objects.equals(current.getUserId(), insertModel.getToUserId())){
+            return;
+        }
+
+        NotifyMsgDTO.NotifyMsgDTOBuilder notifyMsgBuilder = NotifyMsgDTO.builder()
+                .senderId(current.getUserId())
+                .relationId(insertModel.getCommentId())
+                .content(content)
+                .userIdList(Collections.singletonList(insertModel.getToUserId()))
+                .relationId(insertModel.getCommentId());
+
+        NotifyMsgDTO msgDTO = null;
+        if (StringUtils.equals(insertModel.getType(), PostConstant.COMMENT_TYPE)) {
+
+            // 评论帖子
+            msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.COMMENT.getTemplate(), current.getNickname(), postModel.getTitle(), content))
+                    .typeEnum(NotificationTypeEnum.COMMENT).build();
+            this.notificationService.send(msgDTO);
+
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_AT_TYPE)) {
+
+            // 发送消息通知 (回复@某人)
+            assert replyComment != null;
+            msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY_AT).build();
+            this.notificationService.send(msgDTO);
+
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
+
+            // 发送消息通知 (回复评论)
+            assert parentComment != null;
+            msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.REPLY.getTemplate(), current.getNickname(), parentComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY).build();
+        }
+
+        this.notificationService.send(msgDTO);
     }
 
     @Override
