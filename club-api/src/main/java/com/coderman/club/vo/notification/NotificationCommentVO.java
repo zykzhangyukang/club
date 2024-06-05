@@ -18,6 +18,15 @@ public class NotificationCommentVO extends BaseModel {
     @ApiModelProperty(value = "评论内容")
     private String content;
 
+    @ApiModelProperty(value = "评论是否已删除")
+    private Boolean isHide;
+
+    @ApiModelProperty(value = "父级评论是否已删除")
+    private Boolean parentIsHide;
+
+    @ApiModelProperty(value = "被回复的评论是否已删除")
+    private Boolean repliedIsHide;
+
     @ApiModelProperty(value = "父级评论id")
     private Long parentId;
 

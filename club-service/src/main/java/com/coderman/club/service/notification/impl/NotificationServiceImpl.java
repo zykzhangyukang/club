@@ -2,6 +2,7 @@ package com.coderman.club.service.notification.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.coderman.club.constant.common.CommonConstant;
+import com.coderman.club.constant.post.PostConstant;
 import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.enums.NotificationTypeEnum;
@@ -128,7 +129,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // 评论信息
-        Map<Long,NotificationCommentVO> commentVoMap= Maps.newHashMap();
+        Map<Long, NotificationCommentVO> commentVoMap = Maps.newHashMap();
         List<Long> commentIdList = voList.stream().filter(e -> this.isCommentInfo(e.getType())).map(NotificationVO::getRelationId).distinct().collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(commentIdList)) {
             commentVoMap = this.postCommentMapper.selectNotificationCommentVos(commentIdList)
@@ -145,17 +146,82 @@ public class NotificationServiceImpl implements NotificationService {
 
             // 评论信息
             if (this.isCommentInfo(notificationVO.getType())) {
-                notificationVO.setComment(commentVoMap.get(notificationVO.getRelationId()));
+                setContent(commentVoMap.get(notificationVO.getRelationId()), notificationVO);
             }
         }
         long total = pageInfo.getTotal();
         return ResultUtil.getSuccessPage(NotificationVO.class, new PageVO<>(total, notificationVos, currentPage, pageSize));
     }
 
+    private void setContent(NotificationCommentVO commentVO, NotificationVO notificationVO) {
+
+        // 数据异常情况
+        if (commentVO == null) {
+            notificationVO.setContent("该评论已删除！");
+            notificationVO.setRepliedContent("原评论已删除！");
+            return;
+        }
+
+        String content = StringUtils.EMPTY;
+        String repliedContent = StringUtils.EMPTY;
+
+        Boolean isHide = commentVO.getIsHide();
+        Boolean parentIsHide = commentVO.getParentIsHide();
+        Boolean repliedIsHide = commentVO.getRepliedIsHide();
+
+
+        if (StringUtils.equals(commentVO.getType(), PostConstant.COMMENT_TYPE)) {
+
+            if (BooleanUtils.isNotFalse(isHide)) {
+                content = "该评论已删除";
+            } else {
+                content = commentVO.getContent();
+            }
+
+        } else if (StringUtils.equals(commentVO.getType(), PostConstant.REPLY_TYPE)) {
+
+            if (BooleanUtils.isNotFalse(parentIsHide)) {
+                content = "原评论已删除";
+            } else if (BooleanUtils.isNotFalse(isHide)) {
+                content = "该评论已删除";
+                repliedContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
+            } else {
+                content = commentVO.getContent();
+                repliedContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
+            }
+
+        } else if (StringUtils.equals(commentVO.getType(), PostConstant.REPLY_AT_TYPE)) {
+
+            if (BooleanUtils.isNotFalse(parentIsHide)) {
+                content = "原评论已删除";
+                repliedContent = "原评论已删除";
+            } else if (BooleanUtils.isNotFalse(isHide)) {
+                content = "该评论已删除";
+
+                if (BooleanUtils.isNotFalse(repliedIsHide)) {
+                    repliedContent = "该评论已删除";
+                } else {
+                    repliedContent = commentVO.getRepliedUser() + "：回复@" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
+                }
+            } else {
+                content = commentVO.getContent();
+                if (BooleanUtils.isNotFalse(repliedIsHide)) {
+                    repliedContent = "该评论已删除";
+                } else {
+                    repliedContent = commentVO.getRepliedUser() + "：回复@" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
+                }
+            }
+        }
+
+        notificationVO.setRepliedContent(repliedContent);
+        notificationVO.setContent(content);
+    }
+
     private boolean isPostInfo(String type) {
         return StringUtils.equals(type, NotificationTypeEnum.LIKE_POST.getMsgType())
                 || StringUtils.equals(type, NotificationTypeEnum.COLLECT_POST.getMsgType());
     }
+
     private boolean isCommentInfo(String type) {
         return StringUtils.equals(type, NotificationTypeEnum.COMMENT.getMsgType())
                 || StringUtils.equals(type, NotificationTypeEnum.REPLY.getMsgType())

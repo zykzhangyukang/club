@@ -67,8 +67,8 @@ public class AuthHandshakeInterceptor implements ChannelInterceptor {
         accessor.setUser(new MyPrincipal(userId));
         if (this.redisService.isSetMember(RedisKeyConstant.WEBSOCKET_USER_SET, String.valueOf(userId), RedisDbConstant.REDIS_DB_DEFAULT)) {
 
-            log.debug("同一个用户:{} 不准建立多个连接WebSocket. sessionId:{}", userId, sessionId);
-            return null;
+            log.info("同一个用户:{} 不准建立多个连接WebSocket. sessionId:{}", userId, sessionId);
+            return message;
         }
 
         // 将用户id存到Redis中

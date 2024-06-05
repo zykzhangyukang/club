@@ -936,7 +936,7 @@ public class PostServiceImpl implements PostService {
         this.postMapper.addCommentsCount(postId, 1);
 
         // 发送消息通知
-        this.sendCommentNotification(insertModel,postModel,parentComment, replyComment);
+        this.sendCommentNotification(insertModel,postModel,parentComment, replyComment, content);
 
         // 返回给前台
         List<UserInfoVO> userInfoByIdList = this.userService.getUserInfoByIdList(Collections.singletonList(insertModel.getUserId()));
@@ -953,10 +953,9 @@ public class PostServiceImpl implements PostService {
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }
 
-    private void sendCommentNotification(PostCommentModel insertModel,PostModel postModel, PostCommentModel parentComment, PostCommentModel replyComment){
+    private void sendCommentNotification(PostCommentModel insertModel,PostModel postModel, PostCommentModel parentComment, PostCommentModel replyComment, String content){
 
         AuthUserVO current = AuthUtil.getCurrent();
-        String content = postModel.getContent();
         if(Objects.equals(current.getUserId(), insertModel.getToUserId())){
             return;
         }
@@ -975,7 +974,6 @@ public class PostServiceImpl implements PostService {
             msgDTO = notifyMsgBuilder
                     .content(String.format(NotificationTypeEnum.COMMENT.getTemplate(), current.getNickname(), postModel.getTitle(), content))
                     .typeEnum(NotificationTypeEnum.COMMENT).build();
-            this.notificationService.send(msgDTO);
 
         } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_AT_TYPE)) {
 
@@ -984,7 +982,6 @@ public class PostServiceImpl implements PostService {
             msgDTO = notifyMsgBuilder
                     .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
                     .typeEnum(NotificationTypeEnum.REPLY_AT).build();
-            this.notificationService.send(msgDTO);
 
         } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
 

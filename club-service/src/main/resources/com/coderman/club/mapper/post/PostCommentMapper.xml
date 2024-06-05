@@ -79,6 +79,9 @@
     t1.reply_id,
     t1.post_id,
     t2.title AS post_title,
+    t1.is_hide as is_hide,
+    parent.is_hide as parent_is_hide,
+    reply.is_hide as replied_is_hide,
     parent_user.nickname AS parent_user,
     parent.content AS parent_content,
     reply_user.nickname AS replied_user,
@@ -97,6 +100,5 @@
     <foreach collection="commentIdList" item="item" separator="," open="(" close=")">
       #{item}
     </foreach>
-    and t1.is_hide = 0
   </select>
 </mapper>
