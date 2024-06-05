@@ -2,6 +2,7 @@ package com.coderman.club.mapper.post;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coderman.club.model.post.PostModel;
+import com.coderman.club.vo.notification.NotificationPostVO;
 import com.coderman.club.vo.post.PostDetailVO;
 import com.coderman.club.vo.post.PostHotTaskVO;
 import com.coderman.club.vo.post.PostHotVO;
@@ -96,4 +97,11 @@ public interface PostMapper extends BaseMapper<PostModel> {
      * @return
      */
     List<PostHotVO> getPostFormIndex(@Param(value = "beginId") Long beginId, @Param(value = "endId") Long endId);
+
+    /**
+     * 获取帖子信息
+     * @param postIdList
+     * @return
+     */
+    List<NotificationPostVO> selectNotificationPostVOs(@Param(value = "postIdList") List<Long> postIdList);
 }

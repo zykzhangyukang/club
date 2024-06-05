@@ -70,37 +70,33 @@
 
   </select>
 
-  <select id="selectNotificationCommentVOs" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
-    select
+  <select id="selectNotificationCommentVos" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
+    SELECT
     t1.comment_id,
     t1.content,
     t1.type,
     t1.parent_id,
-    t1.reply_id
-    from club_post_comment t1
-    LEFT JOIN club_user cu1 ON cu1.user_id = t1.user_id
-    LEFT JOIN club_user cu2 ON cu2.user_id = t1.to_user_id
-    where t1.comment_id in
+    t1.reply_id,
+    t1.post_id,
+    t2.title AS post_title,
+    parent_user.nickname AS parent_user,
+    parent.content AS parent_content,
+    reply_user.nickname AS replied_user,
+    to_reply_user.nickname AS to_replied_user,
+    reply.content AS replied_content
+    FROM
+    `club_post_comment` t1
+    LEFT JOIN club_post t2 ON t1.post_id = t2.post_id
+    LEFT JOIN club_post_comment parent ON t1.parent_id = parent.comment_id AND t1.parent_id > 0
+    LEFT JOIN club_post_comment reply ON t1.type = 'reply_at' AND t1.reply_id = reply.comment_id AND t1.reply_id > 0
+    LEFT JOIN club_user parent_user ON parent.user_id = parent_user.user_id
+    LEFT JOIN club_user reply_user ON t1.type = 'reply_at' AND reply.user_id = reply_user.user_id
+    LEFT JOIN club_user to_reply_user ON t1.type = 'reply_at' AND reply.to_user_id = to_reply_user.user_id
+    WHERE
+    t1.comment_id in
     <foreach collection="commentIdList" item="item" separator="," open="(" close=")">
       #{item}
     </foreach>
-    and is_hide = 0
-  </select>
-
-  <select id="selectNotificationReplyVos" resultType="com.coderman.club.vo.notification.NotificationReplyVO">
-    select
-    cn.comment_id,
-    cn.content,
-    cn.type,
-    cu1.nickname as sendNickName,
-    cu2.nickname as toNickName
-    from club_post_comment cn
-     LEFT JOIN club_user cu1 ON cu1.user_id = cn.user_id
-     LEFT JOIN club_user cu2 ON cu2.user_id = cn.to_user_id
-     where
-     is_hide = 0 and cn.comment_id in
-    <foreach collection="replyIdList" item="item" separator="," open="(" close=")">
-      #{item}
-    </foreach>
+    and t1.is_hide = 0
   </select>
 </mapper>

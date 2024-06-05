@@ -27,9 +27,9 @@
                              END ) AS sysCount,
       COUNT( CASE WHEN `type` = 'like_post' THEN 1 END ) AS zanCount,
 
-      COUNT( CASE WHEN `type` = 'reply_comment' THEN 1
-                              WHEN `type` = 'comment_post' THEN 1
-                              WHEN `type` = 'reply_at_comment' THEN 1
+      COUNT( CASE WHEN `type` = 'reply' THEN 1
+                              WHEN `type` = 'comment' THEN 1
+                              WHEN `type` = 'reply_at' THEN 1
                               END ) AS replyCount
     FROM
       club_notification
@@ -65,7 +65,7 @@
         and cn.type in ('register_welcome', 'register_init_pwd' , 'following_user')
       </when>
       <when test="type == 'reply'">
-        and cn.type in ('reply_comment','comment_post','reply_at_comment')
+        and cn.type in ('reply','comment','reply_at')
       </when>
       <when test="type == 'zan'">
         and cn.type in ('like_post')

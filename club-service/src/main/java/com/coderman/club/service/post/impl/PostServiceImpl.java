@@ -47,7 +47,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
@@ -948,8 +947,8 @@ public class PostServiceImpl implements PostService {
 
             // 评论帖子
             NotifyMsgDTO msgDTO = notifyMsgBuilder
-                    .content(String.format(NotificationTypeEnum.COMMENT_POST.getTemplate(), current.getNickname(), postModel.getTitle(), content))
-                    .typeEnum(NotificationTypeEnum.COMMENT_POST).build();
+                    .content(String.format(NotificationTypeEnum.COMMENT.getTemplate(), current.getNickname(), postModel.getTitle(), content))
+                    .typeEnum(NotificationTypeEnum.COMMENT).build();
             this.notificationService.send(msgDTO);
 
         } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_AT_TYPE)) {
@@ -957,8 +956,8 @@ public class PostServiceImpl implements PostService {
             // 发送消息通知 (回复@某人)
             assert replyComment != null;
             NotifyMsgDTO msgDTO = notifyMsgBuilder
-                    .content(String.format(NotificationTypeEnum.REPLY_AT_COMMENT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
-                    .typeEnum(NotificationTypeEnum.REPLY_AT_COMMENT).build();
+                    .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY_AT).build();
             this.notificationService.send(msgDTO);
 
         } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
@@ -966,8 +965,8 @@ public class PostServiceImpl implements PostService {
             // 发送消息通知 (回复评论)
             assert parentComment != null;
             NotifyMsgDTO msgDTO = notifyMsgBuilder
-                    .content(String.format(NotificationTypeEnum.REPLY_COMMENT.getTemplate(), current.getNickname(), parentComment.getContent(), content))
-                    .typeEnum(NotificationTypeEnum.REPLY_COMMENT).build();
+                    .content(String.format(NotificationTypeEnum.REPLY.getTemplate(), current.getNickname(), parentComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY).build();
             this.notificationService.send(msgDTO);
         }
 

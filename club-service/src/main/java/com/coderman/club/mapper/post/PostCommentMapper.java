@@ -45,12 +45,5 @@ public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
      * @param commentIdList
      * @return
      */
-    List<NotificationCommentVO> selectNotificationCommentVOs(@Param(value = "commentIdList") List<Long> commentIdList);
-
-    /**
-     * 获取回复信息 （消息通知）
-     * @param replyIdList
-     * @return
-     */
-    List<NotificationReplyVO> selectNotificationReplyVos(@Param(value = "replyIdList") List<Long> replyIdList);
+    List<NotificationCommentVO> selectNotificationCommentVos(@Param(value = "commentIdList") List<Long> commentIdList);
 }

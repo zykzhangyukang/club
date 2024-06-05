@@ -29,15 +29,15 @@ public enum NotificationTypeEnum {
     /**
      * 评论帖子
      */
-    COMMENT_POST("comment_post", "%s 评论了你的帖子 “%s”  ：%s "),
+    COMMENT("comment", "%s 评论了你的帖子 “%s”  ：%s "),
     /**
      * 回复评论
      */
-    REPLY_COMMENT("reply_comment", "%s 回复了你的评论 “%s”  ：%s "),
+    REPLY("reply", "%s 回复了你的评论 “%s”  ：%s "),
     /**
      * 回复评论
      */
-    REPLY_AT_COMMENT("reply_at_comment", "%s 回复并@了你的评论 “%s”  ：%s ");
+    REPLY_AT("reply_at", "%s 回复并@了你的评论 “%s”  ：%s ");
 
     NotificationTypeEnum(String msgType, String template) {
         this.template = template;
