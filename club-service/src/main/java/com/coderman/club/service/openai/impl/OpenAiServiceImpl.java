@@ -50,7 +50,7 @@ public class OpenAiServiceImpl implements OpenAiService {
         }
 
         JSONObject params = new JSONObject();
-        params.put("model", "gpt-4");
+        params.put("model", "gpt-3.5-turbo");
         params.put("messages", messages);
         params.put("stream", true);
 

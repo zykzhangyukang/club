@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * @author zhangyukang
@@ -31,12 +31,7 @@ public class SseController {
     @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 30 , windowRequests = 5)
     public SseEmitter subscript(String content) {
         SseEmitter sseEmitter = new SseEmitter(-1L);
-
-        openAiService.chatGptSse(sseEmitter, Arrays.asList(
-                "你的回答控制在100个字符之内",
-                "你现在是一个社区网站的AI助手"
-                , content));
-
+        openAiService.chatGptSse(sseEmitter, Collections.singletonList(content));
         return sseEmitter;
     }
 }
