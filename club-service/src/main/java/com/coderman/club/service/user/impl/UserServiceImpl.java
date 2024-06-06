@@ -178,6 +178,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         BeanUtils.copyProperties(userModel, authUserVO);
         authUserVO.setToken(token);
         authUserVO.setRefreshToken(refreshToken);
+        authUserVO.setExpiresIn(authProperties.getTokenExpiration());
 
         // 查询用户信息
         UserInfoModel userInfoModel = this.userInfoService.selectByUserId(userModel.getUserId());
@@ -454,6 +455,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         userLoginVO.setUserCode(userInfoModel.getUserCode());
         userLoginVO.setRefreshToken(current.getRefreshToken());
         userLoginVO.setToken(current.getToken());
+        userLoginVO.setExpiresIn(current.getExpiresIn());
         userLoginVO.setFollowCount(followCount);
         userLoginVO.setCollectCount(collectCount);
         return ResultUtil.getSuccess(UserLoginVO.class, userLoginVO);
@@ -781,6 +783,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         userLoginVO.setToken(token);
         userLoginVO.setRefreshToken(refreshToken);
         userLoginVO.setAvatar(authUserVO.getAvatar());
+        userLoginVO.setExpiresIn(authProperties.getTokenExpiration());
 
         // 关注的人数
         Integer followCount = this.userFollowingService.getFollowCountByUserId(userModel.getUserId());
