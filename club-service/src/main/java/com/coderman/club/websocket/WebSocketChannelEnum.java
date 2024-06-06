@@ -1,7 +1,7 @@
 package com.coderman.club.websocket;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public enum WebSocketChannelEnum {
 

@@ -16,7 +16,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 @Api(value = "社区通知模块", tags = {"社区通知模块"})
 @RestController

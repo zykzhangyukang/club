@@ -3,7 +3,7 @@ package com.coderman.club.service.user;
 import com.coderman.club.model.user.UserFollowingModel;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface UserFollowingService  {
 

@@ -49,6 +49,26 @@ ai:
   chatgpt:
       open-ai-url: https://chatgpt.coderman.love/v1/chat/completions
       open-ai-key: DES@ABA18499E3E3870279BD3C568207EB82970DE972A4EB0F5AA92996D1DDAAB94BCFE2B28044D7DAD81232D376BCB18F54565467DB8A4C314F5F2EC4A83FE5B5FD
+auth:
+  token-expiration: 86400
+  refresh-token-expiration: 604800
+  white-list:
+    - /api/sse/chatgpt
+    - /api/wechat/message
+    - /api/wechat/code
+    - /api/wechat/subscribe
+    - /api/user/login
+    - /api/user/register
+    - /api/user/refresh/token
+    - /api/user/logout
+    - /api/user/captcha
+    - /api/index/sections
+    - /api/index/carousels
+    - /api/index
+    - /api/post/page
+    - /api/post/comment/page
+    - /api/post/detail
+
 logging:
     level:
       root: info

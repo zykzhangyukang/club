@@ -3,6 +3,9 @@ package com.coderman.club.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * @author zhangyukang
+ */
 @ConfigurationProperties(prefix = "ai.chatgpt")
 @Configuration
 public class ChatGptProperties {

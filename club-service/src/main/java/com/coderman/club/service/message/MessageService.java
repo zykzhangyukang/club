@@ -8,7 +8,7 @@ import com.coderman.club.vo.message.MessageVO;
 import java.util.List;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface MessageService {
 

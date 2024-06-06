@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface UserService extends IService<UserModel> {
 

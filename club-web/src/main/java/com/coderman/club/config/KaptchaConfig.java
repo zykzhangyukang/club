@@ -10,6 +10,9 @@ import java.util.Properties;
 
 import static com.google.code.kaptcha.Constants.*;
 
+/**
+ * @author zhangyukang
+ */
 @Configuration
 public class KaptchaConfig {
     @Bean

@@ -10,7 +10,7 @@ import com.coderman.club.vo.notification.NotificationVO;
 import java.util.List;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface NotificationService {
 

@@ -1,7 +1,7 @@
 package com.coderman.club.constant.user;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface UserConstant {
 

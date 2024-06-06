@@ -3,7 +3,7 @@ package com.coderman.club.service.point;
 import com.coderman.club.model.point.PointAccountModel;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface PointAccountService {
 

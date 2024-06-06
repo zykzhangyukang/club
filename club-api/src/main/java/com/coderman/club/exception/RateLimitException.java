@@ -2,7 +2,7 @@ package com.coderman.club.exception;
 
 /**
  * 限流异常
- * @author Administrator
+ * @author zhangyukang
  */
 public class RateLimitException extends RuntimeException {
 

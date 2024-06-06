@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * @author zhangyukang
  * @description: swagger 属性
  */
 @Component

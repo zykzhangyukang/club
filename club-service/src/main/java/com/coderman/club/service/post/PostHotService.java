@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * 热门帖子
- * @author Administrator
+ * @author zhangyukang
  */
 public interface PostHotService {
 

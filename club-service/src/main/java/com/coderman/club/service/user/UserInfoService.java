@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface UserInfoService {
 

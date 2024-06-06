@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.coderman.club.constant.common.ResultConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
 import com.coderman.club.constant.redis.RedisKeyConstant;
+import com.coderman.club.properties.AuthProperties;
 import com.coderman.club.service.redis.RedisService;
 import com.coderman.club.utils.AuthUtil;
 import com.coderman.club.utils.HttpContextUtil;
@@ -43,10 +44,7 @@ import java.util.concurrent.TimeUnit;
 @Lazy(value = false)
 @Slf4j
 public class AuthAspect {
-    /**
-     * 白名单
-     */
-    private static final List<String> WHITE_LIST = new ArrayList<>();
+
     /**
      * 保存token与用户的关系 (缓存5分钟防止频繁请求redis)
      */
@@ -69,40 +67,13 @@ public class AuthAspect {
     @Resource
     private RedisService redisService;
 
+    @Resource
+    private AuthProperties authProperties;
+
     @Pointcut("(execution(* com.coderman..controller..*(..)))")
     public void pointcut() {
     }
 
-    @PostConstruct
-    public void init() {
-        // 公众号相关
-        WHITE_LIST.add("/api/sse/chatgpt");
-        WHITE_LIST.add("/api/wechat/message");
-        WHITE_LIST.add("/api/wechat/code");
-        WHITE_LIST.add("/api/wechat/subscribe");
-        // 登录接口
-        WHITE_LIST.add("/api/user/login");
-        // 注册接口
-        WHITE_LIST.add("/api/user/register");
-        // 刷新token
-        WHITE_LIST.add("/api/user/refresh/token");
-        // 注销登录
-        WHITE_LIST.add("/api/user/logout");
-        // 图形验证码
-        WHITE_LIST.add("/api/user/captcha");
-        // 首页列表
-        WHITE_LIST.add("/api/index/sections");
-        // 轮播图数据
-        WHITE_LIST.add("/api/index/carousels");
-        // 首页
-        WHITE_LIST.add("/api/index");
-        // 帖子分页
-        WHITE_LIST.add("/api/post/page");
-        // 帖子评论
-        WHITE_LIST.add("/api/post/comment/page");
-        // 帖子详情
-        WHITE_LIST.add("/api/post/detail");
-    }
 
     @Around("pointcut()")
     public Object around(ProceedingJoinPoint point) throws Throwable {
@@ -111,7 +82,7 @@ public class AuthAspect {
         HttpServletResponse response = HttpContextUtil.getHttpServletResponse();
         String path = request.getServletPath();
 
-        if (WHITE_LIST.contains(path)) {
+        if (authProperties.getWhiteList().contains(path)) {
             return point.proceed();
         }
 

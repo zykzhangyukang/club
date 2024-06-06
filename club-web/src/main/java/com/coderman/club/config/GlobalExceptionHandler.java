@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 @ControllerAdvice
 @Slf4j

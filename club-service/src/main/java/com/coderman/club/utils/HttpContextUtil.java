@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public abstract class HttpContextUtil {
 

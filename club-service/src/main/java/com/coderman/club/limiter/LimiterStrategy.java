@@ -2,7 +2,7 @@ package com.coderman.club.limiter;
 
 /**
  * 限流策略
- * @author Administrator
+ * @author zhangyukang
  */
 public interface LimiterStrategy {
 

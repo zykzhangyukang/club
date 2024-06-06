@@ -20,6 +20,7 @@ import com.coderman.club.model.point.PointAccountModel;
 import com.coderman.club.model.user.UserFollowingModel;
 import com.coderman.club.model.user.UserInfoModel;
 import com.coderman.club.model.user.UserModel;
+import com.coderman.club.properties.AuthProperties;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.point.PointAccountService;
 import com.coderman.club.service.post.PostService;
@@ -87,6 +88,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
     private AliYunOssUtil aliYunOssUtil;
     @Resource
     private Producer producer;
+    @Resource
+    private AuthProperties authProperties;
 
     @Override
     @Transactional(rollbackFor = Throwable.class)
@@ -406,9 +409,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
                 // 删除原来刷新令牌
                 this.redisService.del(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + oldRefreshToken, RedisDbConstant.REDIS_DB_DEFAULT);
                 // 保存登录令牌 (1天)
-                this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, 60 * 60 * 24, RedisDbConstant.REDIS_DB_DEFAULT);
+                this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, authProperties.getTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
                 // 保存刷新令牌 (7天)
-                this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + newRefreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
+                this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + newRefreshToken, authUserVO, authProperties.getRefreshTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
 
                 refreshVO.setRefreshToken(newRefreshToken);
                 refreshVO.setToken(newToken);
@@ -765,9 +768,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         // 会话对象创建
         AuthUserVO authUserVO = this.convertToAuthVO(userModel, token, refreshToken);
         // 保存登录令牌 (1天)
-        this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, 60 * 60 * 24, RedisDbConstant.REDIS_DB_DEFAULT);
+        this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, authProperties.getTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
         // 保存刷新令牌 (7天)
-        this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, 60 * 60 * 24 * 7, RedisDbConstant.REDIS_DB_DEFAULT);
+        this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, authProperties.getRefreshTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
         // 更新最新登录时间
         this.userInfoService.updateLastLoginTime(authUserVO.getUserId(), loginTime);
         // 保存登录日志

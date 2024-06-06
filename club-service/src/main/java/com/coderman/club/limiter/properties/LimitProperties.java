@@ -1,7 +1,7 @@
 package com.coderman.club.limiter.properties;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface LimitProperties {
 

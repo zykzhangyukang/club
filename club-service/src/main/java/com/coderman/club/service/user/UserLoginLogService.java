@@ -5,7 +5,7 @@ import com.coderman.club.vo.user.AuthUserVO;
 import java.util.Date;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface UserLoginLogService {
 

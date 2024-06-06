@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  * @date 2020/11/15 5:53 下午 星期日
  * @since 1.0.0
  */

@@ -6,7 +6,7 @@ import com.coderman.club.vo.section.SectionVO;
 import java.util.List;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface SectionService {
 

@@ -6,7 +6,7 @@ import com.coderman.club.vo.common.ResultVO;
 import java.util.List;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface CarouseService {
 

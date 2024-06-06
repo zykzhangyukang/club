@@ -1,7 +1,7 @@
 package com.coderman.club.constant.common;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface CommonConstant {
 

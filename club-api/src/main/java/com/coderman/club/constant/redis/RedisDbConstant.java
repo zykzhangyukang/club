@@ -1,7 +1,7 @@
 package com.coderman.club.constant.redis;
 
 /**
- * @author Administrator
+ * @author zhangyukang
  */
 public interface RedisDbConstant {
 
