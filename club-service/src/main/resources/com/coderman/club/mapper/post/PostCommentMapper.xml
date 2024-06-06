@@ -89,11 +89,13 @@
     parent_user.nickname AS parent_user,
     reply_user.nickname AS replied_user,
     to_reply_user.nickname AS to_replied_user,
-    `user`.nickname AS user,
+    info.avatar AS avatar,
+    `user`.nickname AS `user`,
     to_user.nickname AS to_user,
     -- 父评论和被回复的评论内容
     parent.content AS parent_content,
-    reply.content AS replied_content
+    reply.content AS replied_content,
+    reply.type AS replied_type
     FROM
     club_post_comment t1
     -- 连接帖子表
@@ -106,8 +108,9 @@
     LEFT JOIN club_user parent_user ON parent.user_id = parent_user.user_id
     LEFT JOIN club_user reply_user ON t1.type = 'reply_at' AND reply.user_id = reply_user.user_id
     LEFT JOIN club_user to_reply_user ON t1.type = 'reply_at' AND reply.to_user_id = to_reply_user.user_id
-    LEFT JOIN club_user `user` ON t1.user_id = user.user_id
+    LEFT JOIN club_user `user` ON t1.user_id = `user`.user_id
     LEFT JOIN club_user to_user ON t1.to_user_id = to_user.user_id
+    LEFT JOIN club_user_info info ON t1.user_id = info.user_id
     WHERE
     t1.comment_id in
     <foreach collection="commentIdList" item="item" separator="," open="(" close=")">

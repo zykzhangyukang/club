@@ -33,6 +33,9 @@ public class NotificationVO extends BaseModel {
     @ApiModelProperty(value = "本评论的发布人")
     private String user;
 
+    @ApiModelProperty(value = "本评论的发布人头像")
+    private String avatar;
+
     @ApiModelProperty(value = "本评论的回复的人")
     private String toUser;
 

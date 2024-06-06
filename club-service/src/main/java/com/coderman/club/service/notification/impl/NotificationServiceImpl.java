@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -194,6 +195,7 @@ public class NotificationServiceImpl implements NotificationService {
 
             if (BooleanUtils.isNotFalse(parentIsHide)) {
                 content = "原评论已删除";
+                parentContent = "原评论已删除";
             } else if (BooleanUtils.isNotFalse(isHide)) {
                 content = "该评论已删除";
                 parentContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
@@ -209,19 +211,10 @@ public class NotificationServiceImpl implements NotificationService {
                 repliedContent = "原评论已删除";
             } else if (BooleanUtils.isNotFalse(isHide)) {
                 content = "该评论已删除";
-
-                if (BooleanUtils.isNotFalse(repliedIsHide)) {
-                    repliedContent = "该评论已删除";
-                } else {
-                    repliedContent = commentVO.getRepliedUser() + "：回复@" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
-                }
+                repliedContent = getRepliedContent(commentVO, repliedIsHide);
             } else {
                 content = commentVO.getContent();
-                if (BooleanUtils.isNotFalse(repliedIsHide)) {
-                    repliedContent = "该评论已删除";
-                } else {
-                    repliedContent = commentVO.getRepliedUser() + "：回复@" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
-                }
+                repliedContent = getRepliedContent(commentVO, repliedIsHide);
             }
         }
 
@@ -234,6 +227,23 @@ public class NotificationServiceImpl implements NotificationService {
         notificationVO.setToRepliedUser(commentVO.getToRepliedUser());
         notificationVO.setUser(commentVO.getUser());
         notificationVO.setToUser(commentVO.getToUser());
+        notificationVO.setAvatar(commentVO.getAvatar());
+    }
+
+    @NotNull
+    private String getRepliedContent(NotificationCommentVO commentVO, Boolean repliedIsHide) {
+        String repliedContent;
+        if (BooleanUtils.isNotFalse(repliedIsHide)) {
+            repliedContent = "该评论已删除";
+        } else {
+
+            if (StringUtils.equals(commentVO.getRepliedType(), PostConstant.REPLY_AT_TYPE)) {
+                repliedContent = commentVO.getRepliedUser() + "：回复@" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
+            } else {
+                repliedContent = commentVO.getRepliedUser() + "：" + commentVO.getRepliedContent();
+            }
+        }
+        return repliedContent;
     }
 
     private boolean isPostInfo(String type) {

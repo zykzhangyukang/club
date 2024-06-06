@@ -45,6 +45,9 @@ public class NotificationCommentVO extends BaseModel {
     @ApiModelProperty(value = "本评论的发布人")
     private String user;
 
+    @ApiModelProperty(value = "本评论的发布人头像")
+    private String avatar;
+
     @ApiModelProperty(value = "本评论的回复的人")
     private String toUser;
 
@@ -53,6 +56,9 @@ public class NotificationCommentVO extends BaseModel {
 
     @ApiModelProperty(value = "被回复的评论内容的用户 (只有@评论才有)")
     private String repliedUser;
+
+    @ApiModelProperty(value = "被回复的评论的类型 (只有@评论才有)")
+    private String repliedType;
 
     @ApiModelProperty(value = "被回复的评论内容的用户 (被@的人)")
     private String toRepliedUser;
