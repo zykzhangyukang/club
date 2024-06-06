@@ -400,10 +400,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
             UserLoginRefreshVO refreshVO = new UserLoginRefreshVO();
             String oldToken = oldAuthUserVo.getToken();
             String oldRefreshToken = oldAuthUserVo.getRefreshToken();
+            Integer oldExpiresIn = oldAuthUserVo.getExpiresIn();
 
-            // 判断一下之前的token是否还在有效期内
+            // 判断一下之前的token是否还在有效期内 (OR即将到期)
             boolean existsOldToken = this.redisService.exists(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + oldAuthUserVo.getToken(), RedisDbConstant.REDIS_DB_DEFAULT);
-            if (!existsOldToken) {
+            if (1 == 1) {
 
                 AuthUserVO authUserVO = this.convertToAuthVO(userModel, newToken, newRefreshToken);
 
@@ -416,10 +417,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
 
                 refreshVO.setRefreshToken(newRefreshToken);
                 refreshVO.setToken(newToken);
+                refreshVO.setExpiresIn(authProperties.getTokenExpiration());
 
             } else {
                 refreshVO.setToken(oldToken);
                 refreshVO.setRefreshToken(oldRefreshToken);
+                refreshVO.setExpiresIn(oldExpiresIn);
             }
 
             return ResultUtil.getSuccess(UserLoginRefreshVO.class, refreshVO);

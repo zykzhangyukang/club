@@ -18,4 +18,7 @@ public class UserLoginRefreshVO extends BaseModel {
 
     @ApiModelProperty(value = "刷新令牌")
     private String refreshToken;
+
+    @ApiModelProperty(value = "Token过期时间(单位s)")
+    private Integer expiresIn;
 }

@@ -175,9 +175,9 @@ public class NotificationServiceImpl implements NotificationService {
             return;
         }
 
-        String content = StringUtils.EMPTY;
-        String parentContent = StringUtils.EMPTY;
-        String repliedContent = StringUtils.EMPTY;
+        String content = commentVO.getContent();
+        String parentContent = commentVO.getParentContent();
+        String repliedContent = commentVO.getRepliedContent();
 
         Boolean isHide = commentVO.getIsHide();
         Boolean parentIsHide = commentVO.getParentIsHide();

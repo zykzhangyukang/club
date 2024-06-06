@@ -865,7 +865,7 @@ public class PostServiceImpl implements PostService {
             return ResultUtil.getWarn("内容不超过512个字符！");
         }
 
-        PostModel postModel = this.postMapper.selectById(postId);
+        PostModel postModel = this.selectPostById(postId);
         if (postModel == null) {
             throw new BusinessException("评论的帖子不存在！");
         }
@@ -895,14 +895,14 @@ public class PostServiceImpl implements PostService {
         } else {
 
             // 父级评论
-            parentComment = this.postCommentMapper.selectById(parentId);
+            parentComment = this.selectCommentById(parentId);
             if (parentComment == null) {
-                throw new BusinessException("父级评论不存在！");
+                throw new BusinessException("回复的评论不存在！");
             }
 
             // @被回复的评论
             if (insertModel.getReplyId() > 0) {
-                replyComment = this.postCommentMapper.selectById(replyId);
+                replyComment = this.selectCommentById(replyId);
                 if (replyComment == null) {
                     throw new BusinessException("被@的评论不存在！");
                 }
@@ -943,6 +943,20 @@ public class PostServiceImpl implements PostService {
         }
 
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
+    }
+
+    private PostCommentModel selectCommentById(Long commentId){
+        return this.postCommentMapper.selectOne(Wrappers.<PostCommentModel>lambdaQuery().eq(PostCommentModel::getIsHide, 0)
+                .eq(PostCommentModel::getCommentId, commentId)
+                .last("limit 1")
+        );
+    }
+
+    private PostModel selectPostById(Long postId){
+        return this.postMapper.selectOne(Wrappers.<PostModel>lambdaQuery().eq(PostModel::getIsActive, 1).eq(PostModel::getIsDraft , 0)
+                .eq(PostModel::getPostId, postId)
+                .last("limit 1")
+        );
     }
 
     private void sendCommentNotification(PostCommentModel insertModel,PostModel postModel, PostCommentModel parentComment, PostCommentModel replyComment, String content){
