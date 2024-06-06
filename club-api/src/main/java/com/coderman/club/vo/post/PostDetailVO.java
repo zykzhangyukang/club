@@ -24,8 +24,14 @@ public class PostDetailVO extends BaseModel {
 
     @ApiModelProperty(value = "帖子所属板块")
     private Long sectionId;
+    
+    @ApiModelProperty(value = "板块名称")
     private String sectionName;
+
+    @ApiModelProperty(value = "父级板块id")
     private Long parentSectionId;
+
+    @ApiModelProperty(value = "父级板块名称")
     private String parentSectionName;
 
     @ApiModelProperty(value = "帖子标题")

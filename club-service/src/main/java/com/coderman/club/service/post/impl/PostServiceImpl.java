@@ -335,14 +335,6 @@ public class PostServiceImpl implements PostService {
         }
         postDetailVO.setIsCollected(isCollected);
 
-        // 查询一级栏目数据
-        Long pSectionId = postDetailVO.getParentSectionId();
-        if (pSectionId != null) {
-            SectionVO firstSection = this.sectionService.getSectionVoById(pSectionId);
-            postDetailVO.setParentSectionId(firstSection.getSectionId());
-            postDetailVO.setParentSectionName(firstSection.getSectionName());
-        }
-
         // 设置标签
         List<String> tags = this.postTagMapper.selectList(Wrappers.<PostTagModel>lambdaQuery()
                 .eq(PostTagModel::getPostId, postDetailVO.getPostId())).stream().map(PostTagModel::getTagName).distinct().collect(Collectors.toList());
