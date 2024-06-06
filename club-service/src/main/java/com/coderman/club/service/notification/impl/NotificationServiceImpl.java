@@ -16,7 +16,10 @@ import com.coderman.club.utils.ResultUtil;
 import com.coderman.club.utils.WebsocketUtil;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.notification.*;
+import com.coderman.club.vo.notification.NotificationCommentVO;
+import com.coderman.club.vo.notification.NotificationCountVO;
+import com.coderman.club.vo.notification.NotificationPostVO;
+import com.coderman.club.vo.notification.NotificationVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -29,7 +32,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -141,34 +147,40 @@ public class NotificationServiceImpl implements NotificationService {
 
             // 帖子信息封装
             if (this.isPostInfo(notificationVO.getType())) {
-                notificationVO.setPost(postModelMap.get(notificationVO.getRelationId()));
+                setPost(postModelMap.get(notificationVO.getRelationId()), notificationVO);
             }
 
             // 评论信息
             if (this.isCommentInfo(notificationVO.getType())) {
-                setContent(commentVoMap.get(notificationVO.getRelationId()), notificationVO);
+                setComment(commentVoMap.get(notificationVO.getRelationId()), notificationVO);
             }
         }
         long total = pageInfo.getTotal();
         return ResultUtil.getSuccessPage(NotificationVO.class, new PageVO<>(total, notificationVos, currentPage, pageSize));
     }
 
-    private void setContent(NotificationCommentVO commentVO, NotificationVO notificationVO) {
+    private void setPost(NotificationPostVO postVO, NotificationVO notificationVO) {
+        notificationVO.setPostTitle(postVO.getPostTitle());
+        notificationVO.setPostId(postVO.getPostId());
+    }
+
+    private void setComment(NotificationCommentVO commentVO, NotificationVO notificationVO) {
 
         // 数据异常情况
         if (commentVO == null) {
             notificationVO.setContent("该评论已删除！");
             notificationVO.setRepliedContent("原评论已删除！");
+            notificationVO.setParentContent("原评论已删除！");
             return;
         }
 
         String content = StringUtils.EMPTY;
+        String parentContent = StringUtils.EMPTY;
         String repliedContent = StringUtils.EMPTY;
 
         Boolean isHide = commentVO.getIsHide();
         Boolean parentIsHide = commentVO.getParentIsHide();
         Boolean repliedIsHide = commentVO.getRepliedIsHide();
-
 
         if (StringUtils.equals(commentVO.getType(), PostConstant.COMMENT_TYPE)) {
 
@@ -184,10 +196,10 @@ public class NotificationServiceImpl implements NotificationService {
                 content = "原评论已删除";
             } else if (BooleanUtils.isNotFalse(isHide)) {
                 content = "该评论已删除";
-                repliedContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
+                parentContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
             } else {
                 content = commentVO.getContent();
-                repliedContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
+                parentContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
             }
 
         } else if (StringUtils.equals(commentVO.getType(), PostConstant.REPLY_AT_TYPE)) {
@@ -213,8 +225,15 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
+        notificationVO.setParentContent(parentContent);
         notificationVO.setRepliedContent(repliedContent);
         notificationVO.setContent(content);
+        notificationVO.setPostId(commentVO.getPostId());
+        notificationVO.setPostTitle(commentVO.getPostTitle());
+        notificationVO.setRepliedUser(commentVO.getRepliedUser());
+        notificationVO.setToRepliedUser(commentVO.getToRepliedUser());
+        notificationVO.setUser(commentVO.getUser());
+        notificationVO.setToUser(commentVO.getToUser());
     }
 
     private boolean isPostInfo(String type) {

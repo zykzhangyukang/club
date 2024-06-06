@@ -22,6 +22,9 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * @author zhangyukang
+ */
 @Service
 @Slf4j
 public class OpenAiServiceImpl implements OpenAiService {
@@ -36,11 +39,6 @@ public class OpenAiServiceImpl implements OpenAiService {
 
         // 构建POST参数
         JSONArray messages = new JSONArray();
-
-        //JSONObject tips = new JSONObject();
-        //tips.put("role", "user");
-        //tips.put("content", "ChatGPT你每个回复的内容字符数，必须帮我控制在10个字符以内！");
-        //messages.add(tips);
 
         for (String value : contents) {
             JSONObject message = new JSONObject();

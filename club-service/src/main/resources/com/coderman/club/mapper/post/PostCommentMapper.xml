@@ -72,29 +72,42 @@
 
   <select id="selectNotificationCommentVos" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
     SELECT
+    -- 评论详情
     t1.comment_id,
     t1.content,
     t1.type,
     t1.parent_id,
     t1.reply_id,
     t1.post_id,
+    -- 帖子标题
     t2.title AS post_title,
-    t1.is_hide as is_hide,
-    parent.is_hide as parent_is_hide,
-    reply.is_hide as replied_is_hide,
+    -- 隐藏状态
+    t1.is_hide AS is_hide,
+    parent.is_hide AS parent_is_hide,
+    reply.is_hide AS replied_is_hide,
+    -- 用户昵称
     parent_user.nickname AS parent_user,
-    parent.content AS parent_content,
     reply_user.nickname AS replied_user,
     to_reply_user.nickname AS to_replied_user,
+    `user`.nickname AS user,
+    to_user.nickname AS to_user,
+    -- 父评论和被回复的评论内容
+    parent.content AS parent_content,
     reply.content AS replied_content
     FROM
-    `club_post_comment` t1
+    club_post_comment t1
+    -- 连接帖子表
     LEFT JOIN club_post t2 ON t1.post_id = t2.post_id
+    -- 连接父评论
     LEFT JOIN club_post_comment parent ON t1.parent_id = parent.comment_id AND t1.parent_id > 0
+    -- 连接被回复的评论（仅针对 'reply_at' 类型）
     LEFT JOIN club_post_comment reply ON t1.type = 'reply_at' AND t1.reply_id = reply.comment_id AND t1.reply_id > 0
+    -- 连接用户表
     LEFT JOIN club_user parent_user ON parent.user_id = parent_user.user_id
     LEFT JOIN club_user reply_user ON t1.type = 'reply_at' AND reply.user_id = reply_user.user_id
     LEFT JOIN club_user to_reply_user ON t1.type = 'reply_at' AND reply.to_user_id = to_reply_user.user_id
+    LEFT JOIN club_user `user` ON t1.user_id = user.user_id
+    LEFT JOIN club_user to_user ON t1.to_user_id = to_user.user_id
     WHERE
     t1.comment_id in
     <foreach collection="commentIdList" item="item" separator="," open="(" close=")">
