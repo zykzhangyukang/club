@@ -7,6 +7,20 @@ spring:
     username: root
     password: DES@99D5518076FE8F32214D66F4B59766B7
     url: jdbc:mysql://localhost:3306/club_dev?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8
+  mail:
+    host: smtp.163.com
+    username: 15079437282@163.com
+    password: DES@29D767F015838695301024B0F791AD095F2EC4A83FE5B5FD
+    default-encoding: utf-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+        debug: false
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
