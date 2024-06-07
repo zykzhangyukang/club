@@ -371,6 +371,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
     @Override
     public ResultVO<UserLoginRefreshVO> refreshToken(String refreshToken) {
 
+        log.warn("=======>>>>>>>>>>>>>>>>>>>>刷新Token:{}", refreshToken);
+
         if (StringUtils.isBlank(refreshToken)) {
             return ResultUtil.getFail(UserLoginRefreshVO.class, null, "参数错误");
         }
@@ -398,32 +400,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
             }
 
             UserLoginRefreshVO refreshVO = new UserLoginRefreshVO();
-            String oldToken = oldAuthUserVo.getToken();
             String oldRefreshToken = oldAuthUserVo.getRefreshToken();
-            Integer oldExpiresIn = oldAuthUserVo.getExpiresIn();
 
-            // 判断一下之前的token是否还在有效期内 (OR即将到期)
-            boolean existsOldToken = this.redisService.exists(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + oldAuthUserVo.getToken(), RedisDbConstant.REDIS_DB_DEFAULT);
-            if (1 == 1) {
+            AuthUserVO authUserVO = this.convertToAuthVO(userModel, newToken, newRefreshToken);
 
-                AuthUserVO authUserVO = this.convertToAuthVO(userModel, newToken, newRefreshToken);
+            // 删除原来刷新令牌
+            this.redisService.del(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + oldRefreshToken, RedisDbConstant.REDIS_DB_DEFAULT);
+            // 保存登录令牌 (10分钟)
+            this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, authProperties.getTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
+            // 保存刷新令牌 (7天)
+            this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + newRefreshToken, authUserVO, authProperties.getRefreshTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
 
-                // 删除原来刷新令牌
-                this.redisService.del(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + oldRefreshToken, RedisDbConstant.REDIS_DB_DEFAULT);
-                // 保存登录令牌 (1天)
-                this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, authProperties.getTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
-                // 保存刷新令牌 (7天)
-                this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + newRefreshToken, authUserVO, authProperties.getRefreshTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
-
-                refreshVO.setRefreshToken(newRefreshToken);
-                refreshVO.setToken(newToken);
-                refreshVO.setExpiresIn(authProperties.getTokenExpiration());
-
-            } else {
-                refreshVO.setToken(oldToken);
-                refreshVO.setRefreshToken(oldRefreshToken);
-                refreshVO.setExpiresIn(oldExpiresIn);
-            }
+            refreshVO.setRefreshToken(newRefreshToken);
+            refreshVO.setToken(newToken);
+            refreshVO.setExpiresIn(authProperties.getTokenExpiration());
 
             return ResultUtil.getSuccess(UserLoginRefreshVO.class, refreshVO);
 
@@ -772,7 +762,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
 
         // 会话对象创建
         AuthUserVO authUserVO = this.convertToAuthVO(userModel, token, refreshToken);
-        // 保存登录令牌 (1天)
+        // 保存登录令牌 (10分钟)
         this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, authUserVO, authProperties.getTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
         // 保存刷新令牌 (7天)
         this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken, authUserVO, authProperties.getRefreshTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);

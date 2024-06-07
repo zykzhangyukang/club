@@ -86,7 +86,7 @@ public class AuthAspect {
             return point.proceed();
         }
 
-        String tokenVal = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String tokenVal = StringUtils.substringAfter(request.getHeader(HttpHeaders.AUTHORIZATION), "Bearer ");
 
         // 用户信息
         AuthUserVO authUserVO = null;
