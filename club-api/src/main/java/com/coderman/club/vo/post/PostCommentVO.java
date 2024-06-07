@@ -46,7 +46,7 @@ public class PostCommentVO extends BaseModel {
     private Date createTime;
 
     @ApiModelProperty(value = "点赞数")
-    private Integer likes;
+    private Integer likes = 0;
 
     @ApiModelProperty(value = "回复数")
     private Integer replyCount;

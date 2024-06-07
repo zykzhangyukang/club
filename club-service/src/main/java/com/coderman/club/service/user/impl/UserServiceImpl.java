@@ -401,11 +401,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
 
             UserLoginRefreshVO refreshVO = new UserLoginRefreshVO();
             String oldRefreshToken = oldAuthUserVo.getRefreshToken();
+            String oldToken = oldAuthUserVo.getToken();
 
             AuthUserVO authUserVO = this.convertToAuthVO(userModel, newToken, newRefreshToken);
 
+            // 删除掉原来的访问令牌
+            this.redisService.del(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX  + oldToken, RedisDbConstant.REDIS_DB_DEFAULT);
             // 删除原来刷新令牌
             this.redisService.del(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + oldRefreshToken, RedisDbConstant.REDIS_DB_DEFAULT);
+
             // 保存登录令牌 (10分钟)
             this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + newToken, authUserVO, authProperties.getTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
             // 保存刷新令牌 (7天)

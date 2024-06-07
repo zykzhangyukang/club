@@ -1,6 +1,5 @@
 package com.coderman.club.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.coderman.club.aop.AuthAspect;
 import com.coderman.club.constant.common.CommonConstant;
 import com.coderman.club.constant.redis.RedisDbConstant;
@@ -12,8 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author ：zhangyukang
@@ -29,6 +26,7 @@ public class AuthUtil {
      */
     public static AuthUserVO getCurrent() {
 
+        // 先判断请求里面是否存在
         HttpServletRequest httpServletRequest = HttpContextUtil.getHttpServletRequest();
         Object obj = httpServletRequest.getAttribute(CommonConstant.USER_SESSION_KEY);
 
@@ -40,8 +38,9 @@ public class AuthUtil {
 
         } else {
 
+            String token = getToken();
+
             // 如果用户的token存在，则尝试从redis中获取
-            String token = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
             if (StringUtils.isNotBlank(token)) {
 
                 try {
@@ -58,6 +57,12 @@ public class AuthUtil {
         }
 
         return authUserVO;
+    }
+
+
+    public static String getToken(){
+        HttpServletRequest httpServletRequest = HttpContextUtil.getHttpServletRequest();
+        return StringUtils.substringAfter(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION), "Bearer ");
     }
 
 
