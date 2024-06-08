@@ -968,7 +968,7 @@ public class PostServiceImpl implements PostService {
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (Objects.equals(current.getUserId(), insertModel.getToUserId())) {
-            //return;
+            return;
         }
 
         NotifyMsgDTO.NotifyMsgDTOBuilder notifyMsgBuilder = NotifyMsgDTO.builder()
