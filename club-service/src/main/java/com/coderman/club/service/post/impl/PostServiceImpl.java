@@ -258,8 +258,8 @@ public class PostServiceImpl implements PostService {
         long currentPage = postPageDTO.getCurrentPage() != null && postPageDTO.getCurrentPage() > 0 ? postPageDTO.getCurrentPage() : 1L;
         long pageSize = postPageDTO.getPageSize() != null && postPageDTO.getPageSize() > 0 ? postPageDTO.getPageSize() : 30L;
 
-        if (pageSize > 30L) {
-            pageSize = 30L;
+        if (pageSize > 50L) {
+            pageSize = 50L;
         }
 
         Map<String, Object> conditionMap = new HashMap<>();
