@@ -9,11 +9,11 @@ import lombok.EqualsAndHashCode;
 @Data
 public class PostReplyDTO extends BaseModel {
 
-    @ApiModelProperty(value = "offset")
-    private Long offsetId;
+    @ApiModelProperty(value = "当前页")
+    private Integer currentPage;
 
     @ApiModelProperty(value = "每页显示条数")
-    private Long pageSize;
+    private Integer pageSize;
 
     @ApiModelProperty(value = "评论id")
     private Long commentId;

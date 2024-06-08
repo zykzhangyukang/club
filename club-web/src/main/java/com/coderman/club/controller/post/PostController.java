@@ -6,10 +6,7 @@ import com.coderman.club.limiter.LimiterStrategy;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.post.PostCommentVO;
-import com.coderman.club.vo.post.PostDetailVO;
-import com.coderman.club.vo.post.PostListItemVO;
-import com.coderman.club.vo.post.PostReplyVO;
+import com.coderman.club.vo.post.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -50,7 +47,7 @@ public class PostController {
 
     @ApiOperation(value = "回复分页加载")
     @PostMapping(value = "/reply/page")
-    public ResultVO<List<PostReplyVO>> postReplyPage(@RequestBody PostReplyDTO postReplyDTO) {
+    public ResultVO<PostReplyPageVO> postReplyPage(@RequestBody PostReplyDTO postReplyDTO) {
 
         return this.postService.postReplyPage(postReplyDTO);
     }

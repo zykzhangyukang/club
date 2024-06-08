@@ -75,11 +75,10 @@
   <select id="getPostReplyPage" resultType="com.coderman.club.vo.post.PostReplyVO">
     SELECT *
     FROM club_post_comment
-    WHERE  parent_id = #{commentId}
-     AND comment_id > #{offsetId}
+    WHERE
+     parent_id = #{commentId}
      AND is_hide = 0 AND  `type` in ('reply','reply_at')
      ORDER BY comment_id ASC
-     LIMIT #{pageSize}
   </select>
 
   <select id="selectNotificationCommentVos" resultType="com.coderman.club.vo.notification.NotificationCommentVO">

@@ -35,12 +35,10 @@ public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
 
     /**
      * 回复分页
-     * @param pageSize
-     * @param offsetId
      * @param commentId
      * @return
      */
-    List<PostReplyVO> getPostReplyPage(@Param(value = "pageSize") Long pageSize,@Param(value = "offsetId") Long offsetId,@Param(value = "commentId") Long commentId);
+    List<PostReplyVO> getPostReplyPage(@Param(value = "commentId") Long commentId);
 
     /**
      * 获取评论相关信息

@@ -24,10 +24,7 @@ import com.coderman.club.service.user.UserService;
 import com.coderman.club.utils.*;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.post.PostCommentVO;
-import com.coderman.club.vo.post.PostDetailVO;
-import com.coderman.club.vo.post.PostListItemVO;
-import com.coderman.club.vo.post.PostReplyVO;
+import com.coderman.club.vo.post.*;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
 import com.coderman.club.vo.user.UserInfoVO;
@@ -1071,21 +1068,24 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResultVO<List<PostReplyVO>> postReplyPage(PostReplyDTO postReplyDTO) {
+    public ResultVO<PostReplyPageVO> postReplyPage(PostReplyDTO postReplyDTO) {
 
-        Long pageSize = postReplyDTO.getPageSize();
-        Long offsetId = postReplyDTO.getOffsetId();
+        Integer pageSize = postReplyDTO.getPageSize();
+        Integer currentPage = postReplyDTO.getCurrentPage();
         Long commentId = postReplyDTO.getCommentId();
 
-        if (pageSize == null || pageSize <= 0 || pageSize >= 5) {
-            pageSize = 5L;
+        if (pageSize == null || pageSize <= 0 || pageSize >= 20) {
+            pageSize = 20;
         }
 
-        List<PostReplyVO> postReplyList = this.postCommentMapper.getPostReplyPage(pageSize, offsetId, commentId);
+        PageHelper.startPage(currentPage, pageSize);
+        List<PostReplyVO> postReplyList = this.postCommentMapper.getPostReplyPage(commentId);
+        PageInfo<PostReplyVO> pageInfo = new PageInfo<>(postReplyList);
+
 
         Set<Long> userInfoIds = Sets.newHashSet();
         if (CollectionUtils.isNotEmpty(postReplyList)) {
-            for (PostReplyVO postReplyVO : postReplyList) {
+            for (PostReplyVO postReplyVO : pageInfo.getList()) {
                 userInfoIds.add(postReplyVO.getUserId());
                 userInfoIds.add(postReplyVO.getToUserId());
             }
@@ -1108,7 +1108,11 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        return ResultUtil.getSuccessList(PostReplyVO.class, postReplyList);
+        PostReplyPageVO pageVO =  new PostReplyPageVO();
+        pageVO.setList(postReplyList);
+        pageVO.setHasMore(pageInfo.isHasNextPage());
+        pageVO.setTotal(pageInfo.getTotal());
+        return ResultUtil.getSuccess(PostReplyPageVO.class, pageVO);
     }
 
 

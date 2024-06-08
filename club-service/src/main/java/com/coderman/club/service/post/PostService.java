@@ -3,10 +3,7 @@ package com.coderman.club.service.post;
 import com.coderman.club.dto.post.*;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.post.PostCommentVO;
-import com.coderman.club.vo.post.PostDetailVO;
-import com.coderman.club.vo.post.PostListItemVO;
-import com.coderman.club.vo.post.PostReplyVO;
+import com.coderman.club.vo.post.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -135,7 +132,7 @@ public interface PostService {
      * @param postReplyDTO 包含获取帖子评论回复分页相关参数的数据传输对象。
      * @return 表示获取帖子评论回复分页操作结果的响应结果对象。
      */
-    ResultVO<List<PostReplyVO>> postReplyPage(PostReplyDTO postReplyDTO);
+    ResultVO<PostReplyPageVO> postReplyPage(PostReplyDTO postReplyDTO);
 
     /**
      * 获取帖子评论的分页列表。
