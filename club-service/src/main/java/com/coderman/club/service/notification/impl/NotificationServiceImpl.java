@@ -175,9 +175,9 @@ public class NotificationServiceImpl implements NotificationService {
             return;
         }
 
-        String content = commentVO.getContent();
-        String parentContent = commentVO.getParentContent();
-        String repliedContent = commentVO.getRepliedContent();
+        String content = StringUtils.EMPTY;
+        String parentContent = StringUtils.EMPTY;
+        String repliedContent = StringUtils.EMPTY;
 
         Boolean isHide = commentVO.getIsHide();
         Boolean parentIsHide = commentVO.getParentIsHide();
@@ -187,7 +187,11 @@ public class NotificationServiceImpl implements NotificationService {
 
             if (BooleanUtils.isNotFalse(isHide)) {
                 content = "该评论已删除";
+                parentContent = StringUtils.EMPTY;
+                repliedContent = StringUtils.EMPTY;
             } else {
+                parentContent = StringUtils.EMPTY;
+                repliedContent = StringUtils.EMPTY;
                 content = commentVO.getContent();
             }
 
@@ -196,25 +200,30 @@ public class NotificationServiceImpl implements NotificationService {
             if (BooleanUtils.isNotFalse(parentIsHide)) {
                 content = "原评论已删除";
                 parentContent = "原评论已删除";
+                repliedContent = StringUtils.EMPTY;
             } else if (BooleanUtils.isNotFalse(isHide)) {
                 content = "该评论已删除";
                 parentContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
+                repliedContent = StringUtils.EMPTY;
             } else {
                 content = commentVO.getContent();
                 parentContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
+                repliedContent = StringUtils.EMPTY;
             }
 
         } else if (StringUtils.equals(commentVO.getType(), PostConstant.REPLY_AT_TYPE)) {
 
             if (BooleanUtils.isNotFalse(parentIsHide)) {
                 content = "原评论已删除";
-                parentContent = StringUtils.EMPTY;
+                parentContent = "原评论已删除";
                 repliedContent = "原评论已删除";
             } else if (BooleanUtils.isNotFalse(isHide)) {
                 content = "该评论已删除";
+                parentContent = commentVO.getParentContent();
                 repliedContent = getRepliedContent(commentVO, repliedIsHide);
             } else {
                 content = commentVO.getContent();
+                parentContent = commentVO.getParentContent();
                 repliedContent = getRepliedContent(commentVO, repliedIsHide);
             }
         }
@@ -229,6 +238,10 @@ public class NotificationServiceImpl implements NotificationService {
         notificationVO.setUser(commentVO.getUser());
         notificationVO.setToUser(commentVO.getToUser());
         notificationVO.setAvatar(commentVO.getAvatar());
+        notificationVO.setIsHide(commentVO.getIsHide());
+        notificationVO.setParentIsHide(parentIsHide);
+        notificationVO.setRepliedIsHide(repliedIsHide);
+        notificationVO.setCommentId(commentVO.getCommentId());
     }
 
     @NotNull

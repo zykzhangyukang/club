@@ -60,8 +60,20 @@ public class NotificationVO extends BaseModel {
     @ApiModelProperty(value = "帖子id")
     private Long postId;
 
+    @ApiModelProperty(value = "评论id")
+    private Long commentId;
+
     @ApiModelProperty(value = "标记通知是否已被用户阅读")
     private Boolean isRead;
+
+    @ApiModelProperty(value = "评论是否已删除")
+    private Boolean isHide;
+
+    @ApiModelProperty(value = "父级评论是否已删除")
+    private Boolean parentIsHide;
+
+    @ApiModelProperty(value = "被回复的评论是否已删除")
+    private Boolean repliedIsHide;
 
     @ApiModelProperty(value = "创建时间")
     private Date createTime;

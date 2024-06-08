@@ -358,31 +358,39 @@ public class PostServiceImpl implements PostService {
     public ResultVO<PageVO<List<PostCommentVO>>> getCommentPage(PostCommentPageDTO pageDTO) {
         Integer pageSize = pageDTO.getPageSize();
         Integer currentPage = pageDTO.getCurrentPage();
-        Long postId = pageDTO.getPostId();
+
+        String seekCid = pageDTO.getSeekCid();
+
+        List<Long> orderByComments = Lists.newArrayList();
+        List<Long> orderByReplies = Lists.newArrayList();
+        if (StringUtils.isNotBlank(seekCid) && NumberUtils.isDigits(seekCid)) {
+            PostCommentModel seek = this.selectCommentById(Long.parseLong(seekCid));
+            if (seek != null && StringUtils.equals(seek.getType(), PostConstant.COMMENT_TYPE)) {
+                orderByComments.add(seek.getCommentId());
+            } else if (seek != null && StringUtils.equals(seek.getType(), PostConstant.REPLY_TYPE)) {
+                orderByComments.add(seek.getParentId());
+                orderByReplies.add(seek.getCommentId());
+            } else if (seek != null && StringUtils.equals(seek.getType(), PostConstant.REPLY_AT_TYPE)) {
+                orderByComments.add(seek.getParentId());
+                orderByReplies.add(seek.getCommentId());
+            }
+        }
+
+        // 设置根评论排序
+        pageDTO.setOrderByComments(orderByComments);
 
         // 获取帖子下所有的根评论信息
         PageHelper.startPage(currentPage, pageSize);
-        List<PostCommentModel> list = this.postCommentMapper.selectList(Wrappers.<PostCommentModel>lambdaQuery()
-                .eq(PostCommentModel::getPostId, postId)
-                .eq(PostCommentModel::getIsHide, Boolean.FALSE)
-                .eq(PostCommentModel::getParentId, 0)
-                .eq(PostCommentModel::getType, PostConstant.COMMENT_TYPE)
-                .orderByDesc(PostCommentModel::getCreateTime)
-        );
+        List<PostCommentVO> list = this.postCommentMapper.selectRootCommentVos(pageDTO);
+        PageInfo<PostCommentVO> pageInfo = new PageInfo<>(list);
+        List<PostCommentVO> rootComments = pageInfo.getList().stream().peek(e -> e.setReplies(Lists.newArrayList())).collect(Collectors.toList());
 
-        PageInfo<PostCommentModel> pageInfo = new PageInfo<>(list);
 
-        List<PostCommentVO> rootComments = pageInfo.getList().stream().map(e -> {
-            PostCommentVO root = new PostCommentVO();
-            BeanUtils.copyProperties(e, root);
-            root.setReplies(Lists.newArrayList());
-            return root;
-        }).collect(Collectors.toList());
-
-        // 获取每个根评论的前三条子评论
         List<Long> parentIds = rootComments.stream().map(PostCommentVO::getCommentId).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(parentIds)) {
-            List<PostCommentModel> topReplies = this.postCommentMapper.getTopRepliesForComments(parentIds);
+
+            // 获取每个根评论的前三条子评论
+            List<PostCommentModel> topReplies = this.postCommentMapper.getTopRepliesForComments(parentIds, orderByReplies);
 
             // 获取用户信息
             Set<Long> userInfoIds = rootComments.stream()
@@ -398,9 +406,6 @@ public class PostServiceImpl implements PostService {
             // 设置评论和回复的用户信息
             rootComments.forEach(root -> setUserInfo(root, userInfoVoMap));
             topReplies.forEach(reply -> setReplyUserInfo(reply, userInfoVoMap, rootComments));
-
-            // 为每个根评论的回复按时间倒序排序
-            rootComments.forEach(root -> root.getReplies().sort(Comparator.comparing(PostReplyVO::getCreateTime)));
         }
 
         return ResultUtil.getSuccessPage(PostCommentVO.class, new PageVO<>(pageInfo.getTotal(), rootComments, currentPage, pageSize));
@@ -928,7 +933,7 @@ public class PostServiceImpl implements PostService {
         this.postMapper.addCommentsCount(postId, 1);
 
         // 发送消息通知
-        this.sendCommentNotification(insertModel,postModel,parentComment, replyComment, content);
+        this.sendCommentNotification(insertModel, postModel, parentComment, replyComment, content);
 
         // 返回给前台
         List<UserInfoVO> userInfoByIdList = this.userService.getUserInfoByIdList(Collections.singletonList(insertModel.getUserId()));
@@ -945,30 +950,29 @@ public class PostServiceImpl implements PostService {
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }
 
-    private PostCommentModel selectCommentById(Long commentId){
+    private PostCommentModel selectCommentById(Long commentId) {
         return this.postCommentMapper.selectOne(Wrappers.<PostCommentModel>lambdaQuery().eq(PostCommentModel::getIsHide, 0)
                 .eq(PostCommentModel::getCommentId, commentId)
                 .last("limit 1")
         );
     }
 
-    private PostModel selectPostById(Long postId){
-        return this.postMapper.selectOne(Wrappers.<PostModel>lambdaQuery().eq(PostModel::getIsActive, 1).eq(PostModel::getIsDraft , 0)
+    private PostModel selectPostById(Long postId) {
+        return this.postMapper.selectOne(Wrappers.<PostModel>lambdaQuery().eq(PostModel::getIsActive, 1).eq(PostModel::getIsDraft, 0)
                 .eq(PostModel::getPostId, postId)
                 .last("limit 1")
         );
     }
 
-    private void sendCommentNotification(PostCommentModel insertModel,PostModel postModel, PostCommentModel parentComment, PostCommentModel replyComment, String content){
+    private void sendCommentNotification(PostCommentModel insertModel, PostModel postModel, PostCommentModel parentComment, PostCommentModel replyComment, String content) {
 
         AuthUserVO current = AuthUtil.getCurrent();
-        if(Objects.equals(current.getUserId(), insertModel.getToUserId())){
-//            return;
+        if (Objects.equals(current.getUserId(), insertModel.getToUserId())) {
+            //return;
         }
 
         NotifyMsgDTO.NotifyMsgDTOBuilder notifyMsgBuilder = NotifyMsgDTO.builder()
                 .senderId(current.getUserId())
-                .relationId(insertModel.getCommentId())
                 .content(content)
                 .userIdList(Collections.singletonList(insertModel.getToUserId()))
                 .relationId(insertModel.getCommentId());
@@ -981,6 +985,14 @@ public class PostServiceImpl implements PostService {
                     .content(String.format(NotificationTypeEnum.COMMENT.getTemplate(), current.getNickname(), postModel.getTitle(), content))
                     .typeEnum(NotificationTypeEnum.COMMENT).build();
 
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
+
+            // 发送消息通知 (回复评论)
+            assert parentComment != null;
+            msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.REPLY.getTemplate(), current.getNickname(), parentComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY).build();
+
         } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_AT_TYPE)) {
 
             // 发送消息通知 (回复@某人)
@@ -989,13 +1001,21 @@ public class PostServiceImpl implements PostService {
                     .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
                     .typeEnum(NotificationTypeEnum.REPLY_AT).build();
 
-        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
+            // 如果@的人 != 父评论人，也需要发送消息通知给父评论人
+            if (!Objects.equals(parentComment.getUserId(), insertModel.getToUserId())) {
 
-            // 发送消息通知 (回复评论)
-            assert parentComment != null;
-            msgDTO = notifyMsgBuilder
-                    .content(String.format(NotificationTypeEnum.REPLY.getTemplate(), current.getNickname(), parentComment.getContent(), content))
-                    .typeEnum(NotificationTypeEnum.REPLY).build();
+                this.notificationService.send(
+                        NotifyMsgDTO.builder()
+                                .senderId(current.getUserId())
+                                .content(content)
+                                .userIdList(Collections.singletonList(parentComment.getUserId()))
+                                .relationId(insertModel.getCommentId())
+                                .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
+                                .typeEnum(NotificationTypeEnum.REPLY_AT)
+                                .build()
+                );
+            }
+
         }
 
         this.notificationService.send(msgDTO);

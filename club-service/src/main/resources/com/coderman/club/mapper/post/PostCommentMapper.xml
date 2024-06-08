@@ -54,20 +54,32 @@
       #{item}
     </foreach>
     AND is_hide = 0 AND `type` in ('reply','reply_at')
-    ORDER BY parent_id , comment_id ASC
+    ORDER BY parent_id ,
+    <choose>
+      <when test="orderByReplies!=null and orderByReplies.size()>0">
+      FIELD(comment_id ,
+      <foreach collection="orderByReplies" item="item" separator=",">
+        #{item}
+      </foreach>
+        ) DESC,
+        comment_id ASC
+      </when>
+      <otherwise>
+        comment_id ASC
+      </otherwise>
+    </choose>
     ) AS subquery
-    WHERE row_number &lt;= 2
+    WHERE row_number &lt;= 3
   </select>
 
   <select id="getPostReplyPage" resultType="com.coderman.club.vo.post.PostReplyVO">
     SELECT *
     FROM club_post_comment
     WHERE  parent_id = #{commentId}
-                      AND comment_id > #{offsetId}
-                      AND is_hide = 0 AND  `type` in ('reply','reply_at')
-                     ORDER BY comment_id ASC
-                     LIMIT #{pageSize}
-
+     AND comment_id > #{offsetId}
+     AND is_hide = 0 AND  `type` in ('reply','reply_at')
+     ORDER BY comment_id ASC
+     LIMIT #{pageSize}
   </select>
 
   <select id="selectNotificationCommentVos" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
@@ -117,4 +129,28 @@
       #{item}
     </foreach>
   </select>
+
+  <select id="selectRootCommentVos" resultType="com.coderman.club.vo.post.PostCommentVO">
+    select
+    comment_id, post_id, parent_id, reply_id, reply_count, user_id, to_user_id, location,
+    create_time, is_hide, `type`, content
+    from club_post_comment
+    where
+    post_id = #{dto.postId} and `type` = 'comment' and is_hide = 0
+    order by
+    <choose>
+      <when test="dto.orderByComments!=null and dto.orderByComments.size()>0">
+        FIELD(comment_id ,
+        <foreach collection="dto.orderByComments" item="item" separator=",">
+          #{item}
+        </foreach>
+        ) desc,
+        create_time desc
+      </when>
+      <otherwise>
+        create_time desc
+      </otherwise>
+    </choose>
+  </select>
+
 </mapper>

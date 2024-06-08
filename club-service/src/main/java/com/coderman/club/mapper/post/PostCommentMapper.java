@@ -1,9 +1,10 @@
 package com.coderman.club.mapper.post;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.coderman.club.dto.post.PostCommentPageDTO;
 import com.coderman.club.model.post.PostCommentModel;
 import com.coderman.club.vo.notification.NotificationCommentVO;
-import com.coderman.club.vo.notification.NotificationReplyVO;
+import com.coderman.club.vo.post.PostCommentVO;
 import com.coderman.club.vo.post.PostReplyVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -19,9 +20,10 @@ public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
     /**
      * 获取每个根评论的最新三条子评论
      * @param parentIds
+     * @param orderByReplies
      * @return
      */
-    List<PostCommentModel> getTopRepliesForComments(@Param(value = "parentIds") List<Long> parentIds);
+    List<PostCommentModel> getTopRepliesForComments(@Param(value = "parentIds") List<Long> parentIds, @Param(value = "orderByReplies") List<Long> orderByReplies);
 
 
     /**
@@ -46,4 +48,11 @@ public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
      * @return
      */
     List<NotificationCommentVO> selectNotificationCommentVos(@Param(value = "commentIdList") List<Long> commentIdList);
+
+    /**
+     * 查询
+     * @param dto
+     * @return
+     */
+    List<PostCommentVO> selectRootCommentVos(@Param(value = "dto") PostCommentPageDTO dto);
 }
