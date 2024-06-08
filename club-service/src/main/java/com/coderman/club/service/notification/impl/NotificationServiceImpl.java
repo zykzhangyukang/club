@@ -208,6 +208,7 @@ public class NotificationServiceImpl implements NotificationService {
 
             if (BooleanUtils.isNotFalse(parentIsHide)) {
                 content = "原评论已删除";
+                parentContent = StringUtils.EMPTY;
                 repliedContent = "原评论已删除";
             } else if (BooleanUtils.isNotFalse(isHide)) {
                 content = "该评论已删除";
