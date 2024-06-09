@@ -252,7 +252,7 @@ public class NotificationServiceImpl implements NotificationService {
         } else {
 
             if (StringUtils.equals(commentVO.getRepliedType(), PostConstant.REPLY_AT_TYPE)) {
-                repliedContent = commentVO.getRepliedUser() + "：回复@" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
+                repliedContent = commentVO.getRepliedUser() + "：回复 @" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
             } else {
                 repliedContent = commentVO.getRepliedUser() + "：" + commentVO.getRepliedContent();
             }
