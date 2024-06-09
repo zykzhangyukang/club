@@ -23,7 +23,7 @@ public interface PostCommentMapper extends BaseMapper<PostCommentModel> {
      * @param orderByReplies
      * @return
      */
-    List<PostCommentModel> getTopRepliesForComments(@Param(value = "parentIds") List<Long> parentIds, @Param(value = "orderByReplies") List<Long> orderByReplies);
+    List<PostReplyVO> getTopRepliesForComments(@Param(value = "parentIds") List<Long> parentIds, @Param(value = "orderByReplies") List<Long> orderByReplies);
 
 
     /**

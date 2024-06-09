@@ -60,20 +60,4 @@ public class UserInfoServiceImpl implements UserInfoService {
         this.userInfoMapper.insert(userInfoModel);
     }
 
-    @Override
-    public Map<Long, UserInfoVO> selectUserInfoVoMap(List<Long> userIds) {
-        if(CollectionUtils.isEmpty(userIds)){
-            return Maps.newHashMap();
-        }
-        return this.userInfoMapper.selectUserInfoVoMap(userIds);
-    }
-
-    @Override
-    public void updateUserAvatar(Long userId, String avatarUrl) {
-
-        if(userId == null || StringUtils.isBlank(avatarUrl)){
-            return;
-        }
-        this.userInfoMapper.updateUserAvatar(userId, avatarUrl);
-    }
 }

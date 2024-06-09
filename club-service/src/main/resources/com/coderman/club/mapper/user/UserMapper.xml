@@ -5,6 +5,7 @@
     <id column="user_id" jdbcType="BIGINT" property="userId" />
     <result column="user_code" jdbcType="VARCHAR" property="userCode" />
     <result column="nickname" jdbcType="VARCHAR" property="nickname" />
+    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     <result column="email" jdbcType="VARCHAR" property="email" />
     <result column="username" jdbcType="VARCHAR" property="username" />
     <result column="password" jdbcType="VARCHAR" property="password" />
@@ -15,9 +16,10 @@
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
   <sql id="Base_Column_List">
-    user_id, user_code, nickname, email, username, password, mp_open_id, salt, user_status, 
-    create_time, update_time
+    user_id, user_code, nickname, avatar, email, username, password, mp_open_id, salt, 
+    user_status, create_time, update_time
   </sql>
+
 
 
   <select id="selectByUsername" resultMap="BaseResultMap">
@@ -38,5 +40,8 @@
     </foreach>
   </select>
 
+  <update id="updateUserAvatar">
+    update club_user set avatar= #{avatarUrl} where user_id  =#{userId}
+  </update>
 
 </mapper>

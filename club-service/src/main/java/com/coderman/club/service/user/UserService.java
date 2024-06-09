@@ -123,4 +123,12 @@ public interface UserService extends IService<UserModel> {
      */
     List<UserInfoVO> getUserInfoByIdList(List<Long> idList);
 
+    /**
+     * 更新指定用户的头像URL。
+     *
+     * @param userId     用户ID。
+     * @param avatarUrl  新的头像URL。
+     */
+    void updateUserAvatar(Long userId, String avatarUrl);
+
 }

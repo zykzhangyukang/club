@@ -179,13 +179,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         authUserVO.setToken(token);
         authUserVO.setRefreshToken(refreshToken);
         authUserVO.setExpiresIn(authProperties.getTokenExpiration());
-
-        // 查询用户信息
-        UserInfoModel userInfoModel = this.userInfoService.selectByUserId(userModel.getUserId());
-        if (userInfoModel != null) {
-
-            authUserVO.setAvatar(userInfoModel.getAvatar());
-        }
+        authUserVO.setAvatar(userModel.getAvatar());
         return authUserVO;
     }
 
@@ -264,6 +258,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
+        registerModel.setAvatar(this.generatorAvatar(registerModel));
         this.userMapper.insert(registerModel);
 
         // 用户详情信息
@@ -278,7 +273,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         userInfoModel.setRegisterTime(new Date());
         userInfoModel.setFollowersCount(0L);
         userInfoModel.setFollowingCount(0L);
-        userInfoModel.setAvatar(this.generatorAvatar(registerModel));
         this.userInfoService.insertSelective(userInfoModel);
 
         // 用户积分账户信息
@@ -447,7 +441,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         UserLoginVO userLoginVO = new UserLoginVO();
         userLoginVO.setUserId(current.getUserId());
         userLoginVO.setUsername(current.getUsername());
-        userLoginVO.setAvatar(userInfoModel.getAvatar());
+        userLoginVO.setAvatar(userModel.getAvatar());
         userLoginVO.setNickname(userModel.getNickname());
         userLoginVO.setUserCode(userInfoModel.getUserCode());
         userLoginVO.setRefreshToken(current.getRefreshToken());
@@ -467,24 +461,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
             return ResultUtil.getWarn("当前用户未登录！");
         }
 
+        // 编辑用户信息
         UserInfoModel updateModel = new UserInfoModel();
-
         updateModel.setUserId(current.getUserId());
         updateModel.setUserTags(StringUtils.join(userInfoDTO.getUserTags(), ","));
-        updateModel.setAvatar(userInfoDTO.getAvatar());
         updateModel.setGender(userInfoDTO.getGender());
         updateModel.setWebsite(userInfoDTO.getWebsite());
         updateModel.setBio(userInfoDTO.getBio());
         updateModel.setLocation(userInfoDTO.getLocation());
+        this.userInfoService.updateUserInfoByUserId(updateModel);
 
         // 修改用户账号信息
         this.userMapper.update(null,
                 Wrappers.<UserModel>lambdaUpdate()
                         .set(UserModel::getNickname, userInfoDTO.getNickname())
+                        .set(UserModel::getAvatar, userInfoDTO.getAvatar())
                         .eq(UserModel::getUserId, current.getUserId()));
 
-        // 编辑用户信息
-        this.userInfoService.updateUserInfoByUserId(updateModel);
+        // 同步更新会话信息
+        this.updateSession(this.getById(current.getUserId()));
 
         return ResultUtil.getSuccess();
     }
@@ -668,7 +663,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         userInfoVO.setUserCode(userModel.getUserCode());
         userInfoVO.setUserId(userModel.getUserId());
         userInfoVO.setLocation(userInfoModel.getLocation());
-        userInfoVO.setAvatar(userInfoModel.getAvatar());
+        userInfoVO.setAvatar(userModel.getAvatar());
         userInfoVO.setGender(userInfoModel.getGender());
         userInfoVO.setBio(userInfoModel.getBio());
         userInfoVO.setWebsite(userInfoModel.getWebsite());
@@ -707,7 +702,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         final String avatarUrl = CommonConstant.OSS_DOMAIN + url;
 
         // 更新用户头像
-        this.userInfoService.updateUserAvatar(current.getUserId(), avatarUrl);
+        this.updateUserAvatar(current.getUserId(), avatarUrl);
 
         return ResultUtil.getSuccess(String.class, avatarUrl);
     }
@@ -755,6 +750,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
             return Lists.newArrayList();
         }
         return this.userMapper.getUserInfoByIdList(idList);
+    }
+
+
+    @Override
+    public void updateUserAvatar(Long userId, String avatarUrl) {
+
+        if(userId == null || StringUtils.isBlank(avatarUrl)){
+            return;
+        }
+        this.userMapper.updateUserAvatar(userId, avatarUrl);
+    }
+
+
+    private void updateSession(UserModel userModel){
+        AuthUserVO current = AuthUtil.getCurrent();
+        current.setAvatar(userModel.getAvatar());
+        current.setNickname(userModel.getNickname());
+        String token = current.getToken();
+        this.redisService.setObject(RedisKeyConstant.USER_ACCESS_TOKEN_PREFIX + token, current, RedisDbConstant.REDIS_DB_DEFAULT);
     }
 
     private UserLoginVO createSession(UserModel userModel) {

@@ -16,10 +16,9 @@ import lombok.Data;
  */
 @Data
 @ApiModel(value="UserModel", description = "club_user 实体类")
-@TableName(value = "club_user")
+@TableName(value="club_user")
 public class UserModel implements Serializable {
     
-
     @TableId(value = "user_id",type = IdType.AUTO)
     @ApiModelProperty(value = "用户id")
     private Long userId;
@@ -29,6 +28,9 @@ public class UserModel implements Serializable {
 
     @ApiModelProperty(value = "用户昵称")
     private String nickname;
+
+    @ApiModelProperty(value = "用户头像")
+    private String avatar;
 
     @ApiModelProperty(value = "邮箱地址")
     private String email;

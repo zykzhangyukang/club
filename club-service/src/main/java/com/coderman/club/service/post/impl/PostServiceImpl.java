@@ -14,6 +14,7 @@ import com.coderman.club.enums.NotificationTypeEnum;
 import com.coderman.club.exception.BusinessException;
 import com.coderman.club.mapper.post.*;
 import com.coderman.club.model.post.*;
+import com.coderman.club.model.user.UserModel;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.service.post.PostService;
 import com.coderman.club.service.redis.RedisLockService;
@@ -42,6 +43,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -383,66 +385,24 @@ public class PostServiceImpl implements PostService {
         List<PostCommentVO> rootComments = pageInfo.getList().stream().peek(e -> e.setReplies(Lists.newArrayList())).collect(Collectors.toList());
 
 
+        // 获取每个根评论的前三条子评论
         List<Long> parentIds = rootComments.stream().map(PostCommentVO::getCommentId).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(parentIds)) {
 
-            // 获取每个根评论的前三条子评论
-            List<PostCommentModel> topReplies = this.postCommentMapper.getTopRepliesForComments(parentIds, orderByReplies);
+            List<PostReplyVO> topReplies = this.postCommentMapper.getTopRepliesForComments(parentIds, orderByReplies);
 
-            // 获取用户信息
-            Set<Long> userInfoIds = rootComments.stream()
-                    .flatMap(comment -> Stream.of(comment.getUserId(), comment.getToUserId()))
-                    .collect(Collectors.toSet());
-            userInfoIds.addAll(topReplies.stream()
-                    .flatMap(reply -> Stream.of(reply.getUserId(), reply.getToUserId()))
-                    .collect(Collectors.toSet()));
-
-            Map<Long, UserInfoVO> userInfoVoMap = this.userService.getUserInfoByIdList(new ArrayList<>(userInfoIds)).stream()
-                    .collect(Collectors.toMap(UserInfoVO::getUserId, e -> e, (k1, k2) -> k2));
-
-            // 设置评论和回复的用户信息
-            rootComments.forEach(root -> setUserInfo(root, userInfoVoMap));
-            topReplies.forEach(reply -> setReplyUserInfo(reply, userInfoVoMap, rootComments));
+            for (PostReplyVO reply : topReplies) {
+                rootComments.stream()
+                        .filter(root -> Objects.equals(reply.getParentId(), root.getCommentId()))
+                        .findFirst()
+                        .ifPresent(root -> root.getReplies().add(reply));
+            }
         }
 
         return ResultUtil.getSuccessPage(PostCommentVO.class, new PageVO<>(pageInfo.getTotal(), rootComments, currentPage, pageSize));
     }
 
-    private void setUserInfo(PostCommentVO comment, Map<Long, UserInfoVO> userInfoVoMap) {
-        UserInfoVO userInfoVO = userInfoVoMap.get(comment.getUserId());
-        if (userInfoVO != null) {
-            comment.setAvatar(userInfoVO.getAvatar());
-            comment.setNickname(userInfoVO.getNickname());
-        }
 
-        UserInfoVO replyUserVO = userInfoVoMap.get(comment.getToUserId());
-        if (replyUserVO != null) {
-            comment.setToUserNickName(replyUserVO.getNickname());
-            comment.setToUserAvatar(replyUserVO.getAvatar());
-        }
-    }
-
-    private void setReplyUserInfo(PostCommentModel reply, Map<Long, UserInfoVO> userInfoVoMap, List<PostCommentVO> rootComments) {
-        PostReplyVO postReplyVO = new PostReplyVO();
-        BeanUtils.copyProperties(reply, postReplyVO);
-
-        UserInfoVO userInfoVO = userInfoVoMap.get(reply.getUserId());
-        if (userInfoVO != null) {
-            postReplyVO.setNickname(userInfoVO.getNickname());
-            postReplyVO.setAvatar(userInfoVO.getAvatar());
-        }
-
-        UserInfoVO replyUserVO = userInfoVoMap.get(reply.getToUserId());
-        if (replyUserVO != null) {
-            postReplyVO.setToUserNickName(replyUserVO.getNickname());
-            postReplyVO.setToUserAvatar(replyUserVO.getAvatar());
-        }
-
-        rootComments.stream()
-                .filter(root -> Objects.equals(reply.getParentId(), root.getCommentId()))
-                .findFirst()
-                .ifPresent(root -> root.getReplies().add(postReplyVO));
-    }
 
 
     private boolean isCollectedPost(Long userId, long postId) {
@@ -932,18 +892,15 @@ public class PostServiceImpl implements PostService {
         // 发送消息通知
         this.sendCommentNotification(insertModel, postModel, parentComment, replyComment, content);
 
-        // 返回给前台
-        List<UserInfoVO> userInfoByIdList = this.userService.getUserInfoByIdList(Collections.singletonList(insertModel.getUserId()));
+        UserModel userModel = this.userService.getById(current.getUserId());
+        Assert.notNull(userModel,  "userModel is null");
 
+        // 返回给前台
         PostCommentVO commentVO = new PostCommentVO();
         BeanUtils.copyProperties(insertModel, commentVO);
         commentVO.setReplies(Lists.newArrayList());
-        if (CollectionUtils.isNotEmpty(userInfoByIdList)) {
-            UserInfoVO vo = userInfoByIdList.get(0);
-            commentVO.setNickname(vo.getNickname());
-            commentVO.setAvatar(vo.getAvatar());
-        }
-
+        commentVO.setNickname(userModel.getNickname());
+        commentVO.setAvatar(userModel.getAvatar());
         return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }
 
@@ -1082,31 +1039,6 @@ public class PostServiceImpl implements PostService {
         List<PostReplyVO> postReplyList = this.postCommentMapper.getPostReplyPage(commentId);
         PageInfo<PostReplyVO> pageInfo = new PageInfo<>(postReplyList);
 
-
-        Set<Long> userInfoIds = Sets.newHashSet();
-        if (CollectionUtils.isNotEmpty(postReplyList)) {
-            for (PostReplyVO postReplyVO : pageInfo.getList()) {
-                userInfoIds.add(postReplyVO.getUserId());
-                userInfoIds.add(postReplyVO.getToUserId());
-            }
-            Map<Long, UserInfoVO> userInfoVOMap = this.userService.getUserInfoByIdList(new ArrayList<>(userInfoIds)).stream()
-                    .collect(Collectors.toMap(UserInfoVO::getUserId, e -> e, (k1, k2) -> k2));
-            for (PostReplyVO postReplyVO : postReplyList) {
-
-                // 被评论人
-                UserInfoVO replyUserVO = userInfoVOMap.get(postReplyVO.getToUserId());
-                if (postReplyVO.getReplyId() > 0 && replyUserVO != null) {
-                    postReplyVO.setToUserNickName(replyUserVO.getNickname());
-                    postReplyVO.setToUserAvatar(replyUserVO.getAvatar());
-                }
-                // 当前评论人
-                UserInfoVO userInfoVO = userInfoVOMap.get(postReplyVO.getUserId());
-                if (userInfoVO != null) {
-                    postReplyVO.setAvatar(userInfoVO.getAvatar());
-                    postReplyVO.setNickname(userInfoVO.getNickname());
-                }
-            }
-        }
 
         PostReplyPageVO pageVO =  new PostReplyPageVO();
         pageVO.setList(postReplyList);

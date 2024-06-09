@@ -6,7 +6,6 @@
     <result column="user_id" jdbcType="BIGINT" property="userId" />
     <result column="user_code" jdbcType="VARCHAR" property="userCode" />
     <result column="user_tags" jdbcType="VARCHAR" property="userTags" />
-    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     <result column="gender" jdbcType="VARCHAR" property="gender" />
     <result column="bio" jdbcType="VARCHAR" property="bio" />
     <result column="website" jdbcType="VARCHAR" property="website" />
@@ -17,8 +16,8 @@
     <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime" />
   </resultMap>
   <sql id="Base_Column_List">
-    user_info_id, user_id, user_code, user_tags, avatar, gender, bio, website, location, 
-    followers_count, following_count, register_time, last_login_time
+    user_info_id, user_id, user_code, user_tags, gender, bio, website, location, followers_count, 
+    following_count, register_time, last_login_time
   </sql>
 
   <update id="updateLastLoginTime">
@@ -36,29 +35,10 @@
     update club_user_info
     set
         user_tags = #{userTags,jdbcType=VARCHAR},
-        avatar = #{avatar,jdbcType=VARCHAR},
         gender = #{gender,jdbcType=VARCHAR},
         bio = #{bio,jdbcType=VARCHAR},
         website = #{website,jdbcType=VARCHAR},
         location = #{location,jdbcType=VARCHAR}
     where user_id = #{userId,jdbcType=BIGINT}
-  </update>
-  <select id="selectUserInfoVoMap" resultType="com.coderman.club.vo.user.UserInfoVO">
-    SELECT
-    t1.user_id,
-    t2.username,
-    t2.nickname,
-    t1.avatar
-    FROM
-    club_user_info t1
-    inner join club_user t2 on t1.user_id = t2.user_id
-    where
-    t1.user_id in
-    <foreach collection="userIds" item="item" separator="," open="(" close=")">
-      #{item}
-    </foreach>
-  </select>
-  <update id="updateUserAvatar">
-    update club_user_info set avatar= #{avatarUrl} where user_id  =#{userId}
   </update>
 </mapper>

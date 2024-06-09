@@ -2,13 +2,9 @@ package com.coderman.club.mapper.user;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.coderman.club.model.user.UserInfoModel;
-import com.coderman.club.vo.user.UserInfoVO;
-import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This is the base Mapper class for table: club_user_info
@@ -23,8 +19,4 @@ public interface UserInfoMapper extends BaseMapper<UserInfoModel> {
 
     int updateUserInfoByUserId(UserInfoModel userInfoModel);
 
-    @MapKey(value = "userId")
-    Map<Long, UserInfoVO> selectUserInfoVoMap(@Param(value = "userIds") List<Long> userIds);
-
-    void updateUserAvatar(@Param(value = "userId") Long userId,@Param(value = "avatarUrl") String avatarUrl);
 }

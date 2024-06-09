@@ -43,21 +43,4 @@ public interface UserInfoService {
      * @param userInfoModel 包含待新增用户基本信息的对象。
      */
     void insertSelective(UserInfoModel userInfoModel);
-
-    /**
-     * 根据用户ID列表获取用户头像信息。
-     *
-     * @param userIds 用户ID列表。
-     * @return 包含用户头像信息的映射。
-     */
-    Map<Long, UserInfoVO> selectUserInfoVoMap(List<Long> userIds);
-
-    /**
-     * 更新指定用户的头像URL。
-     *
-     * @param userId     用户ID。
-     * @param avatarUrl  新的头像URL。
-     */
-    void updateUserAvatar(Long userId, String avatarUrl);
-
 }

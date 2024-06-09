@@ -19,7 +19,6 @@ import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.message.MessageSessionVO;
 import com.coderman.club.vo.message.MessageVO;
 import com.coderman.club.vo.user.AuthUserVO;
-import com.coderman.club.vo.user.UserInfoVO;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -175,19 +173,6 @@ public class MessageServiceImpl implements MessageService {
                     Long userTwo = e.getUserTwo();
                     return Objects.equals(current.getUserId(), userOne) ? userTwo : userOne;
                 }).distinct().collect(Collectors.toList());
-
-        // 设置头像和昵称
-        Map<Long, UserInfoVO> userInfoVoMap = this.userInfoService.selectUserInfoVoMap(userIds);
-        for (MessageSessionVO sessionVo : sessionVos) {
-            Long otherId = Objects.equals(current.getUserId(), sessionVo.getUserOne()) ? sessionVo.getUserTwo() : sessionVo.getUserOne();
-
-            UserInfoVO userInfoVO = userInfoVoMap.get(otherId);
-            if(userInfoVO!=null){
-                sessionVo.setAvatar(userInfoVO.getAvatar());
-                sessionVo.setNickname(userInfoVO.getNickname());
-                sessionVo.setUsername(userInfoVO.getUsername());
-            }
-        }
 
         return ResultUtil.getSuccessList(MessageSessionVO.class, sessionVos);
     }

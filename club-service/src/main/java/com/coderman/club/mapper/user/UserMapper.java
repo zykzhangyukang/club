@@ -30,4 +30,11 @@ public interface UserMapper extends BaseMapper<UserModel> {
      * @return
      */
     List<UserInfoVO> getUserInfoByIdList(@Param(value = "idList") List<Long> idList);
+
+    /**
+     * 更新用户头像
+     * @param userId
+     * @param avatarUrl
+     */
+    void updateUserAvatar(@Param(value = "userId") Long userId,@Param(value = "avatarUrl") String avatarUrl);
 }
