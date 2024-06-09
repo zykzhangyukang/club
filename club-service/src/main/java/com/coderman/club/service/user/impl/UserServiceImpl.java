@@ -258,7 +258,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         registerModel.setUserStatus(UserConstant.USER_STATUS_ENABLE);
         registerModel.setUserCode(SerialNumberUtil.get(SerialTypeEnum.USER_CODE));
         registerModel.setUpdateTime(new Date());
-        registerModel.setAvatar(this.generatorAvatar(registerModel));
+        registerModel.setAvatar(this.generatorAvatar(username));
         this.userMapper.insert(registerModel);
 
         // 用户详情信息
@@ -330,14 +330,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
         return ResultUtil.getSuccess();
     }
 
-    private String generatorAvatar(UserModel registerModel) {
-        String filePath = this.aliYunOssUtil.genFilePath(registerModel.getUserId() + "_avatar.png", FileModuleEnum.USER_MODULE);
+    private String generatorAvatar(String username) {
+        String filePath = this.aliYunOssUtil.genFilePath(username.hashCode() + "_.png", FileModuleEnum.USER_MODULE);
         try {
 
-            byte[] bytes = AvatarUtil.create(registerModel.getUserId().hashCode());
+            byte[] bytes = AvatarUtil.create(username.hashCode());
             this.aliYunOssUtil.uploadStream(new ByteArrayInputStream(bytes), filePath);
         } catch (Exception e) {
-            log.error("生成用户头像失败:{}, 上传失败设置默认头像: {}", e.getMessage(), UserConstant.USER_DEFAULT_AVATAR);
+            log.error("生成用户头像失败:{}, 上传失败设置默认头像: {}", e.getMessage(), UserConstant.USER_DEFAULT_AVATAR,e);
             return UserConstant.USER_DEFAULT_AVATAR;
         }
         return CommonConstant.OSS_DOMAIN + filePath;
