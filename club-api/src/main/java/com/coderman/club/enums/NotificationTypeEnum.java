@@ -29,11 +29,11 @@ public enum NotificationTypeEnum {
     /**
      * 评论帖子
      */
-    COMMENT("comment", "%s 评论了你的帖子：%s "),
+    COMMENT("comment", "%s 评论了你的帖子 “%s”  ：%s "),
     /**
      * 回复评论
      */
-    REPLY("reply", "%s 回复了你的评论：%s "),
+    REPLY("reply", "%s 回复了你的评论 “%s”  ：%s "),
     /**
      * 回复评论
      */
@@ -50,7 +50,7 @@ public enum NotificationTypeEnum {
                 return value;
             }
         }
-        throw new IllegalArgumentException("getByMsgType error：" +msgType);
+        return null;
     }
 
     private final String template;

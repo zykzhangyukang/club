@@ -6,7 +6,6 @@ import com.coderman.club.limiter.LimiterStrategy;
 import com.coderman.club.service.notification.NotificationService;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
-import com.coderman.club.vo.notification.NotificationCommentVO;
 import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
 import io.swagger.annotations.Api;
@@ -37,7 +36,7 @@ public class NotificationController {
     @ApiOperation(value = "获取消息通知列表")
     @PostMapping(value = "/page")
     @RateLimit(strategy = LimiterStrategy.SLIDING_WINDOW, windowRequests = 10)
-    public ResultVO<PageVO<List<NotificationCommentVO>>> getPage(@RequestBody NotificationDTO notificationDTO) {
+    public ResultVO<PageVO<List<NotificationVO>>> getPage(@RequestBody NotificationDTO notificationDTO) {
         return this.notificationService.getPage(notificationDTO);
     }
 

@@ -11,6 +11,7 @@
     <result column="to_user_id" jdbcType="BIGINT" property="toUserId" />
     <result column="location" jdbcType="VARCHAR" property="location" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="is_hide" jdbcType="BIT" property="isHide" />
     <result column="type" jdbcType="VARCHAR" property="type" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.coderman.club.model.post.PostCommentModel">
@@ -18,7 +19,7 @@
   </resultMap>
   <sql id="Base_Column_List">
     comment_id, post_id, parent_id, reply_id, reply_count, user_id, to_user_id, location, 
-    create_time, type
+    create_time, is_hide, type
   </sql>
   <sql id="Blob_Column_List">
     content
@@ -30,7 +31,7 @@
 
   <!-- 获取每个根评论的最新三条子回复 -->
   <select id="getTopRepliesForComments" parameterType="java.util.List" resultType="com.coderman.club.vo.post.PostReplyVO">
-    SELECT parent_id, comment_id, post_id, user_id, to_user_id, content, location, create_time,reply_id,reply_count,avatar,nickname,to_user_avatar,to_user_nickname
+    SELECT parent_id, comment_id, post_id, user_id, to_user_id, content, location, create_time, is_hide,reply_id,reply_count,avatar,nickname,to_user_avatar,to_user_nickname
     FROM (
     SELECT
     t1.comment_id,
@@ -43,6 +44,7 @@
     t1.content,
     t1.location,
     t1.create_time,
+    t1.is_hide,
     t2.avatar,
     t2.nickname,
     t3.avatar as to_user_avatar,
@@ -57,14 +59,14 @@
     <foreach item="item" index="index" collection="parentIds" open="(" separator="," close=")">
       #{item}
     </foreach>
-    AND  t1.`type` in ('reply','reply_at')
+    AND t1.is_hide = 0 AND t1.`type` in ('reply','reply_at')
     ORDER BY t1.parent_id ,
     <choose>
       <when test="orderByReplies!=null and orderByReplies.size()>0">
-        FIELD(t1.comment_id ,
-        <foreach collection="orderByReplies" item="item" separator=",">
-          #{item}
-        </foreach>
+      FIELD(t1.comment_id ,
+      <foreach collection="orderByReplies" item="item" separator=",">
+        #{item}
+      </foreach>
         ) DESC,
         t1.comment_id ASC
       </when>
@@ -87,6 +89,7 @@
     t1.to_user_id,
     t1.location,
     t1.create_time,
+    t1.is_hide,
     t1.type,
     t1.content,
     t2.avatar,
@@ -98,7 +101,7 @@
     left join club_user t3 on t1.to_user_id = t3.user_id
     WHERE
      t1.parent_id = #{commentId}
-     AND  t1.type in ('reply','reply_at')
+     AND t1.is_hide = 0 AND  t1.type in ('reply','reply_at')
      ORDER BY t1.comment_id ASC
   </select>
 
@@ -113,6 +116,10 @@
     t1.post_id,
     -- 帖子标题
     t2.title AS post_title,
+    -- 隐藏状态
+    t1.is_hide AS is_hide,
+    parent.is_hide AS parent_is_hide,
+    reply.is_hide AS replied_is_hide,
     -- 用户昵称
     parent_user.nickname AS parent_user,
     reply_user.nickname AS replied_user,
@@ -156,6 +163,7 @@
     t1.to_user_id,
     t1.location,
     t1.create_time,
+    t1.is_hide,
     t1.`type`,
     t1.content,
     t2.avatar,
@@ -166,7 +174,7 @@
     left join club_user t2 on t1.user_id = t2.user_id
     left join club_user t3 on t1.to_user_id = t3.user_id
     where
-    t1.post_id = #{dto.postId} and t1.`type` = 'comment'
+    t1.post_id = #{dto.postId} and t1.`type` = 'comment' and t1.is_hide = 0
     order by
     <choose>
       <when test="dto.orderByComments!=null and dto.orderByComments.size()>0">
@@ -182,6 +190,5 @@
       </otherwise>
     </choose>
   </select>
-
 
 </mapper>

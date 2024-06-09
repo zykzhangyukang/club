@@ -28,9 +28,11 @@ import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.post.*;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
+import com.coderman.club.vo.user.UserInfoVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -49,6 +51,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author ：zhangyukang
@@ -398,6 +401,8 @@ public class PostServiceImpl implements PostService {
 
         return ResultUtil.getSuccessPage(PostCommentVO.class, new PageVO<>(pageInfo.getTotal(), rootComments, currentPage, pageSize));
     }
+
+
 
 
     private boolean isCollectedPost(Long userId, long postId) {
@@ -808,7 +813,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResultVO<PostCommentResultVO> postComment(PostCommentDTO postCommentDTO) {
+    public ResultVO<PostCommentVO> postComment(PostCommentDTO postCommentDTO) {
 
         String content = postCommentDTO.getContent();
         Long postId = postCommentDTO.getPostId();
@@ -834,13 +839,14 @@ public class PostServiceImpl implements PostService {
         insertModel.setPostId(postId);
         insertModel.setParentId(parentId);
         insertModel.setUserId(current.getUserId());
+        insertModel.setIsHide(Boolean.FALSE);
         insertModel.setContent(content);
         insertModel.setLocation(IpUtil.getCityInfo());
         insertModel.setReplyId(replyId);
         insertModel.setReplyCount(0);
 
-        PostCommentModel parentComment;
-        PostCommentModel replyComment;
+        PostCommentModel parentComment = null;
+        PostCommentModel replyComment = null;
 
         if (parentId == 0) {
 
@@ -853,25 +859,28 @@ public class PostServiceImpl implements PostService {
             // 父级评论
             parentComment = this.selectCommentById(parentId);
             if (parentComment == null) {
-                throw new BusinessException("父级的评论不存在！");
+                throw new BusinessException("回复的评论不存在！");
             }
 
-            // 被回复的评论
-            replyComment = this.selectCommentById(replyId);
-            if (replyComment == null) {
-                throw new BusinessException("被回复的评论不存在！");
-            }
+            // @被回复的评论
+            if (insertModel.getReplyId() > 0) {
+                replyComment = this.selectCommentById(replyId);
+                if (replyComment == null) {
+                    throw new BusinessException("被@的评论不存在！");
+                }
 
-            insertModel.setType(PostConstant.REPLY_TYPE);
-            insertModel.setToUserId(replyComment.getUserId());
+                // 更新目标评论的回复数
+                this.postCommentMapper.addReplyCount(insertModel.getReplyId(), 1);
 
-            // 评论回复数维护
-            if (parentComment.getCommentId().equals(replyComment.getCommentId())) {
-                this.postCommentMapper.addReplyCount(parentComment.getCommentId(), 1);
+                insertModel.setToUserId(replyComment.getUserId());
+                insertModel.setType(PostConstant.REPLY_AT_TYPE);
             } else {
-                this.postCommentMapper.addReplyCount(parentComment.getCommentId(), 1);
-                this.postCommentMapper.addReplyCount(replyComment.getCommentId(), 1);
+                insertModel.setType(PostConstant.REPLY_TYPE);
+                insertModel.setToUserId(parentComment.getUserId());
             }
+
+            // 更新根评论的回复数
+            this.postCommentMapper.addReplyCount(parentId, 1);
         }
 
         // 插入评论数据
@@ -881,29 +890,25 @@ public class PostServiceImpl implements PostService {
         this.postMapper.addCommentsCount(postId, 1);
 
         // 发送消息通知
-        this.sendCommentNotification(insertModel, content);
+        this.sendCommentNotification(insertModel, postModel, parentComment, replyComment, content);
 
         UserModel userModel = this.userService.getById(current.getUserId());
-        Assert.notNull(userModel, "userModel is null");
+        Assert.notNull(userModel,  "userModel is null");
 
-        // 评论结果返回
-        PostCommentResultVO resultVO = new PostCommentResultVO();
-        BeanUtils.copyProperties(insertModel, resultVO);
-        resultVO.setNickname(userModel.getNickname());
-        resultVO.setAvatar(userModel.getAvatar());
-        resultVO.setReplies(Lists.newArrayList());
-        resultVO.setLikes(0);
-        UserModel toUser = this.userService.getById(insertModel.getToUserId());
-        if (toUser != null) {
-            resultVO.setToUserId(toUser.getUserId());
-            resultVO.setToUserNickName(toUser.getNickname());
-        }
-
-        return ResultUtil.getSuccess(PostCommentResultVO.class, resultVO);
+        // 返回给前台
+        PostCommentVO commentVO = new PostCommentVO();
+        BeanUtils.copyProperties(insertModel, commentVO);
+        commentVO.setReplies(Lists.newArrayList());
+        commentVO.setNickname(userModel.getNickname());
+        commentVO.setAvatar(userModel.getAvatar());
+        return ResultUtil.getSuccess(PostCommentVO.class, commentVO);
     }
 
     private PostCommentModel selectCommentById(Long commentId) {
-        return this.postCommentMapper.selectById(commentId);
+        return this.postCommentMapper.selectOne(Wrappers.<PostCommentModel>lambdaQuery().eq(PostCommentModel::getIsHide, 0)
+                .eq(PostCommentModel::getCommentId, commentId)
+                .last("limit 1")
+        );
     }
 
     private PostModel selectPostById(Long postId) {
@@ -913,24 +918,61 @@ public class PostServiceImpl implements PostService {
         );
     }
 
-
-    private void sendCommentNotification(PostCommentModel insertModel, String content) {
+    private void sendCommentNotification(PostCommentModel insertModel, PostModel postModel, PostCommentModel parentComment, PostCommentModel replyComment, String content) {
 
         AuthUserVO current = AuthUtil.getCurrent();
         if (Objects.equals(current.getUserId(), insertModel.getToUserId())) {
-//            return;
+            return;
         }
 
-        this.notificationService.send(
-                NotifyMsgDTO.builder()
-                        .senderId(current.getUserId())
-                        .content(content)
-                        .userIdList(Collections.singletonList(insertModel.getToUserId()))
-                        .typeEnum(NotificationTypeEnum.getByMsgType(insertModel.getType()))
-                        .content(String.format(Objects.requireNonNull(NotificationTypeEnum.getByMsgType(insertModel.getType())).getTemplate(), current.getNickname(), content))
-                        .relationId(insertModel.getCommentId())
-                        .build()
-        );
+        NotifyMsgDTO.NotifyMsgDTOBuilder notifyMsgBuilder = NotifyMsgDTO.builder()
+                .senderId(current.getUserId())
+                .content(content)
+                .userIdList(Collections.singletonList(insertModel.getToUserId()))
+                .relationId(insertModel.getCommentId());
+
+        NotifyMsgDTO msgDTO = null;
+        if (StringUtils.equals(insertModel.getType(), PostConstant.COMMENT_TYPE)) {
+
+            // 评论帖子
+            msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.COMMENT.getTemplate(), current.getNickname(), postModel.getTitle(), content))
+                    .typeEnum(NotificationTypeEnum.COMMENT).build();
+
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_TYPE)) {
+
+            // 发送消息通知 (回复评论)
+            assert parentComment != null;
+            msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.REPLY.getTemplate(), current.getNickname(), parentComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY).build();
+
+        } else if (StringUtils.equals(insertModel.getType(), PostConstant.REPLY_AT_TYPE)) {
+
+            // 发送消息通知 (回复@某人)
+            assert replyComment != null;
+            msgDTO = notifyMsgBuilder
+                    .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
+                    .typeEnum(NotificationTypeEnum.REPLY_AT).build();
+
+            // 如果@的人 != 父评论人，也需要发送消息通知给父评论人
+            if (!Objects.equals(parentComment.getUserId(), insertModel.getToUserId())) {
+
+                this.notificationService.send(
+                        NotifyMsgDTO.builder()
+                                .senderId(current.getUserId())
+                                .content(content)
+                                .userIdList(Collections.singletonList(parentComment.getUserId()))
+                                .relationId(insertModel.getCommentId())
+                                .content(String.format(NotificationTypeEnum.REPLY_AT.getTemplate(), current.getNickname(), replyComment.getContent(), content))
+                                .typeEnum(NotificationTypeEnum.REPLY_AT)
+                                .build()
+                );
+            }
+
+        }
+
+        this.notificationService.send(msgDTO);
     }
 
     @Override
@@ -948,20 +990,37 @@ public class PostServiceImpl implements PostService {
 
         int count = 0;
 
-        // 下面的子评论也要删除
-        count += this.postCommentMapper.delete(Wrappers.<PostCommentModel>lambdaUpdate().eq(PostCommentModel::getCommentId, commentId));
-        count += this.postCommentMapper.delete(Wrappers.<PostCommentModel>lambdaUpdate().eq(PostCommentModel::getParentId, postCommentModel.getCommentId()));
+        // 根评论 下面的子评论也要删除
+        if (StringUtils.equals(postCommentModel.getType(), PostConstant.COMMENT_TYPE)) {
+            count += this.postCommentMapper.update(null, Wrappers.<PostCommentModel>lambdaUpdate()
+                    .eq(PostCommentModel::getParentId, postCommentModel.getCommentId())
+                    .eq(PostCommentModel::getIsHide, Boolean.FALSE)
+                    .set(PostCommentModel::getIsHide, Boolean.TRUE)
+            );
+        }
+        count += this.postCommentMapper.update(null, Wrappers.<PostCommentModel>lambdaUpdate()
+                .eq(PostCommentModel::getCommentId, commentId)
+                .eq(PostCommentModel::getIsHide, Boolean.FALSE)
+                .set(PostCommentModel::getIsHide, Boolean.TRUE)
+        );
 
-        // 维护回复数
+        // 维护评论表中的回复数
         if (StringUtils.equals(postCommentModel.getType(), PostConstant.REPLY_TYPE)) {
-            if (!postCommentModel.getParentId().equals(postCommentModel.getReplyId())) {
-                this.postCommentMapper.addReplyCount(postCommentModel.getReplyId(), -1);
-            }
+            // 更新根评论的回复数
             this.postCommentMapper.addReplyCount(postCommentModel.getParentId(), -1);
         }
 
+        if (StringUtils.equals(postCommentModel.getType(), PostConstant.REPLY_AT_TYPE)) {
+            // 更新根评论的回复数
+            this.postCommentMapper.addReplyCount(postCommentModel.getParentId(), -1);
+            // 更新目标评论的回复数
+            this.postCommentMapper.addReplyCount(postCommentModel.getReplyId(), -1);
+        }
+
+
         // 减少帖子评论数
         this.postMapper.addCommentsCount(postCommentModel.getPostId(), -count);
+
         return ResultUtil.getSuccess();
     }
 
@@ -981,7 +1040,7 @@ public class PostServiceImpl implements PostService {
         PageInfo<PostReplyVO> pageInfo = new PageInfo<>(postReplyList);
 
 
-        PostReplyPageVO pageVO = new PostReplyPageVO();
+        PostReplyPageVO pageVO =  new PostReplyPageVO();
         pageVO.setList(postReplyList);
         pageVO.setHasMore(pageInfo.isHasNextPage());
         pageVO.setTotal(pageInfo.getTotal());

@@ -47,6 +47,9 @@ public class PostCommentModel implements Serializable {
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
 
+    @ApiModelProperty(value = "是否隐藏")
+    private Boolean isHide;
+
     @ApiModelProperty(value = "类型（评论：comment, 回复：reply）")
     private String type;
 
