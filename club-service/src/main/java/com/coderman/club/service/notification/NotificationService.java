@@ -4,6 +4,7 @@ import com.coderman.club.dto.notification.NotificationDTO;
 import com.coderman.club.dto.notification.NotifyMsgDTO;
 import com.coderman.club.vo.common.PageVO;
 import com.coderman.club.vo.common.ResultVO;
+import com.coderman.club.vo.notification.NotificationCommentVO;
 import com.coderman.club.vo.notification.NotificationCountVO;
 import com.coderman.club.vo.notification.NotificationVO;
 
@@ -34,7 +35,7 @@ public interface NotificationService {
      * @param notificationDTO 包含筛选条件的消息数据传输对象。
      * @return 包含消息列表的响应结果对象。
      */
-    ResultVO<PageVO<List<NotificationVO>>> getPage(NotificationDTO notificationDTO);
+    ResultVO<PageVO<List<NotificationCommentVO>>> getPage(NotificationDTO notificationDTO);
 
     /**
      * 标记消息为已读。

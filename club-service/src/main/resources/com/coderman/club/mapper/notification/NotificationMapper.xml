@@ -36,39 +36,22 @@
     WHERE
       user_id = #{userId} and is_read = 0
   </select>
-  <select id="getPage" resultType="com.coderman.club.vo.notification.NotificationVO">
+  <select id="getPage" resultType="com.coderman.club.vo.notification.NotificationCommentVO">
     SELECT
-    cn.notification_id,
-    cn.user_id,
-    cn.sender_id,
-    cn.relation_id,
-    cn.type,
-    cn.is_read,
-    cn.create_time
+	cn.notification_id,
+	cn.user_id,
+	cn.sender_id,
+	cn.relation_id,
+	cn.type,
+	cn.is_read,
+	cn.create_time
     FROM
-    club_notification cn
+        club_notification cn
     WHERE
-    cn.user_id = #{userId}
-
-    <choose>
-      <when test="type == 'system'">
-        and cn.type in ('register_welcome', 'register_init_pwd' , 'following_user')
-      </when>
-      <when test="type == 'reply'">
-        and cn.type in ('reply','comment','reply_at')
-      </when>
-      <when test="type == 'zan'">
-        and cn.type in ('like_post')
-      </when>
-      <otherwise>
-        and cn.type = #{type}
-      </otherwise>
-    </choose>
-    <if test="isRead!=null">
-      and cn.is_read = #{isRead}
-    </if>
+        cn.user_id = #{userId}
+        AND cn.type IN ( 'reply', 'comment' )
     ORDER BY
-    cn.create_time DESC
+	cn.create_time DESC
   </select>
 
   <update id="updateReadStatus">

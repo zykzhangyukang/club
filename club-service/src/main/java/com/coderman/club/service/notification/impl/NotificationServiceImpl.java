@@ -106,7 +106,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public ResultVO<PageVO<List<NotificationVO>>> getPage(NotificationDTO notificationDTO) {
+    public ResultVO<PageVO<List<NotificationCommentVO>>> getPage(NotificationDTO notificationDTO) {
 
         String type = notificationDTO.getType();
         Boolean isRead = notificationDTO.getIsRead();
@@ -122,153 +122,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         PageHelper.startPage(currentPage, pageSize);
-        List<NotificationVO> notificationVos = this.notificationMapper.getPage(current.getUserId(), isRead, type);
-        PageInfo<NotificationVO> pageInfo = new PageInfo<>(notificationVos);
+        List<NotificationCommentVO> notificationVos = this.notificationMapper.getPage(current.getUserId(), isRead, type);
 
-        List<NotificationVO> voList = pageInfo.getList();
 
-        // 帖子信息
-        Map<Long, NotificationPostVO> postModelMap = Maps.newHashMap();
-        List<Long> postIdList = voList.stream().filter(e -> this.isPostInfo(e.getType())).map(NotificationVO::getRelationId).distinct().collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(postIdList)) {
-            postModelMap = this.postMapper.selectNotificationPostVOs(postIdList).stream()
-                    .collect(Collectors.toMap(NotificationPostVO::getPostId, e -> e, (k1, k2) -> k2));
-        }
-
-        // 评论信息
-        Map<Long, NotificationCommentVO> commentVoMap = Maps.newHashMap();
-        List<Long> commentIdList = voList.stream().filter(e -> this.isCommentInfo(e.getType())).map(NotificationVO::getRelationId).distinct().collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(commentIdList)) {
-            commentVoMap = this.postCommentMapper.selectNotificationCommentVos(commentIdList)
-                    .stream()
-                    .collect(Collectors.toMap(NotificationCommentVO::getCommentId, e -> e, (k1, k2) -> k2));
-        }
-
-        for (NotificationVO notificationVO : voList) {
-
-            // 帖子信息封装
-            if (this.isPostInfo(notificationVO.getType())) {
-                setPost(postModelMap.get(notificationVO.getRelationId()), notificationVO);
-            }
-
-            // 评论信息
-            if (this.isCommentInfo(notificationVO.getType())) {
-                setComment(commentVoMap.get(notificationVO.getRelationId()), notificationVO);
-            }
-        }
-        long total = pageInfo.getTotal();
-        return ResultUtil.getSuccessPage(NotificationVO.class, new PageVO<>(total, notificationVos, currentPage, pageSize));
-    }
-
-    private void setPost(NotificationPostVO postVO, NotificationVO notificationVO) {
-        notificationVO.setPostTitle(postVO.getPostTitle());
-        notificationVO.setPostId(postVO.getPostId());
-    }
-
-    private void setComment(NotificationCommentVO commentVO, NotificationVO notificationVO) {
-
-        // 数据异常情况
-        if (commentVO == null) {
-            notificationVO.setContent("该评论已删除！");
-            notificationVO.setRepliedContent("原评论已删除！");
-            notificationVO.setParentContent("原评论已删除！");
-            return;
-        }
-
-        String content = StringUtils.EMPTY;
-        String parentContent = StringUtils.EMPTY;
-        String repliedContent = StringUtils.EMPTY;
-
-        Boolean isHide = commentVO.getIsHide();
-        Boolean parentIsHide = commentVO.getParentIsHide();
-        Boolean repliedIsHide = commentVO.getRepliedIsHide();
-
-        if (StringUtils.equals(commentVO.getType(), PostConstant.COMMENT_TYPE)) {
-
-            if (BooleanUtils.isNotFalse(isHide)) {
-                content = "该评论已删除";
-                parentContent = StringUtils.EMPTY;
-                repliedContent = StringUtils.EMPTY;
-            } else {
-                parentContent = StringUtils.EMPTY;
-                repliedContent = StringUtils.EMPTY;
-                content = commentVO.getContent();
-            }
-
-        } else if (StringUtils.equals(commentVO.getType(), PostConstant.REPLY_TYPE)) {
-
-            if (BooleanUtils.isNotFalse(parentIsHide)) {
-                content = "原评论已删除";
-                parentContent = "原评论已删除";
-                repliedContent = StringUtils.EMPTY;
-            } else if (BooleanUtils.isNotFalse(isHide)) {
-                content = "该评论已删除";
-                parentContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
-                repliedContent = StringUtils.EMPTY;
-            } else {
-                content = commentVO.getContent();
-                parentContent = commentVO.getParentUser() + "：" + commentVO.getParentContent();
-                repliedContent = StringUtils.EMPTY;
-            }
-
-        } else if (StringUtils.equals(commentVO.getType(), PostConstant.REPLY_AT_TYPE)) {
-
-            if (BooleanUtils.isNotFalse(parentIsHide)) {
-                content = "原评论已删除";
-                parentContent = "原评论已删除";
-                repliedContent = "原评论已删除";
-            } else if (BooleanUtils.isNotFalse(isHide)) {
-                content = "该评论已删除";
-                parentContent = commentVO.getParentContent();
-                repliedContent = getRepliedContent(commentVO, repliedIsHide);
-            } else {
-                content = commentVO.getContent();
-                parentContent = commentVO.getParentContent();
-                repliedContent = getRepliedContent(commentVO, repliedIsHide);
-            }
-        }
-
-        notificationVO.setParentContent(parentContent);
-        notificationVO.setRepliedContent(repliedContent);
-        notificationVO.setContent(content);
-        notificationVO.setPostId(commentVO.getPostId());
-        notificationVO.setPostTitle(commentVO.getPostTitle());
-        notificationVO.setRepliedUser(commentVO.getRepliedUser());
-        notificationVO.setToRepliedUser(commentVO.getToRepliedUser());
-        notificationVO.setUser(commentVO.getUser());
-        notificationVO.setToUser(commentVO.getToUser());
-        notificationVO.setAvatar(commentVO.getAvatar());
-        notificationVO.setIsHide(commentVO.getIsHide());
-        notificationVO.setParentIsHide(parentIsHide);
-        notificationVO.setRepliedIsHide(repliedIsHide);
-        notificationVO.setCommentId(commentVO.getCommentId());
-    }
-
-    @NotNull
-    private String getRepliedContent(NotificationCommentVO commentVO, Boolean repliedIsHide) {
-        String repliedContent;
-        if (BooleanUtils.isNotFalse(repliedIsHide)) {
-            repliedContent = "该评论已删除";
-        } else {
-
-            if (StringUtils.equals(commentVO.getRepliedType(), PostConstant.REPLY_AT_TYPE)) {
-                repliedContent = commentVO.getRepliedUser() + "：回复@" + commentVO.getToRepliedUser() + "：" + commentVO.getRepliedContent();
-            } else {
-                repliedContent = commentVO.getRepliedUser() + "：" + commentVO.getRepliedContent();
-            }
-        }
-        return repliedContent;
-    }
-
-    private boolean isPostInfo(String type) {
-        return StringUtils.equals(type, NotificationTypeEnum.LIKE_POST.getMsgType())
-                || StringUtils.equals(type, NotificationTypeEnum.COLLECT_POST.getMsgType());
-    }
-
-    private boolean isCommentInfo(String type) {
-        return StringUtils.equals(type, NotificationTypeEnum.COMMENT.getMsgType())
-                || StringUtils.equals(type, NotificationTypeEnum.REPLY.getMsgType())
-                || StringUtils.equals(type, NotificationTypeEnum.REPLY_AT.getMsgType());
+        return ResultUtil.getSuccessPage(NotificationCommentVO.class, null);
     }
 
 

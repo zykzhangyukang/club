@@ -31,7 +31,7 @@ public interface NotificationMapper extends BaseMapper<NotificationModel> {
      * @param type
      * @return
      */
-    List<NotificationVO> getPage(@Param(value = "userId") Long userId, @Param(value = "isRead") Boolean isRead, @Param(value = "type") String type);
+    List<NotificationCommentVO> getPage(@Param(value = "userId") Long userId, @Param(value = "isRead") Boolean isRead, @Param(value = "type") String type);
 
     /**
      * 修改消息状态

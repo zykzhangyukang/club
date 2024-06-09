@@ -116,7 +116,7 @@ public interface PostService {
      * @param postCommentDTO 包含待评论帖子信息的数据传输对象。
      * @return 表示评论帖子操作结果的响应结果对象。
      */
-    ResultVO<PostCommentVO> postComment(PostCommentDTO postCommentDTO);
+    ResultVO<PostCommentResultVO> postComment(PostCommentDTO postCommentDTO);
 
     /**
      * 删除指定帖子评论。

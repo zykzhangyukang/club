@@ -40,7 +40,7 @@ public class PostController {
     @ApiOperation(value = "评论帖子")
     @PostMapping(value = "/comment")
     @RateLimit(strategy = LimiterStrategy.FIXED_WINDOW, windowSize = 30, windowRequests = 10)
-    public ResultVO<PostCommentVO> postComment(@RequestBody PostCommentDTO postCommentDTO) {
+    public ResultVO<PostCommentResultVO> postComment(@RequestBody PostCommentDTO postCommentDTO) {
 
         return this.postService.postComment(postCommentDTO);
     }
