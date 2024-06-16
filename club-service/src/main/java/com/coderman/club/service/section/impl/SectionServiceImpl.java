@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -83,12 +81,7 @@ public class SectionServiceImpl implements SectionService {
                     BeanUtils.copyProperties(e, sectionVO);
                     return sectionVO;
                 })
-                .sorted(new Comparator<SectionVO>() {
-                    @Override
-                    public int compare(SectionVO o1, SectionVO o2) {
-                        return o1.getSort() - o2.getSort();
-                    }
-                })
+                .sorted(Comparator.comparingInt(SectionVO::getSort))
                 .distinct().collect(Collectors.toList());
 
         for (SectionVO firstLevel : firstLevelSection) {

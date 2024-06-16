@@ -1,4 +1,4 @@
-package com.coderman.club.condition;
+package com.coderman.club.config;
 
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;

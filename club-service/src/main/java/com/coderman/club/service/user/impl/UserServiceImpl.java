@@ -365,21 +365,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
     @Override
     public ResultVO<UserLoginRefreshVO> refreshToken(String refreshToken) {
 
+        // 记录日志
         log.warn("=======>>>>>>>>>>>>>>>>>>>>刷新Token:{}", refreshToken);
 
+        // 判断参数是否为空
         if (StringUtils.isBlank(refreshToken)) {
             return ResultUtil.getFail(UserLoginRefreshVO.class, null, "参数错误");
         }
 
+        // 获取锁名
         final String lockName = RedisKeyConstant.REDIS_REFRESH_LOCK_PREFIX + refreshToken;
+        // 尝试获取锁
         boolean tryLock = this.redisLockService.tryLock(lockName, TimeUnit.SECONDS.toMillis(3), TimeUnit.SECONDS.toMillis(3));
         if (!tryLock) {
             return ResultUtil.getWarn("刷新令牌失败请重试！");
         }
         try {
 
+            // 从redis中获取用户信息
             AuthUserVO oldAuthUserVo = this.redisService.getObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + refreshToken,
                     AuthUserVO.class, RedisDbConstant.REDIS_DB_DEFAULT);
+            // 判断用户信息是否为空
             if (oldAuthUserVo == null) {
                 return ResultUtil.getFail("会话已过期，请重新登录！");
             }
@@ -387,16 +393,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
             // 生成新的访问令牌和刷新token
             String newToken = RandomStringUtils.randomAlphabetic(50);
             String newRefreshToken = RandomStringUtils.randomAlphabetic(50);
+            // 根据用户id查询用户信息
             UserModel userModel = this.userMapper.selectById(oldAuthUserVo.getUserId());
+            // 判断用户信息是否为空
             if (userModel == null) {
 
                 return ResultUtil.getFail("会话错误，请重新登录！");
             }
 
+            // 将用户信息转换为AuthUserVO对象
             UserLoginRefreshVO refreshVO = new UserLoginRefreshVO();
             String oldRefreshToken = oldAuthUserVo.getRefreshToken();
             String oldToken = oldAuthUserVo.getToken();
-
             AuthUserVO authUserVO = this.convertToAuthVO(userModel, newToken, newRefreshToken);
 
             // 删除掉原来的访问令牌
@@ -409,6 +417,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
             // 保存刷新令牌 (7天)
             this.redisService.setObject(RedisKeyConstant.USER_REFRESH_TOKEN_PREFIX + newRefreshToken, authUserVO, authProperties.getRefreshTokenExpiration(), RedisDbConstant.REDIS_DB_DEFAULT);
 
+            // 返回结果
             refreshVO.setRefreshToken(newRefreshToken);
             refreshVO.setToken(newToken);
             refreshVO.setExpiresIn(authProperties.getTokenExpiration());
@@ -416,6 +425,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,UserModel> implement
             return ResultUtil.getSuccess(UserLoginRefreshVO.class, refreshVO);
 
         } finally {
+            // 释放锁
             this.redisLockService.unlock(lockName);
         }
     }

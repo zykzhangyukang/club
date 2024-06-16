@@ -1,6 +1,5 @@
 package com.coderman.club.config;
 
-import com.coderman.club.condition.SwaggerEnabledCondition;
 import com.coderman.club.properties.AuthProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;

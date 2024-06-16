@@ -1,6 +1,5 @@
 package com.coderman.club.config;
 
-import com.coderman.club.condition.SwaggerEnabledCondition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
