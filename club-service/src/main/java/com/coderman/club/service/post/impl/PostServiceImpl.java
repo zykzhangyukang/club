@@ -956,7 +956,7 @@ public class PostServiceImpl implements PostService {
                     .typeEnum(NotificationTypeEnum.REPLY_AT).build();
 
             // 如果@的人 != 父评论人，也需要发送消息通知给父评论人
-            if (!Objects.equals(parentComment.getUserId(), insertModel.getToUserId())) {
+            if (!Objects.equals(parentComment.getUserId(), insertModel.getToUserId()) && !Objects.equals(parentComment.getUserId(), current.getUserId())) {
 
                 this.notificationService.send(
                         NotifyMsgDTO.builder()

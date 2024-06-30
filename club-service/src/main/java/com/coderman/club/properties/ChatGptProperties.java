@@ -1,11 +1,15 @@
 package com.coderman.club.properties;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * @author zhangyukang
  */
+@Setter
+@Getter
 @ConfigurationProperties(prefix = "ai.chatgpt")
 @Configuration
 public class ChatGptProperties {
@@ -20,19 +24,4 @@ public class ChatGptProperties {
     private  String openAiKey;
 
 
-    public String getOpenAiUrl() {
-        return openAiUrl;
-    }
-
-    public String getOpenAiKey() {
-        return openAiKey;
-    }
-
-    public void setOpenAiUrl(String openAiUrl) {
-        this.openAiUrl = openAiUrl;
-    }
-
-    public void setOpenAiKey(String openAiKey) {
-        this.openAiKey = openAiKey;
-    }
 }
