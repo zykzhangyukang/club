@@ -49,6 +49,7 @@ public class OpenAiServiceImpl implements OpenAiService {
 
         JSONObject params = new JSONObject();
         params.put("model", "gpt-3.5-turbo");
+        params.put("temperature",0.7);
         params.put("messages", messages);
         params.put("stream", true);
 
@@ -113,12 +114,14 @@ public class OpenAiServiceImpl implements OpenAiService {
                 log.info("=====> close");
                 sseEmitter.complete();
                 log.info("result={}", sb);
+                eventSource.cancel();
             }
 
             @Override
             public void onFailure(@NonNull EventSource eventSource, Throwable t, Response response) {
                 log.error("连接OpenAI平台时出现错误，error:{}，response:{}", t,JSON.toJSONString(response) ,t);
                 sseEmitter.completeWithError(t);
+                eventSource.cancel();
             }
         });
 
