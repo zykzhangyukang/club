@@ -3,6 +3,7 @@ package com.coderman.club.controller.index;
 import com.coderman.club.annotation.RateLimit;
 import com.coderman.club.limiter.LimiterStrategy;
 import com.coderman.club.service.openai.OpenAiService;
+import com.coderman.club.utils.DesUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
