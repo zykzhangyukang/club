@@ -85,7 +85,8 @@ public class OpenAiServiceImpl implements OpenAiService {
                     log.debug("onEvent==> {}", data);
 
                 } catch (IOException e) {
-                    log.error("onEvent  sseEmitter#send error:{}", e.getMessage(), e);
+                    sseEmitter.completeWithError(e);
+                    log.error("onEvent  sseEmitter#send error:{}", e.getMessage());
                 }
             }
 
