@@ -28,11 +28,9 @@ import com.coderman.club.vo.common.ResultVO;
 import com.coderman.club.vo.post.*;
 import com.coderman.club.vo.section.SectionVO;
 import com.coderman.club.vo.user.AuthUserVO;
-import com.coderman.club.vo.user.UserInfoVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -51,7 +49,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author ：zhangyukang
@@ -296,13 +293,16 @@ public class PostServiceImpl implements PostService {
     public ResultVO<PostDetailVO> getPostDetail(String idStr) {
 
         if (!NumberUtils.isDigits(idStr)) {
-
             return ResultUtil.getWarn("抱歉，该帖子不存在！");
         }
 
-        long id = Long.parseLong(idStr);
+        long id = 0;
+        try {
+            id = Long.parseLong(idStr);
+        }catch (Exception ignored){
+        }
 
-        if (id < 0) {
+        if (id <= 0) {
             return ResultUtil.getWarn("抱歉，该帖子不存在！");
         }
 
