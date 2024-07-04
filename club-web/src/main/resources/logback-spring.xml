@@ -16,9 +16,9 @@
     <!-- name的值是变量的名称，value的值时变量定义的值。通过定义的值会被插入到logger上下文中。定义变量后，可以使“${}”来使用变量-->
     <property name="log.file" value="${logFile}" />
     <!-- 日志打印格式模板 -->
-    <property name="log.file.pattern" value="[%-5p]%n%logOwner%d{ISO8601}%n{} [%thread]=>StackTrace: %replace(%caller{1}){'Caller.{1}0\t at', 'at'}**************************%n%m%n**************************%n%n"/>
+<!--    <property name="log.file.pattern" value="[%-5p]%n%logOwner%d{ISO8601}%n{} [%thread]=>StackTrace: %replace(%caller{1}){'Caller.{1}0\t at', 'at'}**************************%n%m%n**************************%n%n"/>-->
     <!-- 控制台打格式模板 -->
-    <property name="log.console.pattern" value="${log.console.pattern:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="log.file.pattern" value="${log.file.pattern:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
 
     <!--输出到控制台-->
     <appender name="LOG_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
