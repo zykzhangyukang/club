@@ -31,9 +31,6 @@ spring:
     timeout: 5000
     jedis:
       pool:
-        test-on-borrow: false
-        test-on-return: false
-        test-while-idle: true
         max-active: 10
         max-idle: 5
         min-idle: 5

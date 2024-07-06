@@ -173,7 +173,7 @@
 
   <select id="selectNotificationPostVOs" resultType="com.coderman.club.vo.notification.NotificationPostVO">
     select post_id,
-              post_title
+              title as post_title
     from club_post
     where post_id in
     <foreach collection="postIdList" item="item" separator="," open="(" close=")">
