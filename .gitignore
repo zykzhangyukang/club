@@ -40,3 +40,5 @@ _dockerCerts/
 .factorypath
 
 transaction-logs
+
+docker/
