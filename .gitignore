@@ -41,4 +41,4 @@ _dockerCerts/
 
 transaction-logs
 
-docker/
+Dockerfile
