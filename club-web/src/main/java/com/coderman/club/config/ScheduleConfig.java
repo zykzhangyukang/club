@@ -23,7 +23,7 @@ public class ScheduleConfig implements SchedulingConfigurer {
     public ThreadPoolTaskScheduler taskScheduler(){
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(10);
-        scheduler.setThreadNamePrefix("club--scheduler-thread");
+        scheduler.setThreadNamePrefix("club-scheduler-thread");
         scheduler.setAwaitTerminationSeconds(60);
         scheduler.setWaitForTasksToCompleteOnShutdown(false);
         return scheduler;

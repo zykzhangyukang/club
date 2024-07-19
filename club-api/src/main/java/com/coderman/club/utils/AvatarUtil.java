@@ -36,6 +36,7 @@ public class AvatarUtil {
      * @throws IOException
      */
     public static byte[] create(int id) throws IOException {
+        id= Math.abs(id);
         int width = 20;
         int grid = 5;
         int padding = width / 2;

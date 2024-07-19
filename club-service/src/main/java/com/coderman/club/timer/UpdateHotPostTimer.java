@@ -91,7 +91,7 @@ public class UpdateHotPostTimer implements CommandLineRunner {
 
     @Scheduled(cron = "0 */30 * * * ?")
     public void refreshHotPosts() {
-        List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(500);
+        List<PostHotTaskVO> taskVoList = postHotService.getPostTaskList(1000);
         log.info("Retrieved post tasks: {}", JSON.toJSONString(taskVoList));
 
         if(CollectionUtils.isEmpty(taskVoList)){
